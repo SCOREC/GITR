@@ -1260,10 +1260,10 @@ for ( int s=0; s<nSteps; s++ )
 #ifdef __CUDACC__
 #else
 #endif
-//cout << "OparticlesPointer->rations Time: " << oparticlesPointer->rationsTime <<endl;
-//cout << "Efield InterparticlesPointer->lation Time: " << interparticlesPointer->Time <<endl;
-//cout << "Bfield InterparticlesPointer->lation Time: " << interparticlesPointer->Time <<endl;
-//cout << "Init Time: " << initTime <<endl;
+//std::cout << "OparticlesPointer->rations Time: " << oparticlesPointer->rationsTime <<std::endl;
+//std::cout << "Efield InterparticlesPointer->lation Time: " << interparticlesPointer->Time <<std::endl;
+//std::cout << "Bfield InterparticlesPointer->lation Time: " << interparticlesPointer->Time <<std::endl;
+//std::cout << "Init Time: " << initTime <<std::endl;
             }
 #endif
     } 

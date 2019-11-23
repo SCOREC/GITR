@@ -69,15 +69,15 @@ void operator()(size_t indx) const {
     float x0 = particlesPointer->xprevious[indx];
     float y0 = particlesPointer->yprevious[indx];
     float z0 = particlesPointer->zprevious[indx];
-    //cout << "initial position " << x0 << " " << y0 << " " << z0 << endl;
+    //std::cout << "initial position " << x0 << " " << y0 << " " << z0 << std::endl;
         interp2dVector(&B[0],particlesPointer->xprevious[indx],particlesPointer->yprevious[indx],particlesPointer->zprevious[indx],nR_Bfield,nZ_Bfield,
                                BfieldGridRDevicePointer,BfieldGridZDevicePointer,BfieldRDevicePointer,BfieldZDevicePointer,BfieldTDevicePointer);
         Bmag = sqrt(B[0]*B[0] + B[1]*B[1] + B[2]*B[2]);
         B_unit[0] = B[0]/Bmag;
         B_unit[1] = B[1]/Bmag;
         B_unit[2] = B[2]/Bmag;
-    //cout << "B " << B[0] << " " <<  B[1]<< " " <<  B[2]<< " " <<endl;
-    //cout << "B_unit " << B_unit[0] << " " <<  B_unit[1]<< " " <<  B_unit[2]<< " " <<endl;
+    //std::cout << "B " << B[0] << " " <<  B[1]<< " " <<  B[2]<< " " <<std::endl;
+    //std::cout << "B_unit " << B_unit[0] << " " <<  B_unit[1]<< " " <<  B_unit[2]<< " " <<std::endl;
 #if PARTICLESEEDS > 0
 #ifdef __CUDACC__
         	float r3 = curand_uniform(&state[indx]);
@@ -125,23 +125,23 @@ void operator()(size_t indx) const {
 //   float xNew = x0+0.5*(k1x+k2x); 
 //   float yNew = y0+0.5*(k1y+k2y); 
 //   float zNew = z0+0.5*(k1z+k2z); 
-//   cout <<"pps new plus " << xNew << " " << yNew << " " << zNew << endl;
+//   std::cout <<"pps new plus " << xNew << " " << yNew << " " << zNew << std::endl;
 //    float B_minus[3] = {0.0f};
 //        interp2dVector(&B_minus[0],x_minus,y_minus,z_minus,nR_Bfield,nZ_Bfield,
 //                               BfieldGridRDevicePointer,BfieldGridZDevicePointer,BfieldRDevicePointer,BfieldZDevicePointer,BfieldTDevicePointer);
-//        float Bmag_minus = sqrt(B_minus[0]*B_minus[0] + B_minus[1]*B_minus[1] + B_minus[2]*B_minus[2]);
+//        float Bmag_minus = std::sqrt(B_minus[0]*B_minus[0] + B_minus[1]*B_minus[1] + B_minus[2]*B_minus[2]);
 //    float k2x_minus = -B_minus[0]*h/Bmag_minus;
 //    float k2y_minus = -B_minus[1]*h/Bmag_minus;
 //    float k2z_minus = -B_minus[2]*h/Bmag_minus;
 //   float xNew_minus = x0+0.5*(k1x+k2x); 
 //   float yNew_minus = y0+0.5*(k1y+k2y); 
 //   float zNew_minus = z0+0.5*(k1z+k2z); 
-//   cout <<"pps new minus " << xNew_minus << " " << yNew_minus << " " << zNew_minus << endl;
+//   std::cout <<"pps new minus " << xNew_minus << " " << yNew_minus << " " << zNew_minus << std::endl;
     
     float B_deriv1[3] = {0.0f};
 //    float B_deriv2[3] = {0.0f};
-    //cout << "B_plus " << B_plus[0] << " " <<  B_plus[1]<< " " <<  B_plus[2]<< " " <<endl;
-    //cout << "B_minus " << B_minus[0] << " " <<  B_minus[1]<< " " <<  B_minus[2]<< " " <<endl;
+    //std::cout << "B_plus " << B_plus[0] << " " <<  B_plus[1]<< " " <<  B_plus[2]<< " " <<std::endl;
+    //std::cout << "B_minus " << B_minus[0] << " " <<  B_minus[1]<< " " <<  B_minus[2]<< " " <<std::endl;
     B_deriv1[0] = (B_plus[0] - B[0])/(h);
     B_deriv1[1] = (B_plus[1] - B[1])/(h);
     B_deriv1[2] = (B_plus[2] - B[2])/(h);
@@ -149,8 +149,8 @@ void operator()(size_t indx) const {
    // B_deriv1[0] = (B_plus[0] - B_minus[0])/(2*h);
    // B_deriv1[1] = (B_plus[1] - B_minus[1])/(2*h);
    // B_deriv1[2] = (B_plus[2] - B_minus[2])/(2*h);
-    //cout << "B_deriv1 " << B_deriv1[0] << " " <<  B_deriv1[1]<< " " <<  B_deriv1[2]<< " " <<endl;
-    //cout << "Bderiv2 " << B_deriv2[0] << " " <<  B_deriv2[1]<< " " <<  B_deriv2[2]<< " " <<endl;
+    //std::cout << "B_deriv1 " << B_deriv1[0] << " " <<  B_deriv1[1]<< " " <<  B_deriv1[2]<< " " <<std::endl;
+    //std::cout << "Bderiv2 " << B_deriv2[0] << " " <<  B_deriv2[1]<< " " <<  B_deriv2[2]<< " " <<std::endl;
     //float pos_deriv1[3] = {0.0f};
     //float pos_deriv2[3] = {0.0f};
     //pos_deriv1[0] = (xNew-x0)/(h);
@@ -159,7 +159,7 @@ void operator()(size_t indx) const {
     //pos_deriv2[0] = (xNew - 2*x0 + xNew_minus)/(h*h);
     //pos_deriv2[1] = (yNew - 2*y0 + yNew_minus)/(h*h);
     //pos_deriv2[2] = (zNew - 2*z0 + zNew_minus)/(h*h);
-    //cout << "pos_deriv1 " << pos_deriv1[0] << " " <<  pos_deriv1[1]<< " " <<  pos_deriv1[2]<< " " <<endl;
+    //std::cout << "pos_deriv1 " << pos_deriv1[0] << " " <<  pos_deriv1[1]<< " " <<  pos_deriv1[2]<< " " <<std::endl;
     //float deriv_cross[3] = {0.0};
     //vectorCrossProduct(B_deriv1, B_deriv2, deriv_cross);
     float denom = vectorNorm(B_deriv1);
@@ -192,7 +192,7 @@ void operator()(size_t indx) const {
          error = abs(theta1-theta0);
          theta0=theta1;
          nloops++;
-         //cout << " R rand and theta "<<R << " " <<  drand << " " << theta0 << endl;
+         //std::cout << " R rand and theta "<<R << " " <<  drand << " " << theta0 << std::endl;
     }
     if(nloops > 9)
     {
@@ -204,7 +204,7 @@ void operator()(size_t indx) const {
     {R = 1.0e-4;
       theta0 = 2*3.14159265359*drand;
     }
-         //cout << "out of newton"<< endl;
+         //std::cout << "out of newton"<< std::endl;
       
 
     if(plus_minus1 < 0)
@@ -236,9 +236,9 @@ perpVector[2] = B_deriv1[2];
     //for(int ii=0;ii<100;ii++)
     //{ theta[ii] = 3.1415/100.0*ii;
     //  f_theta[ii] = 
-    //    //2*R*theta[ii] -step*sin(theta[ii]);}
+    //    //2*R*theta[ii] -step*std::sin(theta[ii]);}
     //    //A_in + ii/100*(A_out-A_in);}
-    //    (2.0*R*step-step*step*cos(theta[ii]));}
+    //    (2.0*R*step-step*step*std::cos(theta[ii]));}
     //cdf[0] = f_theta[0];
     //for(int ii=1;ii<100;ii++)
     //{cdf[ii] = cdf[ii-1]+f_theta[ii];}
@@ -291,10 +291,12 @@ if(abs(denom) < 1.0e-8)
 		perpVector[0] = perpVector[0]/norm;
 		perpVector[1] = perpVector[1]/norm;
 		perpVector[2] = perpVector[2]/norm;
-                //cout << "perp Vector " << perpVector[0] << " " << perpVector[1] << " " << perpVector[2]<<endl;
-		
-		step = sqrt(6*diffusionCoefficient*dt);
-
+//                //std::cout << "perp Vector " << perpVector[0] << " " << perpVector[1] << " " << perpVector[2]<<std::endl;
+//		
+//		step = std::sqrt(6*diffusionCoefficient*dt);
+    //std::cout << "y_dir " << y_dir[0] << " " <<  y_dir[1]<< " " <<  y_dir[2]<< " " <<std::endl;
+    //std::cout << "y_dir " << y_dir[0] << " " <<  y_dir[1]<< " " <<  y_dir[2]<< " " <<std::endl;
+    //std::cout << "transforms " << x_transform << " " << y_transform << " " << z_transform << std::endl; 
 		particlesPointer->x[indx] = particlesPointer->xprevious[indx] + step*perpVector[0];
 		particlesPointer->y[indx] = particlesPointer->yprevious[indx] + step*perpVector[1];
 		particlesPointer->z[indx] = particlesPointer->zprevious[indx] + step*perpVector[2];
