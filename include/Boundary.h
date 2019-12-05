@@ -75,6 +75,10 @@ class Boundary
     float impacts;
     float redeposit;
 
+    float midx;
+    float midy;
+    float midz;
+
     CUDA_CALLABLE_MEMBER
     void getSurfaceParallel(float A[],float y,float x)
     {

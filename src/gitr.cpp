@@ -3664,7 +3664,7 @@ std::cout << "GEOM_HASH 1 \n";
   int dof_intermediate = 0;
   int size_intermediate = 1;
   if(writeIntermediate) {
-    dof_intermediate = 11; //with pos
+    dof_intermediate = 16; //with pos
     std::cout << "\n**WARNING *** intermediate_data is not set for MPI\n";
     size_intermediate = nP*(nT+1)*dof_intermediate;
     std::cout << "\n\n STARTING intermediate data stoing :size " << size_intermediate << " \n";
@@ -3702,7 +3702,7 @@ std::cout << "GEOM_HASH 1 \n";
                      &gridZ_bins.front(), &net_Bins.front(), dt);
 #endif
 #if USEIONIZATION > 0
-  idof = 6;
+  idof = 12;
   ionize ionize0(
       particleArray, dt, &state1.front(), nR_Dens, nZ_Dens, &DensGridr.front(),
       &DensGridz.front(), &ne.front(), nR_Temp, nZ_Temp, &TempGridr.front(),
@@ -3711,7 +3711,7 @@ std::cout << "GEOM_HASH 1 \n";
       &rateCoeff_Ionization.front(), &intermediate.front(), nT, idof, dof_intermediate);
 #endif
 #if USERECOMBINATION > 0
-  idof = 8;
+  idof = 14;
   recombine recombine0(
       particleArray, dt, &state1.front(), nR_Dens, nZ_Dens, &DensGridr.front(),
       &DensGridz.front(), &ne.front(), nR_Temp, nZ_Temp, &TempGridr.front(),
@@ -4091,21 +4091,27 @@ std::cout << "GEOM_HASH 1 \n";
       netCDF::NcDim ncdim_nthist = ncFile_hist.addDim("nTHist", nHistoriesPerParticle);
       netCDF::NcDim ncdim_ntrun = ncFile_hist.addDim("nTRun", nT);
       netCDF::NcDim ncdim_dof = ncFile_hist.addDim("dof", dof_intermediate);
-      
       netCDF::NcDim ncdim_efield = ncFile_hist.addDim("Efield", 3);
       netCDF::NcDim ncdim_pos = ncFile_hist.addDim("position", 3);
+      netCDF::NcDim ncdim_charge = ncFile_hist.addDim("charge", 1);
+      netCDF::NcDim ncdim_mindist = ncFile_hist.addDim("minDist", 1);
+      netCDF::NcDim ncdim_cld = ncFile_hist.addDim("CLD", 1);
+      netCDF::NcDim ncdim_mid = ncFile_hist.addDim("midpt", 3);
       netCDF::NcDim ncdim_rndioni = ncFile_hist.addDim("RndIoni", 1);
       netCDF::NcDim ncdim_ioniRate = ncFile_hist.addDim("IoniRate", 1);
       netCDF::NcDim ncdim_rndrecomb = ncFile_hist.addDim("RndRecomb", 1);
       netCDF::NcDim ncdim_recRate = ncFile_hist.addDim("RecombRate", 1);
-      netCDF::NcDim ncdim_charge = ncFile_hist.addDim("charge", 1);
       netCDF::NcDim ncdim_efield_at = ncFile_hist.addDim("Efield_at", 0);
       netCDF::NcDim ncdim_pos_At = ncFile_hist.addDim("position_at", 3);
-      netCDF::NcDim ncdim_rndioni_at = ncFile_hist.addDim("RndIoni_at", 6);
-      netCDF::NcDim ncdim_ionirate_at = ncFile_hist.addDim("IoniRate_at", 7);
-      netCDF::NcDim ncdim_rndrecomb_at = ncFile_hist.addDim("RndRecomb_at", 8);
-      netCDF::NcDim ncdim_recRate_at = ncFile_hist.addDim("RecombRate_at", 9);
-      netCDF::NcDim ncdim_charge_at = ncFile_hist.addDim("charge_at", 10);
+      netCDF::NcDim ncdim_charge_at = ncFile_hist.addDim("charge_at", 6);
+      netCDF::NcDim ncdim_mindist_at = ncFile_hist.addDim("mindist_at", 7);
+      netCDF::NcDim ncdim_cld_at = ncFile_hist.addDim("CLD_at", 8);
+      netCDF::NcDim ncdim_mid_at = ncFile_hist.addDim("midpt_at", 9);
+      netCDF::NcDim ncdim_rndioni_at = ncFile_hist.addDim("RndIoni_at", 12);
+      netCDF::NcDim ncdim_ionirate_at = ncFile_hist.addDim("IoniRate_at", 13);
+      netCDF::NcDim ncdim_rndrecomb_at = ncFile_hist.addDim("RndRecomb_at", 14);
+      netCDF::NcDim ncdim_recRate_at = ncFile_hist.addDim("RecombRate_at", 15);
+
       vector<NcDim>dims_intermediate;
       dims_intermediate.push_back(ncdim_np);
       dims_intermediate.push_back(ncdim_dof);

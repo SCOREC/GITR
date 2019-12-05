@@ -72,6 +72,9 @@ struct boundary_init {
         float midpointx = b.x1 + 0.666666667*(b.x2 + 0.5*(b.x3-b.x2)-b.x1);
         float midpointy = b.y1 + 0.666666667*(b.y2 + 0.5*(b.y3-b.y2)-b.y1);
         float midpointz = b.z1 + 0.666666667*(b.z2 + 0.5*(b.z3-b.z2)-b.z1);
+        b.midx = midpointx;
+        b.midy = midpointy;
+        b.midz = midpointz;
 #else
 
         float midpointx = 0.5*(b.x2 - b.x1)+ b.x1;
