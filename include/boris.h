@@ -743,7 +743,7 @@ void operator()(size_t indx) {
     
   for ( int s=0; s<nSteps; s++ ) 
   {
-    float CLD = 0. midx=0, midy=0, midz=0;
+    float CLD = 0, midx=0, midy=0, midz=0;
 
 #if USESHEATHEFIELD > 0
 
@@ -751,7 +751,7 @@ void operator()(size_t indx) {
       particlesPointer->zprevious[indx], E,boundaryVector,nLines,nR_closeGeom_sheath,  
       nY_closeGeom_sheath,nZ_closeGeom_sheath,  n_closeGeomElements_sheath,closeGeomGridr_sheath, 
       closeGeomGridy_sheath,  closeGeomGridz_sheath,closeGeom_sheath, closestBoundaryIndex, 
-      particlesPointer->index[indx], CLD. midx, midy, midz );
+      particlesPointer->index[indx], CLD, midx, midy, midz );
 
 #endif
 
