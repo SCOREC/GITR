@@ -17,8 +17,8 @@ using namespace std;
 #include "interp2d.hpp"
 #include <algorithm>
 
-#ifndef COMPARE_GITR
-#define COMPARE_GITR 0
+#ifndef COMPARE_GITR_PRINT
+#define COMPARE_GITR_PRINT 0
 #endif
 
 CUDA_CALLABLE_MEMBER
@@ -91,12 +91,112 @@ void vectorCrossProduct(float A[], float B[], float C[])
     C[1] = tmp[1];
     C[2] = tmp[2];
 }
+
+CUDA_CALLABLE_MEMBER
+void closest_point_on_triangle(float* A, float* B, float*C, float* pt, float* ptq) {
+  int debug = 0;
+  int region = -1;
+  // Check if P in vertex region outside A
+  float ab[3], ac[3], ap[3], bp[3];
+  vectorSubtract(B, A, ab); 
+  vectorSubtract(C, A, ac); 
+  vectorSubtract(pt, A, ap);
+  float d1 = vectorDotProduct(ab, ap);
+  float d2 = vectorDotProduct(ac, ap);
+  if (d1 <= 0 && d2 <= 0) {
+    // barycentric coordinates (1,0,0)
+    for(int i=0; i<3; ++i)
+      ptq[i] = A[i];
+    region =0;
+    return; 
+  }
+  // Check if P in vertex region outside B
+  vectorSubtract(pt, B, bp);
+  float d3 = vectorDotProduct(ab, bp);
+  float d4 = vectorDotProduct(ac, bp);
+  if(d3 >= 0 && d4 <= d3){ 
+    // barycentric coordinates (0,1,0)
+    for(int i=0; i<3; ++i)
+      ptq[i] = B[i];
+    region =1;
+    return; 
+  }
+  // Check if P in edge region of AB, if so return projection of P onto AB
+  float vc = d1*d4 - d3*d2;
+  if(vc <= 0 && d1 >= 0 && d3 <= 0) {
+    float v = d1 / (d1 - d3);
+    // barycentric coordinates (1-v,v,0)
+    vectorScalarMult(v, ab, ptq);
+    vectorAdd(ptq, A, ptq); 
+    region = 2; //FIX
+    return;
+  }
+
+  // Check if P in vertex region outside C
+  float cp[3];
+  vectorSubtract(pt, C, cp);
+  float d5 = vectorDotProduct(ab, cp);
+  float d6 = vectorDotProduct(ac, cp);
+  if(region <0 && d6 >= 0 && d5 <= d6) { 
+    // barycentric coordinates (0,0,1)
+    for(int i=0; i<3; ++i)
+      ptq[i] = C[i]; 
+    region =3;
+    return;
+  }
+
+  // Check if P in edge region of AC, if so return projection of P onto AC
+  float vb = d5*d2 - d1*d6;
+  if(region <0 && vb <= 0 && d2 >= 0 && d6 <= 0) {
+    float w = d2 / (d2 - d6);
+    // barycentric coordinates (1-w,0,w)
+    vectorScalarMult(w, ac, ptq); // w*vac;
+    vectorAdd(ptq, A, ptq);
+    region = 4;
+    return;
+  }
+
+  // Check if P in edge region of BC, if so return projection of P onto BC
+  float va = d3*d6 - d5*d4;
+  if(region <0 && va <= 0 && (d4 - d3) >= 0 && (d5 - d6) >= 0) {
+    float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+    // barycentric coordinates (0,1-w,w)
+    float c_b[3], wc_b[3];
+    vectorSubtract(C,B,c_b);
+    vectorScalarMult(w, c_b, wc_b);
+    vectorAdd(B, wc_b, ptq);
+    //ptq =  ptb + w * (ptc - ptb); 
+    region = 5;
+    return;
+  }
+
+  // P inside face region. Compute Q through its barycentric coordinates (u,v,w)
+  if(region <0) {
+    float inv = 1 / (va + vb + vc);
+    float v = vb * inv;
+    float w = vc * inv;
+    // u*a + v*b + w*c, u = va * inv = 1 - v - w
+    float wxac[3], vxab[3], plus[3];
+    vectorScalarMult(w, ac, wxac);
+    vectorScalarMult(v, ab, vxab);
+    vectorAdd(vxab, wxac, plus);
+    vectorAdd(A, plus, ptq);
+    //ptq =  pta + v * vab+ w * vac;
+    region = 6;
+    return;
+  }
+  if(debug)
+    printf("d's:: %0.3f %0.3f %0.3f %0.3f %0.3f %0.3f \n", d1, d2, d3, d4, d5, d6);
+}
+
+
+
 CUDA_CALLABLE_MEMBER
 
 float getE ( float x0, float y, float z, float E[], Boundary *boundaryVector, int nLines,
        int nR_closeGeom, int nY_closeGeom,int nZ_closeGeom, int n_closeGeomElements, 
        float *closeGeomGridr,float *closeGeomGridy, float *closeGeomGridz, int *closeGeom, 
-         int&  closestBoundaryIndex, int ptcl, float CLD=0, float midx=0, float midy=0, float midz=0) {
+       int&  closestBoundaryIndex, int ptcl=-1, int* bdryMinInd=nullptr) {
 #if USE3DTETGEOM > 0
     float Emag = 0.0f;
     float Er = 0.0f;
@@ -172,6 +272,10 @@ float getE ( float x0, float y, float z, float E[], Boundary *boundaryVector, in
       float normals[21] = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
                            0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
                            0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+      float closestAll[21] =  {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
+                           0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
+                           0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+
 #if GEOM_HASH_SHEATH > 0
   float dr = closeGeomGridr[1] - closeGeomGridr[0];
   float dy = closeGeomGridy[1] - closeGeomGridy[0];
@@ -255,7 +359,10 @@ float getE ( float x0, float y, float z, float E[], Boundary *boundaryVector, in
          p0Cnorm = vectorNorm(p0C);
          distances[1] = p0Anorm;   
          distances[2] = p0Bnorm;   
-         distances[3] = p0Cnorm;   
+         distances[3] = p0Cnorm;
+      closestAll[3] =A[0]; closestAll[4] =A[1]; closestAll[5] =A[2];
+      closestAll[6] =B[0]; closestAll[7] =B[1]; closestAll[8] =B[2];
+      closestAll[9] =C[0]; closestAll[10] =C[1]; closestAll[11] =C[2];
              normals[3] = p0A[0]/p0Anorm;
              normals[4] = p0A[1]/p0Anorm;
              normals[5] = p0A[2]/p0Anorm;
@@ -292,7 +399,6 @@ float getE ( float x0, float y, float z, float E[], Boundary *boundaryVector, in
              normals[12] = p0AB[0]/p0ABdist;
              normals[13] = p0AB[1]/p0ABdist;
              normals[14] = p0AB[2]/p0ABdist;
-
          }
          else
          {
@@ -311,7 +417,6 @@ float getE ( float x0, float y, float z, float E[], Boundary *boundaryVector, in
              normals[15] = p0BC[0]/p0BCdist;
              normals[16] = p0BC[1]/p0BCdist;
              normals[17] = p0BC[2]/p0BCdist;
-
          }
          else
          {
@@ -548,8 +653,8 @@ float getE ( float x0, float y, float z, float E[], Boundary *boundaryVector, in
     directionUnitVector[0] = directionUnitVector[0]/vectorMagnitude;
     directionUnitVector[1] = directionUnitVector[1]/vectorMagnitude;
     directionUnitVector[2] = directionUnitVector[2]/vectorMagnitude;
-
 #endif   
+
 #if BIASED_SURFACE > 0
     pot = boundaryVector[minIndex].potential;
     Emag = pot/(2.0f*boundaryVector[minIndex].ChildLangmuirDist)*expf(-minDistance/(2.0f*boundaryVector[minIndex].ChildLangmuirDist));
@@ -599,16 +704,54 @@ float getE ( float x0, float y, float z, float E[], Boundary *boundaryVector, in
 #endif
 
 
-    if(COMPARE_GITR){   
-      printf("calcE: ptcl %d pot %g CLD %g mindist %g Emag %g dirV %g %g %g\n", ptcl, pot, boundaryVector[minIndex].ChildLangmuirDist,
-        minDistance, Emag, directionUnitVector[0], directionUnitVector[1] , directionUnitVector[2]);
-      
-    }
-    CLD = boundaryVector[minIndex].ChildLangmuirDist;
-    midx = boundaryVector[minIndex].midx;
-    midy = boundaryVector[minIndex].midy;
-    midz = boundaryVector[minIndex].midz;
+   if(COMPARE_GITR_PRINT==1 && ptcl>=0){
+     float pt[3]={0}, ptq[3]={0};
+     pt[0]= x0; pt[1] = y; pt[2] = z;
+     float A[3], B[3], C[3];
+     int numBdr = nLines;
+     int minI = -1;
+     float minD = 1.0e+10;
+     float minA[3]={0}, minB[3]={0}, minC[3]={0}, minq[3]={0};
+     //numBdr=1;
+     for(int i=0; i<numBdr; ++i){
+       //int i = minIndex;
+       
+       A[0] = boundaryVector[i].x1; A[1]=boundaryVector[i].y1;A[2]= boundaryVector[i].z1;
+       B[0] = boundaryVector[i].x2; B[1]=boundaryVector[i].y2;B[2]= boundaryVector[i].z2;
+       C[0] = boundaryVector[i].x3; C[1]=boundaryVector[i].y3;C[2]= boundaryVector[i].z3;
+       closest_point_on_triangle(A,B,C,pt, ptq);
+       float mind_test[3];
+       vectorSubtract(pt,ptq,mind_test);
+       float mind = vectorNorm(mind_test);
+       if(minD > mind){
+         minD = mind;
+         minI = i;
+         minA[0]=A[0];minA[1]=A[1];minA[2]=A[2];
+         minB[0]=B[0];minB[1]=B[1];minB[2]=B[2];
+         minC[0]=C[0];minC[1]=C[1];minC[2]=C[2];
+         minq[0] = ptq[0]; minq[1]=ptq[1];minq[2]=ptq[2];
+       }
+     }
 
+    float pott = boundaryVector[minI].potential;
+    float Efmag = pott/(2.0f*boundaryVector[minI].ChildLangmuirDist)*
+           expf(-minD/(2.0f*boundaryVector[minI].ChildLangmuirDist));
+    float Ef[3]={0};
+    float dirVec[3]={0}, diffV[3]={0}, vN[3]={0};
+    vectorSubtract(pt, minq, diffV);
+    vectorNormalize(diffV, vN);
+    vectorScalarMult(Efmag, vN, Ef);
+
+     printf("calcE: ptcl %d pot %g CLD %g mindist %g minIndex %d Emag %g dirV %g %g %g" 
+          " pos %g %g %g closest_test %g %g %g : mindist_test %g minInd_test %d " 
+          "testFace: %g %g %g : %g %g %g : %g %g %g Efmag %g Ef: %g %g %g\n",
+          ptcl, pot, boundaryVector[minIndex].ChildLangmuirDist, minDistance, minIndex,
+          Emag, directionUnitVector[0], directionUnitVector[1] , directionUnitVector[2], 
+          pt[0], pt[1], pt[2], minq[0], minq[1], minq[2], minD, minI, minA[0],minA[1],minA[2],minB[0],minB[1],minB[2],
+          minC[0], minC[1],minC[2], Efmag, Ef[0], Ef[1], Ef[2]);
+   }
+    if(bdryMinInd)  
+      *bdryMinInd = minIndex;
     return minDistance;
 }
 
@@ -644,11 +787,6 @@ struct move_boris {
     const int nLines;
     float magneticForce[3];
     float electricForce[3];
-
-    int dof_intermediate;
-    int idof;
-    int nT;
-    double* intermediate;
     move_boris(Particles *_particlesPointer, float _span, Boundary *_boundaryVector,int _nLines,
             int _nR_Bfield, int _nZ_Bfield,
             float * _BfieldGridRDevicePointer,
@@ -664,8 +802,7 @@ struct move_boris {
             float * _EfieldZDevicePointer,
             float * _EfieldTDevicePointer,
             int _nR_closeGeom, int _nY_closeGeom,int _nZ_closeGeom, int _n_closeGeomElements, 
-            float *_closeGeomGridr,float *_closeGeomGridy, float *_closeGeomGridz, int *_closeGeom,
-            double* intermediate, int nT, int idof, int dof_intermediate)
+            float *_closeGeomGridr,float *_closeGeomGridy, float *_closeGeomGridz, int *_closeGeom)
 : particlesPointer(_particlesPointer),
         boundaryVector(_boundaryVector),
         nR_Bfield(_nR_Bfield),
@@ -695,8 +832,7 @@ struct move_boris {
         span(_span),
         nLines(_nLines),
         magneticForce{0.0, 0.0, 0.0},
-        electricForce{0.0, 0.0, 0.0},
-        intermediate(intermediate),nT(nT),idof(idof), dof_intermediate(dof_intermediate) {}
+        electricForce{0.0, 0.0, 0.0}{}
 
 CUDA_CALLABLE_MEMBER    
 void operator()(size_t indx) { 
@@ -743,16 +879,14 @@ void operator()(size_t indx) {
     
   for ( int s=0; s<nSteps; s++ ) 
   {
-    float CLD = 0. midx=0, midy=0, midz=0;
+    int bdryMinIndex = -1;
 
 #if USESHEATHEFIELD > 0
-
     minDist = getE(particlesPointer->xprevious[indx], particlesPointer->yprevious[indx], 
       particlesPointer->zprevious[indx], E,boundaryVector,nLines,nR_closeGeom_sheath,  
       nY_closeGeom_sheath,nZ_closeGeom_sheath,  n_closeGeomElements_sheath,closeGeomGridr_sheath, 
       closeGeomGridy_sheath,  closeGeomGridz_sheath,closeGeom_sheath, closestBoundaryIndex, 
-      particlesPointer->index[indx], CLD. midx, midy, midz );
-
+      particlesPointer->index[indx], &bdryMinIndex);
 #endif
 
 #if USEPRESHEATHEFIELD > 0
@@ -772,26 +906,31 @@ void operator()(size_t indx) {
     vectorAdd(E,PSE,E);
 #endif
 #endif
-    if(dof_intermediate > 0) {
+
+    if(COMPARE_GITR_PRINT==1) {
       auto pindex = particlesPointer->index[indx];
       auto nthStep = particlesPointer->tt[indx];
       int qc = particlesPointer->charge[indx];
-      auto beg = pindex*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
-      intermediate[beg+idof] = E[0];
-      intermediate[beg+idof+1] = E[1];
-      intermediate[beg+idof+2] = E[2];
-      intermediate[beg+idof+3] = position[0];
-      intermediate[beg+idof+4] = position[1];
-      intermediate[beg+idof+5] = position[2];
-      intermediate[beg+idof+6] = qc;
-      intermediate[beg+idof+7] = minDist;
-      intermediate[beg+idof+8] = CLD;
-      intermediate[beg+idof+9] = midx;
-      intermediate[beg+idof+10] = midy;
-      intermediate[beg+idof+11] = midz;
-      if(COMPARE_GITR)   
-        printf("\nboris ptcl %d t %d charge %d @ %d E-boris %g %g %g minDist %g pos %g %g %g \n", 
-           pindex, nthStep-1, qc, beg, E[0],E[1],E[2], minDist, position[0], position[1], position[2]);
+      auto minIndex = bdryMinIndex; 
+      auto CLD = boundaryVector[minIndex].ChildLangmuirDist;
+      auto midx = boundaryVector[minIndex].midx;
+      auto midy = boundaryVector[minIndex].midy;
+      auto midz = boundaryVector[minIndex].midz;
+      auto te = boundaryVector[minIndex].te;
+      auto ne = boundaryVector[minIndex].ne;
+      auto x1 = boundaryVector[minIndex].x1;
+      auto y1 = boundaryVector[minIndex].y1;
+      auto z1 = boundaryVector[minIndex].z1;
+      auto x2 = boundaryVector[minIndex].x2;
+      auto y2 = boundaryVector[minIndex].y2;
+      auto z2 = boundaryVector[minIndex].z2;
+      auto x3 = boundaryVector[minIndex].x3;
+      auto y3 = boundaryVector[minIndex].y3;
+      auto z3 = boundaryVector[minIndex].z3;
+      printf("\nboris ptcl %d timestep %d charge %d E-boris %g %g %g minDist %g CLD %g ne %g te %g "
+            " pos %g %g %g minIndex %d  midx %g midy %g midz %g vert: %g %g %g : %g %g %g : %g %g %g \n", 
+           pindex, nthStep-1, qc, E[0],E[1],E[2], minDist, CLD, ne, te, position[0], position[1], position[2],
+           minIndex, midx, midy, midz, x1,y1,z1, x2,y2,z2,x3,y3,z3);
     }              
     interp2dVector(&B[0],position[0], position[1], position[2],nR_Bfield,nZ_Bfield,
         BfieldGridRDevicePointer,BfieldGridZDevicePointer,BfieldRDevicePointer,
@@ -801,8 +940,6 @@ void operator()(size_t indx) {
     coeff = 2.0f*q_prime/(1.0f+(q_prime*Bmag)*(q_prime*Bmag));
     vectorAssign(particlesPointer->vx[indx], particlesPointer->vy[indx], particlesPointer->vz[indx],v);
     float v0[] = {v[0],v[1],v[2]};
-    if(COMPARE_GITR)
-      printf("borisvel0  ptcl %d %g %g %g \n", particlesPointer->index[indx], v[0],v[1],v[2]); 
     vectorScalarMult(q_prime,E,qpE);
     vectorAdd(v,qpE,v_minus);
     this->electricForce[0] = 2.0*qpE[0];
@@ -834,13 +971,12 @@ void operator()(size_t indx) {
       particlesPointer->vx[indx] = v[0];
       particlesPointer->vy[indx] = v[1];
       particlesPointer->vz[indx] = v[2];    
-      float dv[] = {v[0] - v0[0], v[1]-v0[1], v[2]-v0[2]};
-
-      if(COMPARE_GITR) {
-        printf("borisUpdatedVel  ptcl %d %g %g %g :dv %g %g %g \n", particlesPointer->index[indx], 
-          v[0],v[1], v[2], dv[0], dv[1], dv[2]);              
-        printf("borisUpdatedPos  ptcl %d %g %g %g \n", particlesPointer->index[indx], 
-          position[0] + v[0] * dt, position[1] + v[1] * dt, position[2] + v[2] * dt); 
+      
+      if(false) {
+        printf("boris  ptcl %d pos %g %g %g => %g %g %g vel %g %g %g => %g %g %g \n", 
+            particlesPointer->index[indx],position[0], position[1], position[2],
+            particlesPointer->x[indx], particlesPointer->y[indx], 
+            particlesPointer->z[indx], v0[0], v0[1], v0[2], v[0],v[1], v[2]);              
         }
     }
   }
@@ -1052,7 +1188,7 @@ void operator()(size_t indx) {
 #endif
 
 #if USESHEATHEFIELD > 0            
-	    minDist = getE(r4[0],r4[1],r4[2],E,boundaryVector,nLines);
+      minDist = getE(r4[0],r4[1],r4[2],E,boundaryVector,nLines);
 #endif
 #if USEPRESHEATHEFIELD > 0
       interp2dVector(&particlesPointer->E[0],particlesPointer->xparticlesPointer->evious,particlesPointer->yparticlesPointer->evious,particlesPointer->zparticlesPointer->evious,nR_Efield,nZ_Efield,
