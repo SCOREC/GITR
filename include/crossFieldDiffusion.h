@@ -22,6 +22,11 @@ struct crossFieldDiffusion {
     float * BfieldRDevicePointer;
     float * BfieldZDevicePointer;
     float * BfieldTDevicePointer;
+
+    int dof_intermediate = 0;
+    int idof = -1;
+    int nT = -1;
+    double* intermediate;
 #if __CUDACC__
         curandState *state;
 #else
@@ -37,7 +42,7 @@ struct crossFieldDiffusion {
             int _nR_Bfield, int _nZ_Bfield,
             float * _BfieldGridRDevicePointer,float * _BfieldGridZDevicePointer,
             float * _BfieldRDevicePointer,float * _BfieldZDevicePointer,
-            float * _BfieldTDevicePointer)
+            float * _BfieldTDevicePointer, double* intermediate, int nT, int idof, int dof_intermediate)
       : particlesPointer(_particlesPointer),
         dt(_dt),
         diffusionCoefficient(_diffusionCoefficient),
@@ -48,7 +53,8 @@ struct crossFieldDiffusion {
         BfieldRDevicePointer(_BfieldRDevicePointer),
         BfieldZDevicePointer(_BfieldZDevicePointer),
         BfieldTDevicePointer(_BfieldTDevicePointer),
-        state(_state) {
+        state(_state),intermediate(intermediate),nT(nT),
+        idof(idof), dof_intermediate(dof_intermediate){
   }
 
 CUDA_CALLABLE_MEMBER_DEVICE    
@@ -95,7 +101,18 @@ void operator()(size_t indx) const {
 #endif
 #endif
 		step = sqrt(6*diffusionCoefficient*dt);
+
+      int nthStep = particlesPointer->tt[indx];
+      auto pindex = particlesPointer->index[indx];
+      int beg = -1;
+      if(dof_intermediate > 0) { 
+        beg = pindex*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
+        intermediate[beg+idof] = r3;
+      }
 #if USEPERPDIFFUSION > 1
+      if(dof_intermediate > 0) { 
+        intermediate[beg+idof+1] = r4;
+      }
     float plus_minus1 = floor(r4 + 0.5)*2 - 1;
     float h = 0.001;
 //    float k1x = B_unit[0]*h;

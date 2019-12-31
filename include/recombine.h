@@ -20,10 +20,11 @@ using namespace std;
 #include <random>
 #include <stdlib.h>
 #endif
-#ifndef COMPARE_GITR
-#define COMPARE_GITR 0
-#endif
 #include "interpRateCoeff.hpp"
+
+#ifndef COMPARE_GITR_PRINT
+#define COMPARE_GITR_PRINT 0
+#endif
 
 struct recombine { 
   Particles *particlesPointer;
@@ -45,9 +46,9 @@ struct recombine {
   const float dt;
   float tion;
 
-  int dof_intermediate;
-  int idof;
-  int nT;
+  int dof_intermediate = 0;
+  int idof = -1;
+  int nT = -1;
   double* intermediate;
 
 //int& tt;
@@ -86,8 +87,9 @@ struct recombine {
                                                gridTemperature_Recombination(_gridTemperature_Recombination),
                                                rateCoeff_Recombination(_rateCoeff_Recombination),
                                                dt(_dt), // JDL missing tion?
-                                               state(_state), intermediate(intermediate),nT(nT),idof(idof), dof_intermediate(dof_intermediate) {
-  }
+                                               state(_state), intermediate(intermediate),nT(nT),idof(idof), 
+                                               dof_intermediate(dof_intermediate) 
+                                               { }
  
   
   CUDA_CALLABLE_MEMBER_DEVICE 
@@ -120,18 +122,20 @@ struct recombine {
     #endif
 #endif  
 
+        int nthStep = particlesPointer->tt[indx];
+        auto pindex = particlesPointer->index[indx];
+        int beg = -1;
         if(dof_intermediate > 0) {
-           int nthStep = particlesPointer->tt[indx];
-           auto pindex = particlesPointer->index[indx];
-           auto beg = pindex*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
-           intermediate[beg+idof] = r1;
-           intermediate[beg+idof+1] = tion;
+          beg = pindex*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
+          intermediate[beg+idof] = r1;
+        }
 
-        auto xx=particlesPointer->x[indx];
-        auto yy=particlesPointer->y[indx];
-        auto zz=particlesPointer->z[indx];
-        if(COMPARE_GITR)
-           printf("recomb: ptcl %d rate %g recrand %g pos %g %g %g \n", pindex, tion, r1, xx, yy, zz);
+        if(COMPARE_GITR_PRINT==1) {
+          auto xx=particlesPointer->x[indx];
+          auto yy=particlesPointer->y[indx];
+          auto zz=particlesPointer->z[indx];
+          printf("recomb: ptcl %d timestep %d rate %g recrand %g pos %g %g %g r1 %g r1@ %d\n",
+              pindex, nthStep, tion, r1, xx, yy, zz, r1, beg+idof);
         }
 	if(r1 <= P1)
 	{

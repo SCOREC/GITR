@@ -14,10 +14,6 @@ using namespace std;
 #include <vector>
 #include <cmath>
 
-#ifndef COMPARE_GITR
-#define COMPARE_GITR 1
-#endif
-
 CUDA_CALLABLE_MEMBER
 
 
@@ -69,7 +65,7 @@ if(charge > 74-1)
             + bN*pow(10.0f,Ratesp[charge*nT*nD            + (indT+1)*nD + indN+1]))/abN;
     float fxz = (aT*fx_z1+bT*fx_z2)/abT;
     //cout << "fxz1 and 2 " << fx_z1 << " " << fx_z2<< " "<< fxz << endl;
-if(COMPARE_GITR)
+if(false)
   printf("rateCoeffInterp:logT %g logn %g d_T %g d_n %g indT %d indN %d  aT %g bT %g abT %g aN %g bN %g abN %g fx_z1 %g fx_z2 %g fxz %g\n", 
     logT, logn, d_T, d_n, indT, indN, aT, bT, abT, aN, bN, abN, fx_z1, fx_z2, fxz);
     return fxz;    
@@ -99,7 +95,7 @@ float interpRateCoeff2d ( int charge, float x, float y, float z,int nx, int nz, 
     float RClocal = rateCoeffInterp(charge,tlocal,nlocal,nT_Rates,nD_Rates,rateGrid_Temp, rateGrid_Dens, Rates);
     float tion = 1/(RClocal*nlocal);
     if(tlocal == 0.0 || nlocal == 0.0) tion=1.0e12;
-   if(COMPARE_GITR)
+   if(false && COMPARE_GITR_PRINT==1)
       printf("interpRateCoeff2d:tlocal %g nlocal %g RClocal %g charge %d \n", tlocal, nlocal, RClocal, charge);
     //cout << "Returning " << endl;
     return tion;

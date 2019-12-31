@@ -153,6 +153,11 @@ struct reflection {
     int nAdist;
     float A0dist;
     float Adist;
+
+    int dof_intermediate = 0;
+    int idof = -1;
+    int nT = -1;
+    double* intermediate;
 #if __CUDACC__
         curandState *state;
 #else
@@ -194,7 +199,7 @@ struct reflection {
     float _Edist,
     int _nAdist,
     float _A0dist,
-    float _Adist) :
+    float _Adist, double* intermediate, int nT, int idof, int dof_intermediate) :
 particles(_particles),
                              dt(_dt),
                              nLines(_nLines),
@@ -229,7 +234,8 @@ particles(_particles),
                              nAdist(_nAdist),
                              A0dist(_A0dist),
                              Adist(_Adist),
-                             state(_state) {
+                             state(_state),intermediate(intermediate),nT(nT),
+                             idof(idof), dof_intermediate(dof_intermediate) {
   }
 
 CUDA_CALLABLE_MEMBER_DEVICE
@@ -360,7 +366,20 @@ void operator()(size_t indx) const {
               #endif
                 //float r7 = 0.0;
             #endif
-            //particle either reflects or deposits
+
+    
+      int nthStep = particles->tt[indx];
+      auto pindex = particles->index[indx];
+      int beg = -1;
+      if(dof_intermediate > 0) { 
+        beg = pindex*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
+        intermediate[beg+idof] = r7;
+        intermediate[beg+idof+1] = r8;
+        intermediate[beg+idof+2] = r9;
+        intermediate[beg+idof+3] = r10;
+      }
+    
+                //particle either reflects or deposits
             float sputtProb = Y0/totalYR;
 	    int didReflect = 0;
             if(totalYR > 0.0)

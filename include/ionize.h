@@ -20,10 +20,11 @@
 #include <stdlib.h>
 using namespace std;
 #endif
-#ifndef COMPARE_GITR
-#define COMPARE_GITR 0
-#endif
 #include "interpRateCoeff.hpp"
+
+#ifndef COMPARE_GITR_PRINT
+#define COMPARE_GITR_PRINT 0
+#endif
 
 struct ionize { 
     Particles *particlesPointer;
@@ -45,9 +46,9 @@ struct ionize {
     const float dt;
     float tion;
 
-    int dof_intermediate;
-    int idof;
-    int nT;
+    int dof_intermediate = 0;
+    int idof = -1;
+    int nT = -1;
     double* intermediate;
     //int& tt;
 #if __CUDACC__
@@ -86,8 +87,8 @@ struct ionize {
                                          gridTemperature_Ionization(_gridTemperature_Ionization),
                                          rateCoeff_Ionization(_rateCoeff_Ionization),
                                          dt(_dt), // JDL missing tion here?
-                                         state(_state), intermediate(intermediate),nT(nT),idof(idof), dof_intermediate(dof_intermediate) {
-  }
+                                         state(_state), intermediate(intermediate),nT(nT),
+                                          idof(idof), dof_intermediate(dof_intermediate) {}
 
         CUDA_CALLABLE_MEMBER_DEVICE 
                 void operator()(size_t indx)  { 
@@ -99,6 +100,9 @@ struct ionize {
     //particlesPointer->PionizationPrevious[indx] = PiP*P;
     float P1 = 1.0-P;
     //cout << "tion P P1 " << tion << " " << P << " " << P1 << " " << PiP<< endl;
+    if(COMPARE_GITR_PRINT==1 && particlesPointer->hitWall[indx] !=0) {
+      printf("Not ionizing %d in timestep %d\n", particlesPointer->index[indx], particlesPointer->tt[indx]);
+    }
     if(particlesPointer->hitWall[indx] == 0.0)
     {
         //cout << "calculating r1 " << endl;i
@@ -131,18 +135,22 @@ struct ionize {
        //particlesPointer->test1[indx] = P1; 
        //particlesPointer->test2[indx] = r1; 
 
-    if(dof_intermediate > 0) {
-        int nthStep = particlesPointer->tt[indx];
-        auto pindex = particlesPointer->index[indx];
-        auto beg = pindex*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
+      int nthStep = particlesPointer->tt[indx];
+      auto pindex = particlesPointer->index[indx];
+      int beg = -1;
+      if(dof_intermediate > 0) { 
+        beg = pindex*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
         intermediate[beg+idof] = r1;
-        intermediate[beg+idof+1] = tion;
+      }
+      if(COMPARE_GITR_PRINT==1) {
         auto xx=particlesPointer->x[indx];
         auto yy=particlesPointer->y[indx];
         auto zz=particlesPointer->z[indx];
-        if(COMPARE_GITR)
-          printf("ioni: ptcl %d rate %g ionirand %g P1 %g pos %g %g %g \n", pindex, tion, r1, P1, xx, yy, zz);
+          printf("ioni: ptcl %d timestep %d rate %g ionirand %g P1 %g pos %g %g %g r1 %g r1@ %d \n", 
+              pindex, nthStep, tion, r1, P1, xx, yy, zz, r1, beg+idof);
       }
+
+
       if(r1 <= P1)
       {
 		  particlesPointer->charge[indx] = particlesPointer->charge[indx]+1;}

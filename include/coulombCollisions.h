@@ -42,7 +42,7 @@ void getSlowDownFrequencies ( float& nu_friction, float& nu_deflection, float& n
                         int nR_Bfield, int nZ_Bfield,
                         float* BfieldGridR ,float* BfieldGridZ ,
                         float* BfieldR ,float* BfieldZ ,
-                 float* BfieldT,float &T_background 
+                 float* BfieldT,float &T_background, int ptcl=0, int timestep=0 
                 ) {
         float Q = 1.60217662e-19;
         float EPS0 = 8.854187e-12;
@@ -178,6 +178,7 @@ float ME = 9.10938356e-31;
                     //cout << "nu friction, parallel perp energy ELECTRONs" << nu_friction_e << " " << nu_parallel_e << " " <<nu_deflection_e << " " << nu_energy_e << endl;
 	//	}
     nu_friction = nu_friction_i + nu_friction_e;
+    printf("timestep %d ptcl %d Nufriction  %g  \n", timestep, ptcl, nu_friction);    
     nu_deflection = nu_deflection_i + nu_deflection_e;
     nu_parallel = nu_parallel_i + nu_parallel_e;
     nu_energy = nu_energy_i + nu_energy_e;
@@ -363,6 +364,11 @@ struct coulombCollisions {
     float * BfieldZ;
     float * BfieldT;
     float dv[3];
+
+    int dof_intermediate = 0;
+    int idof = -1;
+    int nT = -1;
+    double* intermediate;
 #if __CUDACC__
             curandState *state;
 #else
@@ -385,7 +391,7 @@ struct coulombCollisions {
                         int _nR_Bfield, int _nZ_Bfield,
                         float * _BfieldGridR ,float * _BfieldGridZ ,
                         float * _BfieldR ,float * _BfieldZ ,
-                 float * _BfieldT )
+                 float * _BfieldT, double* intermediate, int nT, int idof, int dof_intermediate )
       : particlesPointer(_particlesPointer),
         dt(_dt),
         nR_flowV(_nR_flowV),
@@ -418,7 +424,8 @@ struct coulombCollisions {
         BfieldZ(_BfieldZ),
         BfieldT(_BfieldT),
         dv{0.0f, 0.0f, 0.0f},
-        state(_state) {
+        state(_state),intermediate(intermediate),nT(nT),
+        idof(idof), dof_intermediate(dof_intermediate){
   }
 CUDA_CALLABLE_MEMBER_DEVICE    
 void operator()(size_t indx)  { 
@@ -451,6 +458,7 @@ void operator()(size_t indx)  {
         float vy = particlesPointer->vy[indx];
         float vz = particlesPointer->vz[indx];
         float vPartNorm = 0.0f;
+
 #if FLOWV_INTERP == 3 
         interp3dVector (&flowVelocity[0], particlesPointer->xprevious[indx],particlesPointer->yprevious[indx],particlesPointer->zprevious[indx],nR_flowV,nY_flowV,nZ_flowV,
                 flowVGridr,flowVGridy,flowVGridz,flowVr,flowVz,flowVt);
@@ -528,6 +536,18 @@ void operator()(size_t indx)  {
       //cout << "particle v " << particlesPointer->vx[indx] << " " << particlesPointer->vy[indx] << " " << particlesPointer->vz[indx] << endl;
       //        cout << "speed " << velocityRelativeNorm << endl;
 
+      int nthStep = particlesPointer->tt[indx];
+      auto pindex = particlesPointer->index[indx];
+      int beg = -1;
+      if(dof_intermediate > 0) { 
+        beg = pindex*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
+        intermediate[beg+idof] = n1;
+        intermediate[beg+idof+1] = n2;
+        intermediate[beg+idof+2] = xsi;
+      }
+      
+      int timestep = particlesPointer->tt[indx];
+      int ptcl =  particlesPointer->index[indx];
       getSlowDownFrequencies(nu_friction, nu_deflection, nu_parallel, nu_energy,
                              x, y, z,
                              vx, vy, vz,
@@ -544,7 +564,7 @@ void operator()(size_t indx)  {
                              BfieldGridZ,
                              BfieldR,
                              BfieldZ,
-                             BfieldT, T_background);
+                             BfieldT, T_background,ptcl, timestep);
 
       getSlowDownDirections(parallel_direction, perp_direction1, perp_direction2,
                             x, y, z,
@@ -669,6 +689,7 @@ void operator()(size_t indx)  {
       float nuEdt = nu_energy * dt;
       if (nuEdt < -1.0)
         nuEdt = -1.0;
+	nuEdt =0.0;// added by me for testing remov later 
       particlesPointer->vx[indx] = vPartNorm * (1.0 - 0.5 * nuEdt) * ((1 + coeff_par) * parallel_direction[0] + abs(n2) * (coeff_perp1 * perp_direction1[0] + coeff_perp2 * perp_direction2[0])) + velocityCollisions[0];
       particlesPointer->vy[indx] = vPartNorm * (1.0 - 0.5 * nuEdt) * ((1 + coeff_par) * parallel_direction[1] + abs(n2) * (coeff_perp1 * perp_direction1[1] + coeff_perp2 * perp_direction2[1])) + velocityCollisions[1];
       particlesPointer->vz[indx] = vPartNorm * (1.0 - 0.5 * nuEdt) * ((1 + coeff_par) * parallel_direction[2] + abs(n2) * (coeff_perp1 * perp_direction1[2] + coeff_perp2 * perp_direction2[2])) + velocityCollisions[2];
