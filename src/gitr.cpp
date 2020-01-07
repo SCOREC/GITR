@@ -3670,7 +3670,7 @@ print_gpu_memory_usage(world_rank);
   int size_intermediate = 1;
   if(writeIntermediate) {
     dof_intermediate = 11;
-    std::cout << "\n**WARNING *** intermediate_data is ready for MPI\n";
+    std::cout << "\n**WARNING *** intermediate_data is NOT  ready for MPI\n";
     size_intermediate = nP*(nT+1)*dof_intermediate;
     std::cout << "\n\n STARTING intermediate data storing :size " << size_intermediate << " \n";
   }
