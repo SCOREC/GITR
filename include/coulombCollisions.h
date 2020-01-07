@@ -429,7 +429,6 @@ struct coulombCollisions {
   }
 CUDA_CALLABLE_MEMBER_DEVICE    
 void operator()(size_t indx)  { 
-
 	    if(particlesPointer->hitWall[indx] == 0.0 && particlesPointer->charge[indx] != 0.0)
         { 
         float pi = 3.14159265;   
@@ -458,6 +457,9 @@ void operator()(size_t indx)  {
         float vy = particlesPointer->vy[indx];
         float vz = particlesPointer->vz[indx];
         float vPartNorm = 0.0f;
+        float velx1 = vx;
+        float vely1 = vy;
+        float velz1 = vz;
 
 #if FLOWV_INTERP == 3 
         interp3dVector (&flowVelocity[0], particlesPointer->xprevious[indx],particlesPointer->yprevious[indx],particlesPointer->zprevious[indx],nR_flowV,nY_flowV,nZ_flowV,
@@ -544,6 +546,7 @@ void operator()(size_t indx)  {
         intermediate[beg+idof] = n1;
         intermediate[beg+idof+1] = n2;
         intermediate[beg+idof+2] = xsi;
+        printf("Collision: beg %d @ %d n1 %g n2 %g xsi %g \n", beg, beg+idof, n1, n2, xsi );
       }
       
       int timestep = particlesPointer->tt[indx];
@@ -707,6 +710,8 @@ void operator()(size_t indx)  {
       vy = particlesPointer->vy[indx];
       vz = particlesPointer->vz[indx];
 
+      printf("GITRCollision: ptcl %d timestep %d charge %f VelIn %g %g %g Vel %g %g %g pos %g %g %g \n", 
+        ptcl, timestep, particlesPointer->charge[indx], velx1, vely1, velz1, vx, vy, vz, x,y, z);
       //if(vNew > 1.0e5){
       //cout << "vpartnorm ecoeff coeffpar vel coll " << vPartNorm << " " << (1.0-0.5*nu_energy*dt) << " " << (1+coeff_par) << " "
       //<<velocityCollisions[0] << endl;

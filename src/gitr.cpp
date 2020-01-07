@@ -541,10 +541,6 @@ print_gpu_memory_usage(world_rank);
   std::cout << "finished mpibacast" << std::endl;
 #endif
 
-  printf( "==>>>> %d : %d %d %d : %d %d : %d %d %d : %d \n",
-      nGeomHash, nR_closeGeom[0], nZ_closeGeom[0], nY_closeGeom[0],
-      n_closeGeomElements[0],nGeomHash,nR_closeGeomTotal, nY_closeGeomTotal, 
-      nZ_closeGeomTotal,nHashPointsTotal);
 #endif
 
   std::cout << "allocating closGeomGrids " << nR_closeGeomTotal << " "
@@ -552,8 +548,10 @@ print_gpu_memory_usage(world_rank);
             << std::endl;
   sim::Array<float> closeGeomGridr(nR_closeGeomTotal),
       closeGeomGridy(nY_closeGeomTotal), closeGeomGridz(nZ_closeGeomTotal);
-  sim::Array<int> closeGeom(nGeomHash, 0);
+//TODO fix this
+//  nGeomHash = nR_closeGeomTotal*nY_closeGeomTotal*nZ_closeGeomTotal*nHashPointsTotal;
   std::cout << "allocating " << nGeomHash << " closGeomGrids finished" << std::endl;
+  sim::Array<int> closeGeom(nGeomHash, 0);
 
 #if GEOM_HASH == 1
   std::cout << "GEOM_HASH 1 nHashes " <<  nHashes << "\n";
@@ -841,7 +839,7 @@ print_gpu_memory_usage(world_rank);
     
     printf("Writing hash to NC file #RYZn_closeGeom %d %d %d %d closeGeom_size %d \n", 
         nR_closeGeom[0], nY_closeGeom[0], nZ_closeGeom[0], n_closeGeomElements[0], closeGeom.size());
-//    hash.putVar(&closeGeom[0]);
+    hash.putVar(&closeGeom[0]);
     printf("Writing hash to NC file: Done\n");
     ncFile_hash.close();
   }
@@ -3704,9 +3702,9 @@ print_gpu_memory_usage(world_rank);
   int size_intermediate = 1;
   if(writeIntermediate) {
     dof_intermediate = 11;
-    std::cout << "\n**WARNING *** intermediate_data is not set for MPI\n";
+    std::cout << "\n**WARNING *** intermediate_data is ready for MPI\n";
     size_intermediate = nP*(nT+1)*dof_intermediate;
-    std::cout << "\n\n STARTING intermediate data stoing :size " << size_intermediate << " \n";
+    std::cout << "\n\n STARTING intermediate data storing :size " << size_intermediate << " \n";
   }
   #if USE_CUDA > 0
      sim::Array<double> intermediate(size_intermediate);
@@ -4129,6 +4127,7 @@ print_gpu_memory_usage(world_rank);
   printf("Time taken          is %6.3f (secs) \n", fs.count());
   printf("Time taken per step is %6.3f (secs) \n", fs.count() / (float)nT);
 
+    bool debugRnd = true;
     if(world_rank == 0 && writeIntermediate) {
       netCDF::NcFile ncFile_hist("output/intermediate.nc", NcFile::replace);
       netCDF::NcDim ncdim_np = ncFile_hist.addDim("nP", nP);
@@ -4154,6 +4153,12 @@ print_gpu_memory_usage(world_rank);
       dims_intermediate.push_back(ncdim_nthist);
       netCDF::NcVar ncvar_data = ncFile_hist.addVar("intermediate", ncDouble, dims_intermediate);
       ncvar_data.putVar(&intermediate[0]);
+      if(debugRnd) {
+        printf("dataCollision: \n");
+        for(int i=0; i< 100; ++i)
+          printf(" %g ",intermediate[i]);
+        printf("\n");
+      }
     }
 
   // for(int i=0; i<nP;i++)

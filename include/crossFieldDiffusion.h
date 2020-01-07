@@ -5,7 +5,6 @@
 #define CUDA_CALLABLE_MEMBER_DEVICE __device__
 #else
 #define CUDA_CALLABLE_MEMBER_DEVICE
-using namespace std;
 #endif
 
 #include "Particles.h"
@@ -22,27 +21,22 @@ struct crossFieldDiffusion {
     float * BfieldRDevicePointer;
     float * BfieldZDevicePointer;
     float * BfieldTDevicePointer;
-
-    int dof_intermediate = 0;
-    int idof = -1;
-    int nT = -1;
-    double* intermediate;
 #if __CUDACC__
         curandState *state;
 #else
-        mt19937 *state;
+        std::mt19937 *state;
 #endif
     crossFieldDiffusion(Particles *_particlesPointer, float _dt,
 #if __CUDACC__
                             curandState *_state,
 #else
-                                            mt19937 *_state,
+                                            std::mt19937 *_state,
 #endif
             float _diffusionCoefficient,
             int _nR_Bfield, int _nZ_Bfield,
             float * _BfieldGridRDevicePointer,float * _BfieldGridZDevicePointer,
             float * _BfieldRDevicePointer,float * _BfieldZDevicePointer,
-            float * _BfieldTDevicePointer, double* intermediate, int nT, int idof, int dof_intermediate)
+            float * _BfieldTDevicePointer)
       : particlesPointer(_particlesPointer),
         dt(_dt),
         diffusionCoefficient(_diffusionCoefficient),
@@ -53,12 +47,11 @@ struct crossFieldDiffusion {
         BfieldRDevicePointer(_BfieldRDevicePointer),
         BfieldZDevicePointer(_BfieldZDevicePointer),
         BfieldTDevicePointer(_BfieldTDevicePointer),
-        state(_state),intermediate(intermediate),nT(nT),
-        idof(idof), dof_intermediate(dof_intermediate){
+        state(_state) {
   }
 
 CUDA_CALLABLE_MEMBER_DEVICE    
-void operator()(size_t indx) const { 
+void operator()(std::size_t indx) const { 
 
 	    if(particlesPointer->hitWall[indx] == 0.0)
         {
@@ -78,7 +71,7 @@ void operator()(size_t indx) const {
     //std::cout << "initial position " << x0 << " " << y0 << " " << z0 << std::endl;
         interp2dVector(&B[0],particlesPointer->xprevious[indx],particlesPointer->yprevious[indx],particlesPointer->zprevious[indx],nR_Bfield,nZ_Bfield,
                                BfieldGridRDevicePointer,BfieldGridZDevicePointer,BfieldRDevicePointer,BfieldZDevicePointer,BfieldTDevicePointer);
-        Bmag = sqrt(B[0]*B[0] + B[1]*B[1] + B[2]*B[2]);
+        Bmag = std::sqrt(B[0]*B[0] + B[1]*B[1] + B[2]*B[2]);
         B_unit[0] = B[0]/Bmag;
         B_unit[1] = B[1]/Bmag;
         B_unit[2] = B[2]/Bmag;
@@ -88,7 +81,7 @@ void operator()(size_t indx) const {
 #ifdef __CUDACC__
         	float r3 = curand_uniform(&state[indx]);
 #else
-        	uniform_real_distribution<float> dist(0.0, 1.0);
+        	std::uniform_real_distribution<float> dist(0.0, 1.0);
         	float r3=dist(state[indx]);
         	float r4=dist(state[indx]);
 #endif 
@@ -96,23 +89,12 @@ void operator()(size_t indx) const {
 #if __CUDACC__
             float r3 = curand_uniform(&state[2]);
 #else
-            uniform_real_distribution<float> dist(0.0, 1.0);
+            std::uniform_real_distribution<float> dist(0.0, 1.0);
             float r3=dist(state[2]);
 #endif
 #endif
-		step = sqrt(6*diffusionCoefficient*dt);
-
-      int nthStep = particlesPointer->tt[indx];
-      auto pindex = particlesPointer->index[indx];
-      int beg = -1;
-      if(dof_intermediate > 0) { 
-        beg = pindex*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
-        intermediate[beg+idof] = r3;
-      }
+		step = std::sqrt(6*diffusionCoefficient*dt);
 #if USEPERPDIFFUSION > 1
-      if(dof_intermediate > 0) { 
-        intermediate[beg+idof+1] = r4;
-      }
     float plus_minus1 = floor(r4 + 0.5)*2 - 1;
     float h = 0.001;
 //    float k1x = B_unit[0]*h;
@@ -130,12 +112,12 @@ void operator()(size_t indx) const {
 //     x_minus = x0-k1x;
 //     y_minus = y0-k1y;
 //     z_minus = z0-k1z;
-    //cout << "pos plus " << x_plus << " " << y_plus << " " << z_plus << endl;
-    //cout << "pos minus " << x_minus << " " << y_minus << " " << z_minus << endl;
+    //std::cout << "pos plus " << x_plus << " " << y_plus << " " << z_plus << std::endl;
+    //std::cout << "pos minus " << x_minus << " " << y_minus << " " << z_minus << std::endl;
     float B_plus[3] = {0.0f};
         interp2dVector(&B_plus[0],x_plus,y_plus,z_plus,nR_Bfield,nZ_Bfield,
                                BfieldGridRDevicePointer,BfieldGridZDevicePointer,BfieldRDevicePointer,BfieldZDevicePointer,BfieldTDevicePointer);
-        float Bmag_plus = sqrt(B_plus[0]*B_plus[0] + B_plus[1]*B_plus[1] + B_plus[2]*B_plus[2]);
+        float Bmag_plus = std::sqrt(B_plus[0]*B_plus[0] + B_plus[1]*B_plus[1] + B_plus[2]*B_plus[2]);
 //    float k2x = B_plus[0]*h;
 //    float k2y = B_plus[1]*h;
 //    float k2z = B_plus[2]*h;
@@ -181,14 +163,14 @@ void operator()(size_t indx) const {
     //vectorCrossProduct(B_deriv1, B_deriv2, deriv_cross);
     float denom = vectorNorm(B_deriv1);
     //float norm_cross = vectorNorm(deriv_cross);
-    //cout << "deriv_cross " << deriv_cross[0] << " " <<  deriv_cross[1]<< " " <<  deriv_cross[2]<< " " <<endl;
-    //cout << "denome and norm_cross " << denom << " " << norm_cross << endl;
+    //std::cout << "deriv_cross " << deriv_cross[0] << " " <<  deriv_cross[1]<< " " <<  deriv_cross[2]<< " " <<std::endl;
+    //std::cout << "denome and norm_cross " << denom << " " << norm_cross << std::endl;
     float R = 1.0e4;
-    if((abs(denom) > 1e-10) & (abs(denom) < 1e10) )
+    if((std::abs(denom) > 1e-10) & (std::abs(denom) < 1e10) )
     {
       R = Bmag/denom;
     }
-    //cout << "Radius of curvature"<< R <<endl;
+    //std::cout << "Radius of curvature"<< R <<std::endl;
     float initial_guess_theta = 3.14159265359*0.5;
     float eps = 0.01;
     float error = 2.0;
@@ -231,14 +213,14 @@ void operator()(size_t indx) const {
 perpVector[0] = B_deriv1[0];
 perpVector[1] = B_deriv1[1];
 perpVector[2] = B_deriv1[2];
-		norm = sqrt(perpVector[0]*perpVector[0] + perpVector[1]*perpVector[1] + perpVector[2]*perpVector[2]);
+		norm = std::sqrt(perpVector[0]*perpVector[0] + perpVector[1]*perpVector[1] + perpVector[2]*perpVector[2]);
 		perpVector[0] = perpVector[0]/norm;
 		perpVector[1] = perpVector[1]/norm;
 		perpVector[2] = perpVector[2]/norm;
     float y_dir[3] = {0.0};
     vectorCrossProduct(B, B_deriv1, y_dir);
-    float x_comp = s*cos(theta0);
-    float y_comp = s*sin(theta0);
+    float x_comp = s*std::cos(theta0);
+    float y_comp = s*std::sin(theta0);
     float x_transform = x_comp*perpVector[0] + y_comp*y_dir[0];
     float y_transform = x_comp*perpVector[1] + y_comp*y_dir[1];
     float z_transform = x_comp*perpVector[2] + y_comp*y_dir[2];
@@ -271,29 +253,29 @@ perpVector[2] = B_deriv1[2];
     //  }
     //}
 
-if(abs(denom) < 1.0e-8)
+if(std::abs(denom) < 1.0e-8)
 {
 #endif
     perpVector[0] = 0.0;
     perpVector[1] = 0.0;
     perpVector[2] = 0.0;
 		phi_random = 2*3.14159265*r3;
-		perpVector[0] = cos(phi_random);
-		perpVector[1] = sin(phi_random);
+		perpVector[0] = std::cos(phi_random);
+		perpVector[1] = std::sin(phi_random);
 		perpVector[2] = (-perpVector[0]*B_unit[0] - perpVector[1]*B_unit[1])/B_unit[2];
-                //cout << "perp Vector " << perpVector[0] << " " << perpVector[1] << " " << perpVector[2]<<endl;
+                //std::cout << "perp Vector " << perpVector[0] << " " << perpVector[1] << " " << perpVector[2]<<std::endl;
 		if (B_unit[2] == 0){
 			perpVector[2] = perpVector[1];
 			perpVector[1] = (-perpVector[0]*B_unit[0] - perpVector[2]*B_unit[2])/B_unit[1];
 		}
-               // cout << "perp Vector " << perpVector[0] << " " << perpVector[1] << " " << perpVector[2]<<endl;
+               // std::cout << "perp Vector " << perpVector[0] << " " << perpVector[1] << " " << perpVector[2]<<std::endl;
 		
 		if ((B_unit[0] == 1.0 && B_unit[1] ==0.0 && B_unit[2] ==0.0) || (B_unit[0] == -1.0 && B_unit[1] ==0.0 && B_unit[2] ==0.0))
 		{
 			perpVector[2] = perpVector[0];
 			perpVector[0] = 0;
 			perpVector[1] = sin(phi_random);
-                //cout << "perp Vector " << perpVector[0] << " " << perpVector[1] << " " << perpVector[2]<<endl;
+                //std::cout << "perp Vector " << perpVector[0] << " " << perpVector[1] << " " << perpVector[2]<<std::endl;
 		}
 		else if ((B_unit[0] == 0.0 && B_unit[1] ==1.0 && B_unit[2] ==0.0) || (B_unit[0] == 0.0 && B_unit[1] ==-1.0 && B_unit[2] ==0.0))
 		{
@@ -304,7 +286,7 @@ if(abs(denom) < 1.0e-8)
 			perpVector[2] = 0;
 		}
 		
-		norm = sqrt(perpVector[0]*perpVector[0] + perpVector[1]*perpVector[1] + perpVector[2]*perpVector[2]);
+		norm = std::sqrt(perpVector[0]*perpVector[0] + perpVector[1]*perpVector[1] + perpVector[2]*perpVector[2]);
 		perpVector[0] = perpVector[0]/norm;
 		perpVector[1] = perpVector[1]/norm;
 		perpVector[2] = perpVector[2]/norm;
