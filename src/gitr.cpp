@@ -458,7 +458,7 @@ print_gpu_memory_usage(world_rank);
       }
       else
       {
-        nHashPoints[j] =nR_closeGeom[j]*nZ_closeGeom[j];
+        nHashPoints[j] =nR_closeGeom[j]*nY_closeGeom[j]*nZ_closeGeom[j]; 
       }
       nHashPointsTotal = nHashPointsTotal + nHashPoints[j];
       nGeomHash = nGeomHash + nHashPoints[j]*n_closeGeomElements[j];
@@ -767,7 +767,6 @@ print_gpu_memory_usage(world_rank);
   auto finish_clock0 = Time0::now();
   fsec0 fs0 = finish_clock0 - start_clock0;
   printf("Time taken          is %6.3f (secs) \n", fs0.count());
-  if (world_rank == 0 && nHashes>1) {
    for (int i = 0; i < nHashes; i++) {
       NcFile ncFile_hash("output/geomHash" + std::to_string(i) + ".nc",
           NcFile::replace);
@@ -812,37 +811,6 @@ print_gpu_memory_usage(world_rank);
       hash.putVar(&closeGeom[ncIndex]);
       ncFile_hash.close();
     }
-  }
-  else if (world_rank == 0) {
-    NcFile ncFile_hash("output/geomHash.nc", NcFile::replace);
-    NcDim hashNR = ncFile_hash.addDim("nR", nR_closeGeom[0]);
-    NcDim hashNY = ncFile_hash.addDim("nY", nY_closeGeom[0]);
-    NcDim hashNZ = ncFile_hash.addDim("nZ", nZ_closeGeom[0]);
-    NcDim hashN =
-        ncFile_hash.addDim("n", n_closeGeomElements[0]);
-    vector<NcDim> geomHashDim;
-    geomHashDim.push_back(hashNR);
-    geomHashDim.push_back(hashNY);
-    geomHashDim.push_back(hashNZ);
-    geomHashDim.push_back(hashN);
-    NcVar hash_gridR =
-        ncFile_hash.addVar("gridR", ncFloat, hashNR);
-    NcVar hash_gridY =
-        ncFile_hash.addVar("gridY", ncFloat, hashNY);
-    NcVar hash_gridZ =
-        ncFile_hash.addVar("gridZ", ncFloat, hashNZ);
-    NcVar hash =
-        ncFile_hash.addVar("hash", ncInt, geomHashDim);
-    hash_gridR.putVar(&closeGeomGridr[0]);
-    hash_gridY.putVar(&closeGeomGridy[0]);
-    hash_gridZ.putVar(&closeGeomGridz[0]);
-    
-    printf("Writing hash to NC file #RYZn_closeGeom %d %d %d %d closeGeom_size %d \n", 
-        nR_closeGeom[0], nY_closeGeom[0], nZ_closeGeom[0], n_closeGeomElements[0], closeGeom.size());
-    hash.putVar(&closeGeom[0]);
-    printf("Writing hash to NC file: Done\n");
-    ncFile_hash.close();
-  }
 
 
 #elif GEOM_HASH > 1

@@ -18,6 +18,10 @@
 using namespace std;
 #endif
 
+#ifndef PRINT_DEBUG
+#define PRINT_DEBUG 0
+#endif
+
 CUDA_CALLABLE_MEMBER
 void getSlowDownFrequencies ( float& nu_friction, float& nu_deflection, float& nu_parallel,
 			 	float& nu_energy, float x, float y,float z, float vx, float vy, float vz,float charge, float amu, 
@@ -178,7 +182,8 @@ float ME = 9.10938356e-31;
                     //cout << "nu friction, parallel perp energy ELECTRONs" << nu_friction_e << " " << nu_parallel_e << " " <<nu_deflection_e << " " << nu_energy_e << endl;
 	//	}
     nu_friction = nu_friction_i + nu_friction_e;
-    printf("timestep %d ptcl %d Nufriction  %g  \n", timestep, ptcl, nu_friction);    
+    if(PRINT_DEBUG ==1) 
+      printf("timestep %d ptcl %d Nufriction  %g  \n", timestep, ptcl, nu_friction);    
     nu_deflection = nu_deflection_i + nu_deflection_e;
     nu_parallel = nu_parallel_i + nu_parallel_e;
     nu_energy = nu_energy_i + nu_energy_e;
@@ -546,7 +551,8 @@ void operator()(size_t indx)  {
         intermediate[beg+idof] = n1;
         intermediate[beg+idof+1] = n2;
         intermediate[beg+idof+2] = xsi;
-        printf("Collision: beg %d @ %d n1 %g n2 %g xsi %g \n", beg, beg+idof, n1, n2, xsi );
+        if(PRINT_DEBUG ==1)
+          printf("Collision: beg %d @ %d n1 %g n2 %g xsi %g \n", beg, beg+idof, n1, n2, xsi );
       }
       
       int timestep = particlesPointer->tt[indx];
@@ -709,8 +715,8 @@ void operator()(size_t indx)  {
       vx = particlesPointer->vx[indx];
       vy = particlesPointer->vy[indx];
       vz = particlesPointer->vz[indx];
-
-      printf("GITRCollision: ptcl %d timestep %d charge %f VelIn %g %g %g Vel %g %g %g pos %g %g %g \n", 
+      if(PRINT_DEBUG ==1)
+        printf("GITRCollision: ptcl %d timestep %d charge %f VelIn %g %g %g Vel %g %g %g pos %g %g %g \n", 
         ptcl, timestep, particlesPointer->charge[indx], velx1, vely1, velz1, vx, vy, vz, x,y, z);
       //if(vNew > 1.0e5){
       //cout << "vpartnorm ecoeff coeffpar vel coll " << vPartNorm << " " << (1.0-0.5*nu_energy*dt) << " " << (1+coeff_par) << " "
