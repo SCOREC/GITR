@@ -30,21 +30,21 @@ struct ionize {
     Particles *particlesPointer;
     int nR_Dens;
     int nZ_Dens;
-    float* DensGridr;
-    float* DensGridz;
-    float* ne;
+    double* DensGridr;
+    double* DensGridz;
+    double* ne;
     int nR_Temp;
     int nZ_Temp;
-    float* TempGridr;
-    float* TempGridz;
-    float* te;
+    double* TempGridr;
+    double* TempGridz;
+    double* te;
     int nTemperaturesIonize;
     int nDensitiesIonize;
-    float* gridDensity_Ionization;
-    float* gridTemperature_Ionization;
-    float* rateCoeff_Ionization;
-    const float dt;
-    float tion;
+    double* gridDensity_Ionization;
+    double* gridTemperature_Ionization;
+    double* rateCoeff_Ionization;
+    const double dt;
+    double tion;
 
     int dof_intermediate = 0;
     int idof = -1;
@@ -57,17 +57,17 @@ struct ionize {
     std::mt19937 *state;
 #endif
 
-        ionize(Particles *_particlesPointer, float _dt,
+        ionize(Particles *_particlesPointer, double _dt,
 #if __CUDACC__
                 curandState *_state,
 #else
                 std::mt19937 *_state,
 #endif
-                int _nR_Dens,int _nZ_Dens,float* _DensGridr,
-    float* _DensGridz,float* _ne,int _nR_Temp, int _nZ_Temp,
-    float* _TempGridr, float* _TempGridz,float* _te,int _nTemperaturesIonize,
-    int _nDensitiesIonize,float* _gridTemperature_Ionization,float* _gridDensity_Ionization,
-    float* _rateCoeff_Ionization, double* intermediate, int nT, int idof, int dof_intermediate
+                int _nR_Dens,int _nZ_Dens,double* _DensGridr,
+    double* _DensGridz,double* _ne,int _nR_Temp, int _nZ_Temp,
+    double* _TempGridr, double* _TempGridz,double* _te,int _nTemperaturesIonize,
+    int _nDensitiesIonize,double* _gridTemperature_Ionization,double* _gridDensity_Ionization,
+    double* _rateCoeff_Ionization, double* intermediate, int nT, int idof, int dof_intermediate
               ) : 
    
          particlesPointer(_particlesPointer),
@@ -95,10 +95,10 @@ struct ionize {
 	//if(particlesPointer->hitWall[indx] == 0.0){        
         //cout << "interpolating rate coeff at "<< particlesPointer->x[indx] << " " << particlesPointer->y[indx] << " " << particlesPointer->z[indx] << endl;
        tion = interpRateCoeff2d ( particlesPointer->charge[indx], particlesPointer->x[indx], particlesPointer->y[indx], particlesPointer->z[indx],nR_Temp,nZ_Temp, TempGridr,TempGridz,te,DensGridr,DensGridz, ne,nTemperaturesIonize,nDensitiesIonize,gridTemperature_Ionization,gridDensity_Ionization,rateCoeff_Ionization );	
-    //float PiP = particlesPointer->PionizationPrevious[indx];
-    float P = expf(-dt/tion);
+    //double PiP = particlesPointer->PionizationPrevious[indx];
+    double P = expf(-dt/tion);
     //particlesPointer->PionizationPrevious[indx] = PiP*P;
-    float P1 = 1.0-P;
+    double P1 = 1.0-P;
     //cout << "tion P P1 " << tion << " " << P << " " << P1 << " " << PiP<< endl;
     if(COMPARE_GITR_PRINT==1 && particlesPointer->hitWall[indx] !=0) {
       printf("Not ionizing %d in timestep %d\n", particlesPointer->index[indx], particlesPointer->tt[indx]);
@@ -108,22 +108,22 @@ struct ionize {
         //cout << "calculating r1 " << endl;i
 #if PARTICLESEEDS > 0
 	#ifdef __CUDACC__
-	  //float r1 = 0.5;//curand_uniform(&particlesPointer->streams[indx]);
-      float r1 = curand_uniform(&state[indx]);
+	  //double r1 = 0.5;//curand_uniform(&particlesPointer->streams[indx]);
+      double r1 = curand_uniform(&state[indx]);
 	#else
-	std::uniform_real_distribution<float> dist(0.0, 1.0);
-	float r1=dist(state[indx]);
+	std::uniform_real_distribution<double> dist(0.0, 1.0);
+	double r1=dist(state[indx]);
 	//particlesPointer->test[indx] = r1;
         //cout << " r1 " << r1 << endl;
     #endif
 #else
   #if __CUDACC__
     curandState localState = state[thread_id];
-    float r1 = curand_uniform(&localState);
+    double r1 = curand_uniform(&localState);
     state[thread_id] = localState;
   #else
-    std::uniform_real_distribution<float> dist(0.0, 1.0);
-    float r1=dist(state[0]);
+    std::uniform_real_distribution<double> dist(0.0, 1.0);
+    double r1=dist(state[0]);
   #endif
 #endif
     //if(tt == 722)

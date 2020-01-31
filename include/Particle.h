@@ -29,18 +29,18 @@ using namespace std;
 
 class Particle  {
 	public:
-	    float x;
-	    float y;
-	    float z;
-        float xprevious;
-        float yprevious;
-        float zprevious;
-      	float vx;
-      	float vy;
-      	float vz;
-      	float Z;
-      	float amu;
-        float charge;
+	    double x;
+	    double y;
+	    double z;
+        double xprevious;
+        double yprevious;
+        double zprevious;
+      	double vx;
+      	double vy;
+      	double vz;
+      	double Z;
+      	double amu;
+        double charge;
 #if PARTICLESEEDS > 0
     #ifdef __CUDACC__
 	curandState streams[7];
@@ -48,11 +48,11 @@ class Particle  {
         mt19937 streams[7];
         #endif
 #endif
-	float hitWall;
-    float transitTime;
+	double hitWall;
+    double transitTime;
     int wallIndex;
-    float perpDistanceToSurface;
-	float seed0;
+    double perpDistanceToSurface;
+	double seed0;
 	void BorisMove(double dt, double xMinV,double xMaxV,double yMin,double yMax,double zMin,double zMax);
 	void Ionization(double dt);
 
@@ -64,7 +64,7 @@ class Particle  {
         };
 	
 	CUDA_CALLABLE_MEMBER
-        Particle(float x,float y, float z, float Ex, float Ey, float Ez, float Z, float amu, float charge)
+        Particle(double x,double y, double z, double Ex, double Ey, double Ez, double Z, double amu, double charge)
 		{
     
 		this->xprevious = x;

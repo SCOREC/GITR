@@ -14,28 +14,28 @@
 #include "Boundary.h"
 struct test_routine { 
 //#ifdef __CUDACC__
-//    thrust::device_vector<float>& gridxp;
+//    thrust::device_vector<double>& gridxp;
 //#else
-   float x;
-   float y;
-   float z;
+   double x;
+   double y;
+   double z;
    int nx;
    int nz;
-   float* gridxp;
-   float* gridzp;
-   float* datap; 
+   double* gridxp;
+   double* gridzp;
+   double* datap; 
 //#endif
 
 //#ifdef __CUDACC__
 //    move_boris(thrust::) : span(_span), boundaryVector(_boundaryVector), nLines(_nLines) {}
 //#else
-    test_routine(float _x, float _y, float _z,int _nx,int _nz, float* _gridxp,float* _gridzp,
-                                float* _datap) : x(_x), y(_y), z(_z),nx(_nx),nz(_nz), gridxp(_gridxp), gridzp(_gridzp),
+    test_routine(double _x, double _y, double _z,int _nx,int _nz, double* _gridxp,double* _gridzp,
+                                double* _datap) : x(_x), y(_y), z(_z),nx(_nx),nz(_nz), gridxp(_gridxp), gridzp(_gridzp),
                                 datap(_datap) {}
 //#endif    
 
 //CUDA_CALLABLE_MEMBER    
-void operator()(float &d) const { 
+void operator()(double &d) const { 
     std::cout << "testroutine xyz " << x << y << z << std::endl;
     d = interp2dCombined(x,y,z,nx,nz,gridxp,gridzp,datap);
     std::cout << "test routine interp value " << d << std::endl;

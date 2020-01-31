@@ -12,32 +12,32 @@ using namespace std;
 #include <cmath>
 
 struct field_line_trace {
-    float BfieldFactor; 
+    double BfieldFactor; 
     Particles *particles;
-    float dr;
+    double dr;
     Boundary *boundaries;
     int nLines;
     int nR_Lc;
     int nZ_Lc;
-    float* gridRLc;
-    float* gridZLc;
-    float* Lc;
+    double* gridRLc;
+    double* gridZLc;
+    double* Lc;
             int nR_Bfield;
             int nZ_Bfield;
-            float * BfieldGridR;
-            float * BfieldGridZ;
-            float * BfieldR;
-            float * BfieldZ;
-            float * BfieldT;
+            double * BfieldGridR;
+            double * BfieldGridZ;
+            double * BfieldR;
+            double * BfieldZ;
+            double * BfieldT;
             
-    field_line_trace(float _BfieldFactor,Particles* _particles,float _dr,Boundary* _boundaries,int _nLines, int _nR_Lc, int _nZ_Lc, 
-            float* _gridRLc, float* _gridZLc, float* _Lc,
+    field_line_trace(double _BfieldFactor,Particles* _particles,double _dr,Boundary* _boundaries,int _nLines, int _nR_Lc, int _nZ_Lc, 
+            double* _gridRLc, double* _gridZLc, double* _Lc,
             int _nR_Bfield, int _nZ_Bfield,
-            float * _BfieldGridR,
-            float * _BfieldGridZ,
-            float * _BfieldR,
-            float * _BfieldZ,
-            float * _BfieldT)
+            double * _BfieldGridR,
+            double * _BfieldGridZ,
+            double * _BfieldR,
+            double * _BfieldZ,
+            double * _BfieldT)
         
             : BfieldFactor(_BfieldFactor),particles(_particles),dr(_dr),boundaries(_boundaries),nLines(_nLines),
         nR_Lc(_nR_Lc),nZ_Lc(_nZ_Lc),
@@ -47,22 +47,22 @@ struct field_line_trace {
 
 CUDA_CALLABLE_MEMBER    
 void operator()(size_t indx) const { 
-    float B[3] = {0.0f,0.0f,0.0f};
-    float Bnorm[3] = {0.0f,0.0f,0.0f};
-    float Bmag = 0.0f;
-    float particleDistance = 0.0f;
-    float k1[3] = {0.0,0.0,0.0};
-    float k2[3] = {0.0,0.0,0.0};
-    float k3[3] = {0.0,0.0,0.0};
-    float k4[3] = {0.0,0.0,0.0};
-    float x0 = 0.0f;
-    float y0 = 0.0f;
-    float z0 = 0.0f;
-    float x = 0.0f;
-    float y = 0.0f;
-    float z = 0.0f;
+    double B[3] = {0.0f,0.0f,0.0f};
+    double Bnorm[3] = {0.0f,0.0f,0.0f};
+    double Bmag = 0.0f;
+    double particleDistance = 0.0f;
+    double k1[3] = {0.0,0.0,0.0};
+    double k2[3] = {0.0,0.0,0.0};
+    double k3[3] = {0.0,0.0,0.0};
+    double k4[3] = {0.0,0.0,0.0};
+    double x0 = 0.0f;
+    double y0 = 0.0f;
+    double z0 = 0.0f;
+    double x = 0.0f;
+    double y = 0.0f;
+    double z = 0.0f;
 
-    float dr_fac = BfieldFactor*dr;
+    double dr_fac = BfieldFactor*dr;
 
 if(particles->hitWall[indx] == 0.0)
 {

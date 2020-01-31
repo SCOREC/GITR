@@ -14,7 +14,7 @@ using namespace std;
 #include <vector>
 #if USE_CUDA >0
 #if __CUDA_ARCH__ < 600
-__device__ double atomicAdd1(double* address, double val)
+__device__ double atomicAdd1_(double* address, double val)
 {
     unsigned long long int* address_as_ull =
                         (unsigned long long int*)address;
@@ -30,10 +30,10 @@ __device__ double atomicAdd1(double* address, double val)
                           return __longlong_as_double(old);
                           }
 #else
-__device__ double atomicAdd1(double* address, double val)
-{
-  return atomicAdd(address,val);
-}
+//__device__ double atomicAdd1(double* address, double val)
+//{
+//  return atomicAdd(address,val);
+//}
 #endif
 //__device__ double atomicAdd(double* address, double val)
 //{
@@ -55,14 +55,14 @@ struct spec_bin {
     int nX;
     int nY;
     int nZ;
-    float *gridX;
-    float *gridY;
-    float *gridZ;
+    double *gridX;
+    double *gridY;
+    double *gridZ;
     double *bins;
-    float dt;
+    double dt;
 
-    spec_bin(Particles *_particlesPointer, int _nBins,int _nX,int _nY, int _nZ, float *_gridX,float *_gridY,float *_gridZ,
-           double * _bins, float _dt) : 
+    spec_bin(Particles *_particlesPointer, int _nBins,int _nX,int _nY, int _nZ, double *_gridX,double *_gridY,double *_gridZ,
+           double * _bins, double _dt) : 
         particlesPointer(_particlesPointer), nBins(_nBins),nX(_nX),nY(_nY), nZ(_nZ), gridX(_gridX),gridY(_gridY),gridZ(_gridZ), bins(_bins),
         dt(_dt) {}
 
@@ -70,19 +70,19 @@ struct spec_bin {
 void operator()(size_t indx) const { 
 //    int indx_X = 0;
 //    int indx_Z = 0;
-    float dx = 0.0f;
-    float dy = 0.0f;
-    float dz = 0.0f;
-    float x = particlesPointer->xprevious[indx];
-    float y = particlesPointer->yprevious[indx];
-    float z = particlesPointer->zprevious[indx];
+    double dx = 0.0f;
+    double dy = 0.0f;
+    double dz = 0.0f;
+    double x = particlesPointer->xprevious[indx];
+    double y = particlesPointer->yprevious[indx];
+    double z = particlesPointer->zprevious[indx];
 #if SPECTROSCOPY > 2
-    float dim1 = particlesPointer->xprevious[indx];
+    double dim1 = particlesPointer->xprevious[indx];
 #else
   #if USECYLSYMM > 0
-    float dim1 = sqrtf(x*x + y*y);
+    double dim1 = sqrtf(x*x + y*y);
     #else
-    float dim1 = x;
+    double dim1 = x;
     #endif
 #endif
 
@@ -118,7 +118,7 @@ void operator()(size_t indx) const {
               int charge = floor(particlesPointer->charge[indx]);
               if(particlesPointer->hitWall[indx]== 0.0)
               {
-                  float specWeight = particlesPointer->weight[indx];
+                  double specWeight = particlesPointer->weight[indx];
 #if USE_CUDA >0
               //for 2d
               /*

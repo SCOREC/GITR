@@ -14,40 +14,40 @@ using namespace std;
 struct thermalForce { 
 
     Particles *p;
-    const float dt;
-    float background_amu;
+    const double dt;
+    double background_amu;
     int nR_gradT;
     int nZ_gradT;
-    float* gradTGridr;
-    float* gradTGridz;
-    float* gradTiR;
-    float* gradTiZ;
-    float* gradTiT;
-    float* gradTeR;
-    float* gradTeZ;
-    float* gradTeT;
+    double* gradTGridr;
+    double* gradTGridz;
+    double* gradTiR;
+    double* gradTiZ;
+    double* gradTiT;
+    double* gradTeR;
+    double* gradTeZ;
+    double* gradTeT;
             int nR_Bfield;
             int nZ_Bfield;
-            float * BfieldGridRDevicePointer;
-            float * BfieldGridZDevicePointer;
-            float * BfieldRDevicePointer;
-            float * BfieldZDevicePointer;
-            float * BfieldTDevicePointer;
-	    float dv_ITGx=0.0;
-	    float dv_ITGy=0.0;
-	    float dv_ITGz=0.0;
-	    float dv_ETGx=0.0;
-	    float dv_ETGy=0.0;
-	    float dv_ETGz=0.0;
+            double * BfieldGridRDevicePointer;
+            double * BfieldGridZDevicePointer;
+            double * BfieldRDevicePointer;
+            double * BfieldZDevicePointer;
+            double * BfieldTDevicePointer;
+	    double dv_ITGx=0.0;
+	    double dv_ITGy=0.0;
+	    double dv_ITGz=0.0;
+	    double dv_ETGx=0.0;
+	    double dv_ETGy=0.0;
+	    double dv_ETGz=0.0;
             
-    thermalForce(Particles *_p,float _dt, float _background_amu,int _nR_gradT, int _nZ_gradT, float* _gradTGridr, float* _gradTGridz,
-            float* _gradTiR, float* _gradTiZ, float* _gradTiT, float* _gradTeR, float* _gradTeZ,float* _gradTeT,
+    thermalForce(Particles *_p,double _dt, double _background_amu,int _nR_gradT, int _nZ_gradT, double* _gradTGridr, double* _gradTGridz,
+            double* _gradTiR, double* _gradTiZ, double* _gradTiT, double* _gradTeR, double* _gradTeZ,double* _gradTeT,
             int _nR_Bfield, int _nZ_Bfield,
-            float * _BfieldGridRDevicePointer,
-            float * _BfieldGridZDevicePointer,
-            float * _BfieldRDevicePointer,
-            float * _BfieldZDevicePointer,
-            float * _BfieldTDevicePointer)
+            double * _BfieldGridRDevicePointer,
+            double * _BfieldGridZDevicePointer,
+            double * _BfieldRDevicePointer,
+            double * _BfieldZDevicePointer,
+            double * _BfieldTDevicePointer)
         
             : p(_p), dt(_dt), background_amu(_background_amu),nR_gradT(_nR_gradT),nZ_gradT(_nZ_gradT),
         gradTGridr(_gradTGridr), gradTGridz(_gradTGridz),
@@ -58,20 +58,20 @@ struct thermalForce {
 CUDA_CALLABLE_MEMBER    
 void operator()(size_t indx)  { 
     if ((p->hitWall[indx] == 0.0) && (p->charge[indx] > 0.0)) {
-      float MI = 1.6737236e-27;
-      float alpha;
-      float beta;
-      float mu;
-      float gradTe[3] = {0.0, 0.0, 0.0};
-      float gradTi[3] = {0.0, 0.0, 0.0};
-      float B[3] = {0.0, 0.0, 0.0};
-      float B_unit[3] = {0.0, 0.0, 0.0};
-      float Bmag = 0.0;
-      float gradTiPar = 0.0;
-      float dv_ITG[3] = {};
-      float dv_ETG[3] = {};
-      float vNorm = 0.0;
-      float vNorm2 = 0.0;
+      double MI = 1.6737236e-27;
+      double alpha;
+      double beta;
+      double mu;
+      double gradTe[3] = {0.0, 0.0, 0.0};
+      double gradTi[3] = {0.0, 0.0, 0.0};
+      double B[3] = {0.0, 0.0, 0.0};
+      double B_unit[3] = {0.0, 0.0, 0.0};
+      double Bmag = 0.0;
+      double gradTiPar = 0.0;
+      double dv_ITG[3] = {};
+      double dv_ETG[3] = {};
+      double vNorm = 0.0;
+      double vNorm2 = 0.0;
       // std:cout << " grad Ti interp " << endl;
       interp2dVector(&gradTi[0], p->xprevious[indx], p->yprevious[indx], p->zprevious[indx], nR_gradT, nZ_gradT,
                      gradTGridr, gradTGridz, gradTiR, gradTiZ, gradTiT);
@@ -108,17 +108,17 @@ void operator()(size_t indx)  {
     //cout << "ETG " << dv_ETG[0] << " " << dv_ETG[1] << " " << dv_ETG[2] << endl;
     //cout << "v before thermal force " << p->vx[indx] << " " << p->vy[indx] << " " << p->vz[indx] << endl;
     /*
-    float theta = atan2(p->yprevious,p->xprevious);
-    float Ar = -1;
-    float At = 0.0;
-    float Az = 1;
+    double theta = atan2(p->yprevious,p->xprevious);
+    double Ar = -1;
+    double At = 0.0;
+    double Az = 1;
     gradTi[0] = cos(theta)*Ar - sin(theta)*At;
     gradTi[1] = sin(theta)*Ar + cos(theta)*At;
     gradTi[2] = Az;
     */
-    float vx = p->vx[indx];
-    float vy = p->vy[indx];
-    float vz = p->vz[indx];
+    double vx = p->vx[indx];
+    double vy = p->vy[indx];
+    double vz = p->vz[indx];
         vNorm = sqrt(vx*vx + vy*vy + vz*vz);
     p->vD[indx] = dv_ITG[2];    
 	//cout << "gradTi Parallel " << gradTiPar << endl;
@@ -128,7 +128,7 @@ void operator()(size_t indx)  {
 	//p->vz[indx] = p->vz[indx] +dv_ITG[2];//alpha*(gradTe[2])		
         //vNorm2 = sqrt(p->vx[indx]*p->vx[indx] + p->vy[indx]*p->vy[indx] + p->vz[indx]*p->vz[indx]);
 		//SFT
-        float k1 = dv_ITG[2] - dt*p->nu_s[indx]
+        double k1 = dv_ITG[2] - dt*p->nu_s[indx]
                     *(dv_ITG[2]);
         p->vx[indx] = vx + dv_ITG[0];///velocityCollisionsNorm;   	
 		p->vy[indx] = vy + dv_ITG[1];///velocityCollisionsNorm;   	

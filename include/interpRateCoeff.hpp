@@ -17,19 +17,19 @@ using namespace std;
 CUDA_CALLABLE_MEMBER
 
 
-float rateCoeffInterp(int charge, float te, float ne,int nT, int nD, float* rateGrid_Tempp,float* rateGrid_Densp,float* Ratesp){
+double rateCoeffInterp(int charge, double te, double ne,int nT, int nD, double* rateGrid_Tempp,double* rateGrid_Densp,double* Ratesp){
 
-/*    vector<float>& rateGrid_Temp = *rateGrid_Tempp;
-    vector<float>& rateGrid_Dens = *rateGrid_Densp;
-    vector<float>& Rates = *Ratesp;
+/*    vector<double>& rateGrid_Temp = *rateGrid_Tempp;
+    vector<double>& rateGrid_Dens = *rateGrid_Densp;
+    vector<double>& Rates = *Ratesp;
   */  
     int indT = 0;
     int indN = 0;
-    float logT = log10(te);
-    float logn = log10(ne);
+    double logT = log10(te);
+    double logn = log10(ne);
     //cout << "Rategrid_temp in rateCoeffInterp " << rateGrid_Temp[1] << endl;
-    float d_T = rateGrid_Tempp[1] - rateGrid_Tempp[0];
-    float d_n = rateGrid_Densp[1] - rateGrid_Densp[0];
+    double d_T = rateGrid_Tempp[1] - rateGrid_Tempp[0];
+    double d_n = rateGrid_Densp[1] - rateGrid_Densp[0];
    // if (logT >= rateGrid_Tempp[0] && logT <= rateGrid_Tempp[nT-2])
    // {
         indT = floor((logT - rateGrid_Tempp[0])/d_T );//addition of 0.5 finds nearest gridpoint
@@ -48,22 +48,22 @@ if(indN < 0 || indN > nD-2)
 {indN = 0;}
 if(charge > 74-1)
 {charge = 0;}
-        float aT = pow(10.0f,rateGrid_Tempp[indT+1]) - te;
-    float bT = te - pow(10.0f,rateGrid_Tempp[indT]);
-    float abT = aT+bT;
+        double aT = pow(10.0f,rateGrid_Tempp[indT+1]) - te;
+    double bT = te - pow(10.0f,rateGrid_Tempp[indT]);
+    double abT = aT+bT;
 
-    float aN = pow(10.0f,rateGrid_Densp[indN+1]) - ne;
-    float bN = ne - pow(10.0f, rateGrid_Densp[indN]);
-    float abN = aN + bN;
+    double aN = pow(10.0f,rateGrid_Densp[indN+1]) - ne;
+    double bN = ne - pow(10.0f, rateGrid_Densp[indN]);
+    double abN = aN + bN;
 
-    //float interp_value = Rates[charge*rateGrid_Temp.size()*rateGrid_Dens.size()            + indT*rateGrid_Dens.size() + indN];
+    //double interp_value = Rates[charge*rateGrid_Temp.size()*rateGrid_Dens.size()            + indT*rateGrid_Dens.size() + indN];
 
-    float fx_z1 = (aN*pow(10.0f,Ratesp[charge*nT*nD + indT*nD + indN]) 
+    double fx_z1 = (aN*pow(10.0f,Ratesp[charge*nT*nD + indT*nD + indN]) 
             + bN*pow(10.0f,Ratesp[charge*nT*nD            + indT*nD + indN + 1]))/abN;
     
-    float fx_z2 = (aN*pow(10.0f,Ratesp[charge*nT*nD            + (indT+1)*nD + indN]) 
+    double fx_z2 = (aN*pow(10.0f,Ratesp[charge*nT*nD            + (indT+1)*nD + indN]) 
             + bN*pow(10.0f,Ratesp[charge*nT*nD            + (indT+1)*nD + indN+1]))/abN;
-    float fxz = (aT*fx_z1+bT*fx_z2)/abT;
+    double fxz = (aT*fx_z1+bT*fx_z2)/abT;
     //cout << "fxz1 and 2 " << fx_z1 << " " << fx_z2<< " "<< fxz << endl;
 if(false)
   printf("rateCoeffInterp:logT %g logn %g d_T %g d_n %g indT %d indN %d  aT %g bT %g abT %g aN %g bN %g abN %g fx_z1 %g fx_z2 %g fxz %g\n", 
@@ -72,28 +72,28 @@ if(false)
 }
 
 CUDA_CALLABLE_MEMBER
-float interpRateCoeff2d ( int charge, float x, float y, float z,int nx, int nz, float* tempGridxp,
-       float* tempGridzp, float* Tempp,
-       float* densGridxp,float* densGridzp,float* Densp,int nT_Rates, int nD_Rates,
-       float* rateGrid_Temp,float* rateGrid_Dens,float* Rates ) {
+double interpRateCoeff2d ( int charge, double x, double y, double z,int nx, int nz, double* tempGridxp,
+       double* tempGridzp, double* Tempp,
+       double* densGridxp,double* densGridzp,double* Densp,int nT_Rates, int nD_Rates,
+       double* rateGrid_Temp,double* rateGrid_Dens,double* Rates ) {
 //    cout << "rate test " << Tempp[0] << endl;
-    /*vector<float>& Tdata = *Tempp;
-    vector<float>& Tgridx = *tempGridxp;
-    vector<float>& Tgridz = *tempGridzp;
-    vector<float>& DensityData = *Densp;
-    vector<float>& DensGridx = *densGridxp;
-    vector<float>& DensGridz = *densGridzp;
+    /*vector<double>& Tdata = *Tempp;
+    vector<double>& Tgridx = *tempGridxp;
+    vector<double>& Tgridz = *tempGridzp;
+    vector<double>& DensityData = *Densp;
+    vector<double>& DensGridx = *densGridxp;
+    vector<double>& DensGridz = *densGridzp;
 */
     //cout << "at tlocal interp routine " <<x << y << z<< " " << nx << nz<< endl;
     //cout << "Interpolating local temp at "<<x << " " << y << " " << z << endl;
-    float tlocal = interp2dCombined(x,y,z,nx,nz,tempGridxp,tempGridzp,Tempp);
+    double tlocal = interp2dCombined(x,y,z,nx,nz,tempGridxp,tempGridzp,Tempp);
     //cout << "Interpolating local dens " << endl;
-    float nlocal = interp2dCombined(x,y,z,nx,nz,densGridxp,densGridzp,Densp);
+    double nlocal = interp2dCombined(x,y,z,nx,nz,densGridxp,densGridzp,Densp);
     //cout << "tlocal" << tlocal << endl;
     //cout << "nlocal" << nlocal << endl;
     //cout << "Interpolating RC " << endl;
-    float RClocal = rateCoeffInterp(charge,tlocal,nlocal,nT_Rates,nD_Rates,rateGrid_Temp, rateGrid_Dens, Rates);
-    float tion = 1/(RClocal*nlocal);
+    double RClocal = rateCoeffInterp(charge,tlocal,nlocal,nT_Rates,nD_Rates,rateGrid_Temp, rateGrid_Dens, Rates);
+    double tion = 1/(RClocal*nlocal);
     if(tlocal == 0.0 || nlocal == 0.0) tion=1.0e12;
    if(false && COMPARE_GITR_PRINT==1)
       printf("interpRateCoeff2d:tlocal %g nlocal %g RClocal %g charge %d \n", tlocal, nlocal, RClocal, charge);

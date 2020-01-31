@@ -38,7 +38,7 @@ struct randInit
     randInit(int _streamIndex) : streamIndex(_streamIndex) {}
   template <typename T>
   CUDA_CALLABLE_MEMBER_DEVICE
-  T operator()(T &strm, float &seed) {
+  T operator()(T &strm, double &seed) {
     #ifdef __CUDACC__
     curandState s;
     curand_init(seed, 0, 0, &s);

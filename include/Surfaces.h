@@ -28,41 +28,41 @@ public:
   int nSurfaces;  
   int nE;
   int nA;
-  float E0;
-  float E;
-  float A0;
-  float A;
-  float dE;
-  float dA;
+  double E0;
+  double E;
+  double A0;
+  double A;
+  double dE;
+  double dA;
   sim::Array<int> sumParticlesStrike;
-  sim::Array<float> gridE;
-  sim::Array<float> gridA;
-  sim::Array<float> sumWeightStrike;
-  sim::Array<float> grossDeposition;
-  sim::Array<float> grossErosion;
-  sim::Array<float> aveSputtYld;
+  sim::Array<double> gridE;
+  sim::Array<double> gridA;
+  sim::Array<double> sumWeightStrike;
+  sim::Array<double> grossDeposition;
+  sim::Array<double> grossErosion;
+  sim::Array<double> aveSputtYld;
   sim::Array<int> sputtYldCount;
-  sim::Array<float> energyDistribution;
-  sim::Array<float> sputtDistribution;
-  sim::Array<float> reflDistribution;
+  sim::Array<double> energyDistribution;
+  sim::Array<double> sputtDistribution;
+  sim::Array<double> reflDistribution;
 
   CUDA_CALLABLE_MEMBER
   
-  void setSurface(int nE, float E0, float E, int nA, float A0, float A) {
+  void setSurface(int nE, double E0, double E, int nA, double A0, double A) {
     this->nE = nE;
     this->E0 = E0;
     this->E = E;
     this->nA = nA;
     this->A0 = A0;
     this->A = A;
-    this->dE = (E - E0) / static_cast<float>(nE);
-    this->dA = (A - A0) / static_cast<float>(nA);
+    this->dE = (E - E0) / static_cast<double>(nE);
+    this->dA = (A - A0) / static_cast<double>(nA);
     for (int i = 0; i < nE; i++) {
-      this->gridE[i] = E0 + static_cast<float>(i) * dE;
+      this->gridE[i] = E0 + static_cast<double>(i) * dE;
     }
 
     for (int i = 0; i < nA; i++) {
-      this->gridA[i] = A0 + static_cast<float>(i) * dA;
+      this->gridA[i] = A0 + static_cast<double>(i) * dA;
     }
   };
 

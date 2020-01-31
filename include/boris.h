@@ -22,7 +22,7 @@ using namespace std;
 #endif
 
 CUDA_CALLABLE_MEMBER
-void vectorAdd(float A[], float B[],float C[])
+void vectorAdd(double A[], double B[],double C[])
 {
     C[0] = A[0] + B[0];
     C[1] = A[1] + B[1];
@@ -30,7 +30,7 @@ void vectorAdd(float A[], float B[],float C[])
 }
 
 CUDA_CALLABLE_MEMBER
-void vectorSubtract(float A[], float B[],float C[])
+void vectorSubtract(double A[], double B[],double C[])
 {
     C[0] = A[0] - B[0];
     C[1] = A[1] - B[1];
@@ -38,7 +38,7 @@ void vectorSubtract(float A[], float B[],float C[])
 }
 
 CUDA_CALLABLE_MEMBER
-void vectorScalarMult(float a, float B[],float C[])
+void vectorScalarMult(double a, double B[],double C[])
 {
     C[0] = a*B[0];
     C[1] = a*B[1];
@@ -46,7 +46,7 @@ void vectorScalarMult(float a, float B[],float C[])
 }
 
 CUDA_CALLABLE_MEMBER
-void vectorAssign(float a, float b,float c, float D[])
+void vectorAssign(double a, double b,double c, double D[])
 {
     D[0] = a;
     D[1] = b;
@@ -54,17 +54,17 @@ void vectorAssign(float a, float b,float c, float D[])
 }
 
 CUDA_CALLABLE_MEMBER
-float vectorNorm(float A[])
+double vectorNorm(double A[])
 {
-    float norm = 0.0f;
+    double norm = 0.0f;
     norm = sqrt(A[0]*A[0] + A[1]*A[1] + A[2]*A[2]);
 
         return norm;
 }
 CUDA_CALLABLE_MEMBER
-void vectorNormalize(float A[],float B[])
+void vectorNormalize(double A[],double B[])
 {
-    float norm = 0.0f;
+    double norm = 0.0f;
     norm = sqrt(A[0]*A[0] + A[1]*A[1] + A[2]*A[2]);
     B[0] = A[0]/norm;
     B[1] = A[1]/norm;
@@ -73,16 +73,16 @@ void vectorNormalize(float A[],float B[])
 }
 
 CUDA_CALLABLE_MEMBER
-float vectorDotProduct(float A[], float B[])
+double vectorDotProduct(double A[], double B[])
 {
-    float c = A[0]*B[0] +  A[1]*B[1] + A[2]*B[2];
+    double c = A[0]*B[0] +  A[1]*B[1] + A[2]*B[2];
     return c;
 }
 
 CUDA_CALLABLE_MEMBER
-void vectorCrossProduct(float A[], float B[], float C[])
+void vectorCrossProduct(double A[], double B[], double C[])
 {
-    float tmp[3] = {0.0f,0.0f,0.0f};
+    double tmp[3] = {0.0f,0.0f,0.0f};
     tmp[0] = A[1]*B[2] - A[2]*B[1];
     tmp[1] = A[2]*B[0] - A[0]*B[2];
     tmp[2] = A[0]*B[1] - A[1]*B[0];
@@ -93,16 +93,16 @@ void vectorCrossProduct(float A[], float B[], float C[])
 }
 
 CUDA_CALLABLE_MEMBER
-void closest_point_on_triangle(float* A, float* B, float*C, float* pt, float* ptq) {
+void closest_point_on_triangle(double* A, double* B, double*C, double* pt, double* ptq) {
   int debug = 0;
   int region = -1;
   // Check if P in vertex region outside A
-  float ab[3], ac[3], ap[3], bp[3];
+  double ab[3], ac[3], ap[3], bp[3];
   vectorSubtract(B, A, ab); 
   vectorSubtract(C, A, ac); 
   vectorSubtract(pt, A, ap);
-  float d1 = vectorDotProduct(ab, ap);
-  float d2 = vectorDotProduct(ac, ap);
+  double d1 = vectorDotProduct(ab, ap);
+  double d2 = vectorDotProduct(ac, ap);
   if (d1 <= 0 && d2 <= 0) {
     // barycentric coordinates (1,0,0)
     for(int i=0; i<3; ++i)
@@ -112,8 +112,8 @@ void closest_point_on_triangle(float* A, float* B, float*C, float* pt, float* pt
   }
   // Check if P in vertex region outside B
   vectorSubtract(pt, B, bp);
-  float d3 = vectorDotProduct(ab, bp);
-  float d4 = vectorDotProduct(ac, bp);
+  double d3 = vectorDotProduct(ab, bp);
+  double d4 = vectorDotProduct(ac, bp);
   if(d3 >= 0 && d4 <= d3){ 
     // barycentric coordinates (0,1,0)
     for(int i=0; i<3; ++i)
@@ -122,9 +122,9 @@ void closest_point_on_triangle(float* A, float* B, float*C, float* pt, float* pt
     return; 
   }
   // Check if P in edge region of AB, if so return projection of P onto AB
-  float vc = d1*d4 - d3*d2;
+  double vc = d1*d4 - d3*d2;
   if(vc <= 0 && d1 >= 0 && d3 <= 0) {
-    float v = d1 / (d1 - d3);
+    double v = d1 / (d1 - d3);
     // barycentric coordinates (1-v,v,0)
     vectorScalarMult(v, ab, ptq);
     vectorAdd(ptq, A, ptq); 
@@ -133,10 +133,10 @@ void closest_point_on_triangle(float* A, float* B, float*C, float* pt, float* pt
   }
 
   // Check if P in vertex region outside C
-  float cp[3];
+  double cp[3];
   vectorSubtract(pt, C, cp);
-  float d5 = vectorDotProduct(ab, cp);
-  float d6 = vectorDotProduct(ac, cp);
+  double d5 = vectorDotProduct(ab, cp);
+  double d6 = vectorDotProduct(ac, cp);
   if(region <0 && d6 >= 0 && d5 <= d6) { 
     // barycentric coordinates (0,0,1)
     for(int i=0; i<3; ++i)
@@ -146,9 +146,9 @@ void closest_point_on_triangle(float* A, float* B, float*C, float* pt, float* pt
   }
 
   // Check if P in edge region of AC, if so return projection of P onto AC
-  float vb = d5*d2 - d1*d6;
+  double vb = d5*d2 - d1*d6;
   if(region <0 && vb <= 0 && d2 >= 0 && d6 <= 0) {
-    float w = d2 / (d2 - d6);
+    double w = d2 / (d2 - d6);
     // barycentric coordinates (1-w,0,w)
     vectorScalarMult(w, ac, ptq); // w*vac;
     vectorAdd(ptq, A, ptq);
@@ -157,11 +157,11 @@ void closest_point_on_triangle(float* A, float* B, float*C, float* pt, float* pt
   }
 
   // Check if P in edge region of BC, if so return projection of P onto BC
-  float va = d3*d6 - d5*d4;
+  double va = d3*d6 - d5*d4;
   if(region <0 && va <= 0 && (d4 - d3) >= 0 && (d5 - d6) >= 0) {
-    float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+    double w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
     // barycentric coordinates (0,1-w,w)
-    float c_b[3], wc_b[3];
+    double c_b[3], wc_b[3];
     vectorSubtract(C,B,c_b);
     vectorScalarMult(w, c_b, wc_b);
     vectorAdd(B, wc_b, ptq);
@@ -172,11 +172,11 @@ void closest_point_on_triangle(float* A, float* B, float*C, float* pt, float* pt
 
   // P inside face region. Compute Q through its barycentric coordinates (u,v,w)
   if(region <0) {
-    float inv = 1 / (va + vb + vc);
-    float v = vb * inv;
-    float w = vc * inv;
+    double inv = 1 / (va + vb + vc);
+    double v = vb * inv;
+    double w = vc * inv;
     // u*a + v*b + w*c, u = va * inv = 1 - v - w
-    float wxac[3], vxab[3], plus[3];
+    double wxac[3], vxab[3], plus[3];
     vectorScalarMult(w, ac, wxac);
     vectorScalarMult(v, ab, vxab);
     vectorAdd(vxab, wxac, plus);
@@ -193,93 +193,93 @@ void closest_point_on_triangle(float* A, float* B, float*C, float* pt, float* pt
 
 CUDA_CALLABLE_MEMBER
 
-float getE ( float x0, float y, float z, float E[], Boundary *boundaryVector, int nLines,
+double getE ( double x0, double y, double z, double E[], Boundary *boundaryVector, int nLines,
        int nR_closeGeom, int nY_closeGeom,int nZ_closeGeom, int n_closeGeomElements, 
-       float *closeGeomGridr,float *closeGeomGridy, float *closeGeomGridz, int *closeGeom, 
+       double *closeGeomGridr,double *closeGeomGridy, double *closeGeomGridz, int *closeGeom, 
        int&  closestBoundaryIndex, int ptcl=-1, int* bdryMinInd=nullptr) {
 #if USE3DTETGEOM > 0
-    float Emag = 0.0f;
-    float Er = 0.0f;
-    float Et = 0.0f;
-      float p0[3] = {x0,y,z};
-    float angle = 0.0f;
-	float fd = 0.0f;
-	float pot = 0.0f;
-      float a = 0.0;
-      float b = 0.0;
-      float c = 0.0;
-      float d = 0.0;
-      float plane_norm = 0.0;
-      float pointToPlaneDistance0 = 0.0;
-      float pointToPlaneDistance1 = 0.0;
-      float signPoint0 = 0.0;
-      float signPoint1 = 0.0;
-      float t = 0.0;
-      float A[3] = {0.0,0.0,0.0};
-      float B[3] = {0.0,0.0,0.0};
-      float C[3] = {0.0,0.0,0.0};
-      float AB[3] = {0.0,0.0,0.0};
-      float AC[3] = {0.0,0.0,0.0};
-      float BC[3] = {0.0,0.0,0.0};
-      float CA[3] = {0.0,0.0,0.0};
-      float p[3] = {0.0,0.0,0.0};
-      float Ap[3] = {0.0,0.0,0.0};
-      float Bp[3] = {0.0,0.0,0.0};
-      float Cp[3] = {0.0,0.0,0.0};
-      float p0A[3] = {0.0,0.0,0.0};
-      float p0B[3] = {0.0,0.0,0.0};
-      float p0C[3] = {0.0,0.0,0.0};
-      float p0AB[3] = {0.0,0.0,0.0};
-      float p0BC[3] = {0.0,0.0,0.0};
-      float p0CA[3] = {0.0,0.0,0.0};
-      float p0Anorm = 0.0f;
-      float p0Bnorm = 0.0f;
-      float p0Cnorm = 0.0f;
-      float normalVector[3] = {0.0,0.0,0.0};
-      float crossABAp[3] = {0.0,0.0,0.0};
-      float crossBCBp[3] = {0.0,0.0,0.0};
-      float crossCACp[3] = {0.0,0.0,0.0};
-      float directionUnitVector[3] = {0.0f,0.0f,0.0f};
-      float dot0 = 0.0f;
-      float dot1 = 0.0f;
-      float dot2 = 0.0f;
+    double Emag = 0.0f;
+    double Er = 0.0f;
+    double Et = 0.0f;
+      double p0[3] = {x0,y,z};
+    double angle = 0.0f;
+	double fd = 0.0f;
+	double pot = 0.0f;
+      double a = 0.0;
+      double b = 0.0;
+      double c = 0.0;
+      double d = 0.0;
+      double plane_norm = 0.0;
+      double pointToPlaneDistance0 = 0.0;
+      double pointToPlaneDistance1 = 0.0;
+      double signPoint0 = 0.0;
+      double signPoint1 = 0.0;
+      double t = 0.0;
+      double A[3] = {0.0,0.0,0.0};
+      double B[3] = {0.0,0.0,0.0};
+      double C[3] = {0.0,0.0,0.0};
+      double AB[3] = {0.0,0.0,0.0};
+      double AC[3] = {0.0,0.0,0.0};
+      double BC[3] = {0.0,0.0,0.0};
+      double CA[3] = {0.0,0.0,0.0};
+      double p[3] = {0.0,0.0,0.0};
+      double Ap[3] = {0.0,0.0,0.0};
+      double Bp[3] = {0.0,0.0,0.0};
+      double Cp[3] = {0.0,0.0,0.0};
+      double p0A[3] = {0.0,0.0,0.0};
+      double p0B[3] = {0.0,0.0,0.0};
+      double p0C[3] = {0.0,0.0,0.0};
+      double p0AB[3] = {0.0,0.0,0.0};
+      double p0BC[3] = {0.0,0.0,0.0};
+      double p0CA[3] = {0.0,0.0,0.0};
+      double p0Anorm = 0.0f;
+      double p0Bnorm = 0.0f;
+      double p0Cnorm = 0.0f;
+      double normalVector[3] = {0.0,0.0,0.0};
+      double crossABAp[3] = {0.0,0.0,0.0};
+      double crossBCBp[3] = {0.0,0.0,0.0};
+      double crossCACp[3] = {0.0,0.0,0.0};
+      double directionUnitVector[3] = {0.0f,0.0f,0.0f};
+      double dot0 = 0.0f;
+      double dot1 = 0.0f;
+      double dot2 = 0.0f;
 
-      float normAB = 0.0f;
-      float normBC = 0.0f;
-      float normCA = 0.0f;
-      float ABhat[3] = {0.0f,0.0f,0.0f};
-      float BChat[3] = {0.0f,0.0f,0.0f};
-      float CAhat[3] = {0.0f,0.0f,0.0f};
-      float tAB = 0.0f;
-      float tBC = 0.0f;
-      float tCA = 0.0f;
-      float projP0AB[3] = {0.0f,0.0f,0.0f};
-      float projP0BC[3] = {0.0f,0.0f,0.0f};
-      float projP0CA[3] = {0.0f,0.0f,0.0f};
-      float p0ABdist = 0.0f;
-      float p0BCdist = 0.0f;
-      float p0CAdist = 0.0f;
-      float perpDist = 0.0f;
-      float signDot0 = 0.0;
-      float signDot1 = 0.0;
-      float signDot2 = 0.0;
-      float totalSigns = 0.0;
-      float minDistance = 1e12f;
+      double normAB = 0.0f;
+      double normBC = 0.0f;
+      double normCA = 0.0f;
+      double ABhat[3] = {0.0f,0.0f,0.0f};
+      double BChat[3] = {0.0f,0.0f,0.0f};
+      double CAhat[3] = {0.0f,0.0f,0.0f};
+      double tAB = 0.0f;
+      double tBC = 0.0f;
+      double tCA = 0.0f;
+      double projP0AB[3] = {0.0f,0.0f,0.0f};
+      double projP0BC[3] = {0.0f,0.0f,0.0f};
+      double projP0CA[3] = {0.0f,0.0f,0.0f};
+      double p0ABdist = 0.0f;
+      double p0BCdist = 0.0f;
+      double p0CAdist = 0.0f;
+      double perpDist = 0.0f;
+      double signDot0 = 0.0;
+      double signDot1 = 0.0;
+      double signDot2 = 0.0;
+      double totalSigns = 0.0;
+      double minDistance = 1e12f;
       int nBoundariesCrossed = 0;
       int boundariesCrossed[6] = {0,0,0,0,0,0};
         int minIndex=0;
-      float distances[7] = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
-      float normals[21] = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
+      double distances[7] = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+      double normals[21] = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
                            0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
                            0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
-      float closestAll[21] =  {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
+      double closestAll[21] =  {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
                            0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
                            0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
 
 #if GEOM_HASH_SHEATH > 0
-  float dr = closeGeomGridr[1] - closeGeomGridr[0];
-  float dy = closeGeomGridy[1] - closeGeomGridy[0];
-  float dz = closeGeomGridz[1] - closeGeomGridz[0];
+  double dr = closeGeomGridr[1] - closeGeomGridr[0];
+  double dy = closeGeomGridy[1] - closeGeomGridy[0];
+  double dz = closeGeomGridz[1] - closeGeomGridz[0];
   int rInd = floor((x0 - closeGeomGridr[0])/dr + 0.5f);
   int yInd = floor((y - closeGeomGridy[0])/dy + 0.5f);
   int zInd = floor((z - closeGeomGridz[0])/dz + 0.5f);
@@ -497,36 +497,36 @@ float getE ( float x0, float y, float z, float E[], Boundary *boundaryVector, in
       //cout << "min dist " << minDistance << endl;
 #else //2dGeom     
                 
-    float Emag = 0.0f;
-	float fd = 0.0f;
-	float pot = 0.0f;
+    double Emag = 0.0f;
+	double fd = 0.0f;
+	double pot = 0.0f;
     int minIndex = 0;
-    float minDistance = 1e12f;
+    double minDistance = 1e12f;
     int direction_type;
-    float tol = 1e12f;
-    float point1_dist;
-    float point2_dist;
-    float perp_dist;
-    float directionUnitVector[3] = {0.0f,0.0f,0.0f};
-    float vectorMagnitude;
-    float max = 0.0f;
-    float min = 0.0f;
-    float angle = 0.0f;
-    float Er = 0.0f;
-    float Et = 0.0f;
-    float Bfabsfperp = 0.0f;
-    float distanceToParticle = 0.0f;
+    double tol = 1e12f;
+    double point1_dist;
+    double point2_dist;
+    double perp_dist;
+    double directionUnitVector[3] = {0.0f,0.0f,0.0f};
+    double vectorMagnitude;
+    double max = 0.0f;
+    double min = 0.0f;
+    double angle = 0.0f;
+    double Er = 0.0f;
+    double Et = 0.0f;
+    double Bfabsfperp = 0.0f;
+    double distanceToParticle = 0.0f;
     int pointLine=0;
 //#if EFIELD_INTERP ==1
 #if USECYLSYMM > 0
-    float x = sqrt(x0*x0 + y*y);
+    double x = sqrt(x0*x0 + y*y);
 #else
-    float x = x0;
+    double x = x0;
 #endif 
 
 #if GEOM_HASH_SHEATH > 0
-  float dr = closeGeomGridr[1] - closeGeomGridr[0];
-  float dz = closeGeomGridz[1] - closeGeomGridz[0];
+  double dr = closeGeomGridr[1] - closeGeomGridr[0];
+  double dz = closeGeomGridz[1] - closeGeomGridz[0];
   int rInd = floor((x - closeGeomGridr[0])/dr + 0.5f);
   int zInd = floor((z - closeGeomGridz[0])/dz + 0.5f);
   if(rInd >= nR_closeGeom) rInd = nR_closeGeom -1;
@@ -546,7 +546,7 @@ float getE ( float x0, float y, float z, float E[], Boundary *boundaryVector, in
         //{
         //    j = 0;
         //}
-       float boundZhere = boundaryVector[j].Z;
+       double boundZhere = boundaryVector[j].Z;
        
         if (boundZhere != 0.0)
         {
@@ -668,11 +668,11 @@ float getE ( float x0, float y, float z, float E[], Boundary *boundaryVector, in
            4.2682E-11f  * pow(angle,6.0f);
     pot = boundaryVector[minIndex].potential;
 
-        float debyeLength = boundaryVector[minIndex].debyeLength;
-        float larmorRadius = boundaryVector[minIndex].larmorRadius;
+        double debyeLength = boundaryVector[minIndex].debyeLength;
+        double larmorRadius = boundaryVector[minIndex].larmorRadius;
         Emag = pot*(fd/(2.0f * boundaryVector[minIndex].debyeLength)*expf(-minDistance/(2.0f * boundaryVector[minIndex].debyeLength))+ (1.0f - fd)/(boundaryVector[minIndex].larmorRadius)*expf(-minDistance/boundaryVector[minIndex].larmorRadius) );
-        float part1 = pot*(fd/(2.0f * boundaryVector[minIndex].debyeLength)*expf(-minDistance/(2.0f * boundaryVector[minIndex].debyeLength)));
-        float part2 = pot*(1.0f - fd)/(boundaryVector[minIndex].larmorRadius)*expf(-minDistance/boundaryVector[minIndex].larmorRadius);
+        double part1 = pot*(fd/(2.0f * boundaryVector[minIndex].debyeLength)*expf(-minDistance/(2.0f * boundaryVector[minIndex].debyeLength)));
+        double part2 = pot*(1.0f - fd)/(boundaryVector[minIndex].larmorRadius)*expf(-minDistance/boundaryVector[minIndex].larmorRadius);
 
 #endif
     if(minDistance == 0.0f || boundaryVector[minIndex].larmorRadius == 0.0f)
@@ -693,7 +693,7 @@ float getE ( float x0, float y, float z, float E[], Boundary *boundaryVector, in
 #else
 #if USECYLSYMM > 0
             //if cylindrical geometry
-            float theta = atan2(y,x0);
+            double theta = atan2(y,x0);
   
             E[0] = cos(theta)*Er - sin(theta)*Et;
             E[1] = sin(theta)*Er + cos(theta)*Et;
@@ -705,13 +705,13 @@ float getE ( float x0, float y, float z, float E[], Boundary *boundaryVector, in
 
 
    if(COMPARE_GITR_PRINT==1 && ptcl>=0){
-     float pt[3]={0}, ptq[3]={0};
+     double pt[3]={0}, ptq[3]={0};
      pt[0]= x0; pt[1] = y; pt[2] = z;
-     float A[3], B[3], C[3];
+     double A[3], B[3], C[3];
      int numBdr = nLines;
      int minI = -1;
-     float minD = 1.0e+10;
-     float minA[3]={0}, minB[3]={0}, minC[3]={0}, minq[3]={0};
+     double minD = 1.0e+10;
+     double minA[3]={0}, minB[3]={0}, minC[3]={0}, minq[3]={0};
      //numBdr=1;
      for(int i=0; i<numBdr; ++i){
        //int i = minIndex;
@@ -720,9 +720,9 @@ float getE ( float x0, float y, float z, float E[], Boundary *boundaryVector, in
        B[0] = boundaryVector[i].x2; B[1]=boundaryVector[i].y2;B[2]= boundaryVector[i].z2;
        C[0] = boundaryVector[i].x3; C[1]=boundaryVector[i].y3;C[2]= boundaryVector[i].z3;
        closest_point_on_triangle(A,B,C,pt, ptq);
-       float mind_test[3];
+       double mind_test[3];
        vectorSubtract(pt,ptq,mind_test);
-       float mind = vectorNorm(mind_test);
+       double mind = vectorNorm(mind_test);
        if(minD > mind){
          minD = mind;
          minI = i;
@@ -733,11 +733,11 @@ float getE ( float x0, float y, float z, float E[], Boundary *boundaryVector, in
        }
      }
 
-    float pott = boundaryVector[minI].potential;
-    float Efmag = pott/(2.0f*boundaryVector[minI].ChildLangmuirDist)*
+    double pott = boundaryVector[minI].potential;
+    double Efmag = pott/(2.0f*boundaryVector[minI].ChildLangmuirDist)*
            expf(-minD/(2.0f*boundaryVector[minI].ChildLangmuirDist));
-    float Ef[3]={0};
-    float dirVec[3]={0}, diffV[3]={0}, vN[3]={0};
+    double Ef[3]={0};
+    double dirVec[3]={0}, diffV[3]={0}, vN[3]={0};
     vectorSubtract(pt, minq, diffV);
     vectorNormalize(diffV, vN);
     vectorScalarMult(Efmag, vN, Ef);
@@ -761,48 +761,48 @@ struct move_boris {
     Boundary *boundaryVector;
     int nR_Bfield;
     int nZ_Bfield;
-    float * BfieldGridRDevicePointer;
-    float * BfieldGridZDevicePointer;
-    float * BfieldRDevicePointer;
-    float * BfieldZDevicePointer;
-    float * BfieldTDevicePointer;
+    double * BfieldGridRDevicePointer;
+    double * BfieldGridZDevicePointer;
+    double * BfieldRDevicePointer;
+    double * BfieldZDevicePointer;
+    double * BfieldTDevicePointer;
     int nR_Efield;
     int nY_Efield;
     int nZ_Efield;
-    float * EfieldGridRDevicePointer;
-    float * EfieldGridYDevicePointer;
-    float * EfieldGridZDevicePointer;
-    float * EfieldRDevicePointer;
-    float * EfieldZDevicePointer;
-    float * EfieldTDevicePointer;
+    double * EfieldGridRDevicePointer;
+    double * EfieldGridYDevicePointer;
+    double * EfieldGridZDevicePointer;
+    double * EfieldRDevicePointer;
+    double * EfieldZDevicePointer;
+    double * EfieldTDevicePointer;
     int nR_closeGeom_sheath;
     int nY_closeGeom_sheath;
     int nZ_closeGeom_sheath;
     int n_closeGeomElements_sheath;
-    float* closeGeomGridr_sheath;
-    float* closeGeomGridy_sheath;
-    float* closeGeomGridz_sheath;
+    double* closeGeomGridr_sheath;
+    double* closeGeomGridy_sheath;
+    double* closeGeomGridz_sheath;
     int* closeGeom_sheath; 
-    const float span;
+    const double span;
     const int nLines;
-    float magneticForce[3];
-    float electricForce[3];
-    move_boris(Particles *_particlesPointer, float _span, Boundary *_boundaryVector,int _nLines,
+    double magneticForce[3];
+    double electricForce[3];
+    move_boris(Particles *_particlesPointer, double _span, Boundary *_boundaryVector,int _nLines,
             int _nR_Bfield, int _nZ_Bfield,
-            float * _BfieldGridRDevicePointer,
-            float * _BfieldGridZDevicePointer,
-            float * _BfieldRDevicePointer,
-            float * _BfieldZDevicePointer,
-            float * _BfieldTDevicePointer,
+            double * _BfieldGridRDevicePointer,
+            double * _BfieldGridZDevicePointer,
+            double * _BfieldRDevicePointer,
+            double * _BfieldZDevicePointer,
+            double * _BfieldTDevicePointer,
             int _nR_Efield,int _nY_Efield, int _nZ_Efield,
-            float * _EfieldGridRDevicePointer,
-            float * _EfieldGridYDevicePointer,
-            float * _EfieldGridZDevicePointer,
-            float * _EfieldRDevicePointer,
-            float * _EfieldZDevicePointer,
-            float * _EfieldTDevicePointer,
+            double * _EfieldGridRDevicePointer,
+            double * _EfieldGridYDevicePointer,
+            double * _EfieldGridZDevicePointer,
+            double * _EfieldRDevicePointer,
+            double * _EfieldZDevicePointer,
+            double * _EfieldTDevicePointer,
             int _nR_closeGeom, int _nY_closeGeom,int _nZ_closeGeom, int _n_closeGeomElements, 
-            float *_closeGeomGridr,float *_closeGeomGridy, float *_closeGeomGridz, int *_closeGeom)
+            double *_closeGeomGridr,double *_closeGeomGridy, double *_closeGeomGridz, int *_closeGeom)
 : particlesPointer(_particlesPointer),
         boundaryVector(_boundaryVector),
         nR_Bfield(_nR_Bfield),
@@ -838,27 +838,27 @@ CUDA_CALLABLE_MEMBER
 void operator()(size_t indx) { 
 #ifdef __CUDACC__
 #else
-  float initTime = 0.0f;
-  float interpETime = 0.0f;
-  float interpBTime = 0.0f;
-  float operationsTime = 0.0f;
+  double initTime = 0.0f;
+  double interpETime = 0.0f;
+  double interpBTime = 0.0f;
+  double operationsTime = 0.0f;
 #endif
-  float v_minus[3]= {0.0f, 0.0f, 0.0f};
-  float v_prime[3]= {0.0f, 0.0f, 0.0f};
-  float position[3]= {0.0f, 0.0f, 0.0f};
-  float v[3]= {0.0f, 0.0f, 0.0f};
-  float E[3] = {0.0f, 0.0f, 0.0f};
+  double v_minus[3]= {0.0f, 0.0f, 0.0f};
+  double v_prime[3]= {0.0f, 0.0f, 0.0f};
+  double position[3]= {0.0f, 0.0f, 0.0f};
+  double v[3]= {0.0f, 0.0f, 0.0f};
+  double E[3] = {0.0f, 0.0f, 0.0f};
 #if USEPRESHEATHEFIELD > 0
-  float PSE[3] = {0.0f, 0.0f, 0.0f};
+  double PSE[3] = {0.0f, 0.0f, 0.0f};
 #endif
-  float B[3] = {0.0f,0.0f,0.0f};
-  float dt = span;
-  float Bmag = 0.0f;
-  float q_prime = 0.0f;
-  float coeff = 0.0f;
+  double B[3] = {0.0f,0.0f,0.0f};
+  double dt = span;
+  double Bmag = 0.0f;
+  double q_prime = 0.0f;
+  double coeff = 0.0f;
   int nSteps = floor( span / dt + 0.5f);
 #if USESHEATHEFIELD > 0
-  float minDist = 0.0f;
+  double minDist = 0.0f;
   int closestBoundaryIndex;
 #endif
 #if ODEINT ==	0 
@@ -869,11 +869,11 @@ void operator()(size_t indx) {
 	    particlesPointer->hasLeaked[indx] = 1;
 	  }
 	}
-  float qpE[3] = {0.0f,0.0f,0.0f};
-  float vmxB[3] = {0.0f,0.0f,0.0f};
-  float vpxB[3] = {0.0f,0.0f,0.0f};
-  float qp_vmxB[3] = {0.0f,0.0f,0.0f};
-  float c_vpxB[3] = {0.0f,0.0f,0.0f};
+  double qpE[3] = {0.0f,0.0f,0.0f};
+  double vmxB[3] = {0.0f,0.0f,0.0f};
+  double vpxB[3] = {0.0f,0.0f,0.0f};
+  double qp_vmxB[3] = {0.0f,0.0f,0.0f};
+  double c_vpxB[3] = {0.0f,0.0f,0.0f};
   vectorAssign(particlesPointer->xprevious[indx], particlesPointer->yprevious[indx], 
     particlesPointer->zprevious[indx],position);
     
@@ -892,7 +892,7 @@ void operator()(size_t indx) {
 #if USEPRESHEATHEFIELD > 0
 #if LC_INTERP==3
               
-     //float PSE2[3] = {0.0f, 0.0f, 0.0f};
+     //double PSE2[3] = {0.0f, 0.0f, 0.0f};
     interp3dVector(PSE,position[0], position[1], position[2],nR_Efield,nY_Efield,nZ_Efield,
              EfieldGridRDevicePointer,EfieldGridYDevicePointer,EfieldGridZDevicePointer,EfieldRDevicePointer,
              EfieldZDevicePointer,EfieldTDevicePointer);
@@ -939,7 +939,7 @@ void operator()(size_t indx) {
     q_prime = particlesPointer->charge[indx]*1.60217662e-19f/(particlesPointer->amu[indx]*1.6737236e-27f)*dt*0.5f;
     coeff = 2.0f*q_prime/(1.0f+(q_prime*Bmag)*(q_prime*Bmag));
     vectorAssign(particlesPointer->vx[indx], particlesPointer->vy[indx], particlesPointer->vz[indx],v);
-    float v0[] = {v[0],v[1],v[2]};
+    double v0[] = {v[0],v[1],v[2]};
     vectorScalarMult(q_prime,E,qpE);
     vectorAdd(v,qpE,v_minus);
     this->electricForce[0] = 2.0*qpE[0];
@@ -983,29 +983,29 @@ void operator()(size_t indx) {
 #endif
 
 #if ODEINT == 1
-  float m = particlesPointer->amu[indx]*1.6737236e-27;
-  float q_m = particlesPointer->charge[indx]*1.60217662e-19/m;
-  float r[3]= {0.0, 0.0, 0.0};
-  float r2[3]= {0.0, 0.0, 0.0};
-  float r3[3]= {0.0, 0.0, 0.0};
-  float r4[3]= {0.0, 0.0, 0.0};
-  float v2[3]= {0.0, 0.0, 0.0};
-  float v3[3]= {0.0, 0.0, 0.0};
-  float v4[3]= {0.0, 0.0, 0.0};
-  float k1r[3]= {0.0, 0.0, 0.0};
-  float k2r[3]= {0.0, 0.0, 0.0};
-  float k3r[3]= {0.0, 0.0, 0.0};
-  float k4r[3]= {0.0, 0.0, 0.0};
-  float k1v[3]= {0.0, 0.0, 0.0};
-  float k2v[3]= {0.0, 0.0, 0.0};
-  float k3v[3]= {0.0, 0.0, 0.0};
-  float k4v[3]= {0.0, 0.0, 0.0};
-  float dtqm = dt*q_m;
-  float vxB[3] = {0.0,0.0,0.0};
-  float EplusvxB[3] = {0.0,0.0,0.0};
-  float halfKr[3] = {0.0,0.0,0.0};
-  float halfKv[3] = {0.0,0.0,0.0};
-  float half = 0.5;
+  double m = particlesPointer->amu[indx]*1.6737236e-27;
+  double q_m = particlesPointer->charge[indx]*1.60217662e-19/m;
+  double r[3]= {0.0, 0.0, 0.0};
+  double r2[3]= {0.0, 0.0, 0.0};
+  double r3[3]= {0.0, 0.0, 0.0};
+  double r4[3]= {0.0, 0.0, 0.0};
+  double v2[3]= {0.0, 0.0, 0.0};
+  double v3[3]= {0.0, 0.0, 0.0};
+  double v4[3]= {0.0, 0.0, 0.0};
+  double k1r[3]= {0.0, 0.0, 0.0};
+  double k2r[3]= {0.0, 0.0, 0.0};
+  double k3r[3]= {0.0, 0.0, 0.0};
+  double k4r[3]= {0.0, 0.0, 0.0};
+  double k1v[3]= {0.0, 0.0, 0.0};
+  double k2v[3]= {0.0, 0.0, 0.0};
+  double k3v[3]= {0.0, 0.0, 0.0};
+  double k4v[3]= {0.0, 0.0, 0.0};
+  double dtqm = dt*q_m;
+  double vxB[3] = {0.0,0.0,0.0};
+  double EplusvxB[3] = {0.0,0.0,0.0};
+  double halfKr[3] = {0.0,0.0,0.0};
+  double halfKv[3] = {0.0,0.0,0.0};
+  double half = 0.5;
   v[0] = particlesPointer->vx[indx];
   v[1] = particlesPointer->vy[indx];
   v[2] = particlesPointer->vz[indx];

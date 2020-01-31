@@ -300,7 +300,7 @@ namespace sim {
 void print(std::string const label)
 {
   std::cout << label << '\n';
-  //if constexpr (std::is_floating_point<P>::value)
+  //if constexpr (std::is_doubleing_point<P>::value)
   //{
     for (auto i = 0; i < size_; ++i)
       std::cout << std::setw(12) << std::setprecision(4) << std::scientific

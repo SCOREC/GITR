@@ -29,64 +29,64 @@ class Boundary
     int surfaceNumber;
     int surface;
     int inDir;
-    float x1;
-    float y1;
-    float z1;
-    float x2;
-    float y2;
-    float z2;
-    float a;
-    float b;
-    float c;
-    float d;
-    float plane_norm; //16
+    double x1;
+    double y1;
+    double z1;
+    double x2;
+    double y2;
+    double z2;
+    double a;
+    double b;
+    double c;
+    double d;
+    double plane_norm; //16
     #if USE3DTETGEOM > 0
-      float x3;
-      float y3;
-      float z3;
-      float area;
+      double x3;
+      double y3;
+      double z3;
+      double area;
     #else
-      float slope_dzdx;
-      float intercept_z;
+      double slope_dzdx;
+      double intercept_z;
     #endif     
-    float Z;
-    float amu;
-    float potential;
-    float ChildLangmuirDist;
+    double Z;
+    double amu;
+    double potential;
+    double ChildLangmuirDist;
     #ifdef __CUDACC__
     //curandState streams[7];
     #else
     //std::mt19937 streams[7];
     #endif
 	
-    float hitWall;
-    float length;
-    float distanceToParticle;
-    float angle;
-    float fd;
-    float density;
-    float ti;
-    float ne;
-    float te;
-    float debyeLength;
-    float larmorRadius;
-    float flux;
-    float startingParticles;
-    float impacts;
-    float redeposit;
+    double hitWall;
+    double length;
+    double distanceToParticle;
+    double angle;
+    double fd;
+    double density;
+    double ti;
+    double ne;
+    double te;
+    double debyeLength;
+    double larmorRadius;
+    double flux;
+    double startingParticles;
+    double impacts;
+    double redeposit;
 
-    float midx;
-    float midy;
-    float midz;
+    double midx;
+    double midy;
+    double midz;
 
     CUDA_CALLABLE_MEMBER
-    void getSurfaceParallel(float A[],float y,float x)
+    void getSurfaceParallel(double A[],double y,double x)
     {
 #if USE3DTETGEOM > 0
-    float norm = sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1));
+    double norm = sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1));
     A[1] = (y2 - y1) / norm;
 #else
-    float norm = sqrt((x2 - x1) * (x2 - x1) + (z2 - z1) * (z2 - z1));
+    double norm = sqrt((x2 - x1) * (x2 - x1) + (z2 - z1) * (z2 - z1));
     A[1] = 0.0;
 #endif
         //cout << "surf par calc " << x2 << " " << x1 << " " << norm << endl;
@@ -95,8 +95,8 @@ class Boundary
 #if USE3DTETGEOM > 0
 #else
 #if USECYLSYMM > 0
-    float theta = atan2(y, x);
-    float B[3] = {0.0f};
+    double theta = atan2(y, x);
+    double B[3] = {0.0f};
     B[0] = cos(theta) * A[0] - sin(theta) * A[1];
     B[1] = sin(theta) * A[0] + cos(theta) * A[1];
     A[0] = B[0];
@@ -106,23 +106,23 @@ class Boundary
     }
 
   CUDA_CALLABLE_MEMBER
-  void getSurfaceNormal(float B[], float y, float x) {
+  void getSurfaceNormal(double B[], double y, double x) {
 #if USE3DTETGEOM > 0
     B[0] = -a / plane_norm;
     B[1] = -b / plane_norm;
     B[2] = -c / plane_norm;
 #else
-    float perpSlope = 0.0;
+    double perpSlope = 0.0;
     if (slope_dzdx == 0.0) {
       perpSlope = 1.0e12;
     } else {
       perpSlope = -copysign(1.0, slope_dzdx) / abs(slope_dzdx);
     }
-    float Br = 1.0f / sqrt(perpSlope * perpSlope + 1.0);
-    float Bt = 0.0;
+    double Br = 1.0f / sqrt(perpSlope * perpSlope + 1.0);
+    double Bt = 0.0;
     B[2] = copysign(1.0,perpSlope) * sqrt(1 - Br * Br);
 #if USECYLSYMM > 0
-    float theta = atan2(y, x);
+    double theta = atan2(y, x);
     B[0] = cos(theta) * Br - sin(theta) * Bt;
     B[1] = sin(theta) * Br + cos(theta) * Bt;
 #else
@@ -136,12 +136,12 @@ class Boundary
 #endif
     }
     CUDA_CALLABLE_MEMBER
-        void transformToSurface(float C[],float y, float x)
+        void transformToSurface(double C[],double y, double x)
         {
-            float X[3] = {0.0f};
-            float Y[3] = {0.0f};
-            float Z[3] = {0.0f};
-            float tmp[3] = {0.0f};
+            double X[3] = {0.0f};
+            double Y[3] = {0.0f};
+            double Z[3] = {0.0f};
+            double tmp[3] = {0.0f};
             getSurfaceParallel(X,y,x);
             getSurfaceNormal(Z,y,x);
             Y[0] = Z[1]*X[2] - Z[2]*X[1]; 
@@ -156,7 +156,7 @@ class Boundary
             C[2] = tmp[2];
 
         }
-//        Boundary(float x1,float y1, float z1, float x2, float y2, float z2,float slope, float intercept, float Z, float amu)
+//        Boundary(double x1,double y1, double z1, double x2, double y2, double z2,double slope, double intercept, double Z, double amu)
 //		{
 //    
 //		this->x1 = x1;

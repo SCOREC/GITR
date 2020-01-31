@@ -28,11 +28,11 @@ struct hashGeom_sheath {
    //int k;
    int nLines; 
    Boundary* boundary;
-   float* x;
-   float* y;
-   float* z;
+   double* x;
+   double* y;
+   double* z;
    int n_closeGeomElements;
-   //float* minDist;
+   //double* minDist;
    int* closeGeom;
    int nR;
    int nY;
@@ -41,10 +41,10 @@ struct hashGeom_sheath {
 
    hashGeom_sheath(int _nLines,
                 Boundary* _boundary,
-                float* _x,
-                float* _y, 
-                float* _z, 
-                int _n_closeGeomElements, //float *_minDist, 
+                double* _x,
+                double* _y, 
+                double* _z, 
+                int _n_closeGeomElements, //double *_minDist, 
                 int *_closeGeom,
                 int _nR, int _nY, int _nZ)
                : nLines(_nLines),boundary(_boundary), x(_x), y(_y), z(_z), 
@@ -55,67 +55,67 @@ struct hashGeom_sheath {
     CUDA_CALLABLE_MEMBER_DEVICE 
     void operator()(size_t indx) const { 
       #if USE3DTETGEOM > 0
-       float kk = indx/(nR*nY);
+       double kk = indx/(nR*nY);
        int k = floor(kk);
        int jjj = indx - k*nR*nY;
-       float jj = 1.0*jjj/nR;
+       double jj = 1.0*jjj/nR;
        int j = floor(jj);
        int i = indx - j*nR - k*(nR*nY);
        int xyzIndx = indx;
-       float x0 = x[i];
-       float y0 = y[j];
-       float z0 = z[k];
+       double x0 = x[i];
+       double y0 = y[j];
+       double z0 = z[k];
       #else
-       float kk = indx/(nR);
+       double kk = indx/(nR);
        int k = floor(kk);
        int i = indx - k*(nR);
-       float x0 = x[i];
-       float y0 = 0.0;
-       float z0 = z[k];
+       double x0 = x[i];
+       double y0 = 0.0;
+       double z0 = z[k];
        int xyzIndx = indx;
       #endif
-       float A[3] = {0.0,0.0,0.0};
-            float B[3] = {0.0,0.0,0.0};
-            float C[3] = {0.0,0.0,0.0};
-            float AB[3] = {0.0,0.0,0.0};
-            float AC[3] = {0.0,0.0,0.0};
-            float BC[3] = {0.0,0.0,0.0};
-            float CA[3] = {0.0,0.0,0.0};
-            float p[3] = {0.0,0.0,0.0};
-            float Ap[3] = {0.0,0.0,0.0};
-            float Bp[3] = {0.0,0.0,0.0};
-            float Cp[3] = {0.0,0.0,0.0};
-            float normalVector[3] = {0.0,0.0,0.0};
-            float crossABAp[3] = {0.0,0.0,0.0};
-            float crossBCBp[3] = {0.0,0.0,0.0};
-            float crossCACp[3] = {0.0,0.0,0.0};
-            float signDot0 = 0.0;
-            float signDot1 = 0.0;
-            float signDot2 = 0.0;
-            float totalSigns = 0.0;
+       double A[3] = {0.0,0.0,0.0};
+            double B[3] = {0.0,0.0,0.0};
+            double C[3] = {0.0,0.0,0.0};
+            double AB[3] = {0.0,0.0,0.0};
+            double AC[3] = {0.0,0.0,0.0};
+            double BC[3] = {0.0,0.0,0.0};
+            double CA[3] = {0.0,0.0,0.0};
+            double p[3] = {0.0,0.0,0.0};
+            double Ap[3] = {0.0,0.0,0.0};
+            double Bp[3] = {0.0,0.0,0.0};
+            double Cp[3] = {0.0,0.0,0.0};
+            double normalVector[3] = {0.0,0.0,0.0};
+            double crossABAp[3] = {0.0,0.0,0.0};
+            double crossBCBp[3] = {0.0,0.0,0.0};
+            double crossCACp[3] = {0.0,0.0,0.0};
+            double signDot0 = 0.0;
+            double signDot1 = 0.0;
+            double signDot2 = 0.0;
+            double totalSigns = 0.0;
 #if USE_CUDA
-           float *minDist  = new float[n_closeGeomElements];
+           double *minDist  = new double[n_closeGeomElements];
            for(int i1=0;i1<n_closeGeomElements;i1++){ minDist[i1] = 1.0e6;}
-           //float minDist[10] = {1.0e6,1.0e6,1.0e6,1.0e6,1.0e6,1.0e6,1.0e6,1.0e6,1.0e6,1.0e6};
+           //double minDist[10] = {1.0e6,1.0e6,1.0e6,1.0e6,1.0e6,1.0e6,1.0e6,1.0e6,1.0e6,1.0e6};
 #else
-           sim::Array<float> minDist(n_closeGeomElements,1e6);      
+           sim::Array<double> minDist(n_closeGeomElements,1e6);      
 #endif
                 
     for(int l=0; l<nLines; l++)
     {
         if(boundary[l].Z > 0)
         {
-                       float a = boundary[l].a;
-                       float b = boundary[l].b;
-                       float c = boundary[l].c;
-                       float d = boundary[l].d;
+                       double a = boundary[l].a;
+                       double b = boundary[l].b;
+                       double c = boundary[l].c;
+                       double d = boundary[l].d;
     #if USE3DTETGEOM > 0
-      float plane_norm = boundary[l].plane_norm;
-      float t = -(a*x0 + b*y0 + c*z0 + d)/(a*a + b*b + c*c);
+      double plane_norm = boundary[l].plane_norm;
+      double t = -(a*x0 + b*y0 + c*z0 + d)/(a*a + b*b + c*c);
       p[0] = a*t + x0;
       p[1] = b*t + y0;
       p[2] = c*t + z0;
-      float perpDist = sqrt((x0-p[0])*(x0-p[0]) + (y0-p[1])*(y0-p[1]) + (z0-p[2])*(z0-p[2]));
+      double perpDist = sqrt((x0-p[0])*(x0-p[0]) + (y0-p[1])*(y0-p[1]) + (z0-p[2])*(z0-p[2]));
     #endif
       vectorAssign(boundary[l].x1, boundary[l].y1, 
           boundary[l].z1, A);    
@@ -151,58 +151,58 @@ struct hashGeom_sheath {
         p[0] = x0;
         p[1] = y0;
         p[2] = z0;
-        float pA[3] = {0.0};
-        float cEdge1[3] = {0.0};
-        float dEdge1[3] = {0.0};
+        double pA[3] = {0.0};
+        double cEdge1[3] = {0.0};
+        double dEdge1[3] = {0.0};
         vectorSubtract(A, p, pA);
-        float cEdge1mag = vectorDotProduct(pA, AB) / vectorDotProduct(AB, AB);
-        float distE1 = 1.0e6;
+        double cEdge1mag = vectorDotProduct(pA, AB) / vectorDotProduct(AB, AB);
+        double distE1 = 1.0e6;
         if (cEdge1mag < 0.0 && cEdge1mag > -1.0) {
           vectorScalarMult(cEdge1mag, AB, cEdge1);
           vectorSubtract(pA, cEdge1, dEdge1);
           distE1 = sqrt(vectorDotProduct(dEdge1, dEdge1));
         }
 #if USE3DTETGEOM > 0
-        float pB[3] = {0.0};
-        float cEdge2[3] = {0.0};
-        float dEdge2[3] = {0.0};
+        double pB[3] = {0.0};
+        double cEdge2[3] = {0.0};
+        double dEdge2[3] = {0.0};
         vectorSubtract(B, p, pB);
-        float cEdge2mag = vectorDotProduct(pB, BC) / vectorDotProduct(BC, BC);
-        float distE2 = 1.0e6;
+        double cEdge2mag = vectorDotProduct(pB, BC) / vectorDotProduct(BC, BC);
+        double distE2 = 1.0e6;
         if (cEdge2mag < 0.0 && cEdge2mag > -1.0) {
           vectorScalarMult(cEdge2mag, BC, cEdge2);
           vectorSubtract(pB, cEdge2, dEdge2);
           distE2 = sqrt(vectorDotProduct(dEdge2, dEdge2));
         }
-        float pC[3] = {0.0};
-        float cEdge3[3] = {0.0};
-        float dEdge3[3] = {0.0};
+        double pC[3] = {0.0};
+        double cEdge3[3] = {0.0};
+        double dEdge3[3] = {0.0};
         vectorSubtract(C, p, pC);
-        float cEdge3mag = vectorDotProduct(pC, CA) / vectorDotProduct(CA, CA);
-        float distE3 = 1.0e6;
+        double cEdge3mag = vectorDotProduct(pC, CA) / vectorDotProduct(CA, CA);
+        double distE3 = 1.0e6;
         if (cEdge3mag < 0.0 && cEdge3mag > -1.0) {
           vectorScalarMult(cEdge3mag, CA, cEdge3);
           vectorSubtract(pC, cEdge3, dEdge3);
           distE3 = sqrt(vectorDotProduct(dEdge3, dEdge3));
         }
-        float minEdge = min(distE1, distE2);
+        double minEdge = min(distE1, distE2);
         minEdge = min(distE3, minEdge);
 #else
           //
-          float minEdge = distE1;
+          double minEdge = distE1;
 #endif
-        float d1 =sqrt((x0 - boundary[l].x1)*(x0 - boundary[l].x1)
+        double d1 =sqrt((x0 - boundary[l].x1)*(x0 - boundary[l].x1)
                 +  (y0 - boundary[l].y1)*(y0 - boundary[l].y1)
                 +  (z0 - boundary[l].z1)*(z0 - boundary[l].z1));
-        float d2 =sqrt((x0 - boundary[l].x2)*(x0 - boundary[l].x2)
+        double d2 =sqrt((x0 - boundary[l].x2)*(x0 - boundary[l].x2)
                 +  (y0 - boundary[l].y2)*(y0 - boundary[l].y2)
                 +  (z0 - boundary[l].z2)*(z0 - boundary[l].z2));
           #if USE3DTETGEOM > 0
-            float d3 =sqrt((x0 - boundary[l].x3)*(x0 - boundary[l].x3)
+            double d3 =sqrt((x0 - boundary[l].x3)*(x0 - boundary[l].x3)
                     +  (y0 - boundary[l].y3)*(y0 - boundary[l].y3)
                     +  (z0 - boundary[l].z3)*(z0 - boundary[l].z3));
           #endif
-          float minOf3 = min(d1,d2);
+          double minOf3 = min(d1,d2);
           minOf3 = min(minOf3,minEdge);
         //cout << "min of two " << minOf3 << endl;
           #if USE3DTETGEOM > 0

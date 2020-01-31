@@ -21,31 +21,66 @@ using namespace std;
 #endif
 #include <random>
 
+#if USE_CUDA >0
+//#if __CUDA_ARCH__ < 600
+__device__ double atomicAdd1(double* address, double val)
+{
+    unsigned long long int* address_as_ull =
+                        (unsigned long long int*)address;
+    unsigned long long int old = *address_as_ull, assumed;
+      do {
+             assumed = old;
+             old = atomicCAS(address_as_ull, assumed,
+                            __double_as_longlong(val + 
+                                __longlong_as_double(assumed)));
+                 // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+                      } while (assumed != old);
+                 
+                          return __longlong_as_double(old);
+                          }
+
+__device__ double atomicAdd1(int* address, int val)
+{
+    unsigned long long int* address_as_ull =
+                        (unsigned long long int*)address;
+    unsigned long long int old = *address_as_ull, assumed;
+      do {
+             assumed = old;
+             old = atomicCAS(address_as_ull, assumed,
+                            __double_as_longlong(val + 
+                                __longlong_as_double(assumed)));
+                 // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+                      } while (assumed != old);
+                 
+                          return __longlong_as_double(old);
+                          }
+
+#endif
 // CUDA_CALLABLE_MEMBER
 
 class Particles : public ManagedAllocation {
 public:
   size_t nParticles;
   sim::Array<int> index;
-  sim::Array<float> x;
-  sim::Array<float> y;
-  sim::Array<float> z;
-  sim::Array<float> xprevious;
-  sim::Array<float> yprevious;
-  sim::Array<float> zprevious;
-  sim::Array<float> v;
-  sim::Array<float> vx;
-  sim::Array<float> vy;
-  sim::Array<float> vz;
-  sim::Array<float> Z;
-  sim::Array<float> amu;
-  sim::Array<float> charge;
-  sim::Array<float> newVelocity;
-  sim::Array<float> nu_s;
-  sim::Array<float> vD;
+  sim::Array<double> x;
+  sim::Array<double> y;
+  sim::Array<double> z;
+  sim::Array<double> xprevious;
+  sim::Array<double> yprevious;
+  sim::Array<double> zprevious;
+  sim::Array<double> v;
+  sim::Array<double> vx;
+  sim::Array<double> vy;
+  sim::Array<double> vz;
+  sim::Array<double> Z;
+  sim::Array<double> amu;
+  sim::Array<double> charge;
+  sim::Array<double> newVelocity;
+  sim::Array<double> nu_s;
+  sim::Array<double> vD;
   sim::Array<int> tt;
   sim::Array<int> hasLeaked;
-  sim::Array<float> leakZ;
+  sim::Array<double> leakZ;
 #if PARTICLESEEDS > 0
 #ifdef __CUDACC__
   // sim::Array<curandState> streams;
@@ -66,33 +101,33 @@ public:
 #endif
 #endif
 
-  sim::Array<float> hitWall;
+  sim::Array<double> hitWall;
   sim::Array<int> wallHit;
   sim::Array<int> firstCollision;
-  sim::Array<float> transitTime;
-  sim::Array<float> distTraveled;
+  sim::Array<double> transitTime;
+  sim::Array<double> distTraveled;
   sim::Array<int> wallIndex;
-  sim::Array<float> perpDistanceToSurface;
-  sim::Array<float> test;
-  sim::Array<float> test0;
-  sim::Array<float> test1;
-  sim::Array<float> test2;
-  sim::Array<float> test3;
-  sim::Array<float> test4;
-  sim::Array<float> distanceTraveled;
-  sim::Array<float> weight;
-  sim::Array<float> PionizationPrevious;
-  sim::Array<float> PrecombinationPrevious;
-  sim::Array<float> firstIonizationZ;
-  sim::Array<float> firstIonizationT;
+  sim::Array<double> perpDistanceToSurface;
+  sim::Array<double> test;
+  sim::Array<double> test0;
+  sim::Array<double> test1;
+  sim::Array<double> test2;
+  sim::Array<double> test3;
+  sim::Array<double> test4;
+  sim::Array<double> distanceTraveled;
+  sim::Array<double> weight;
+  sim::Array<double> PionizationPrevious;
+  sim::Array<double> PrecombinationPrevious;
+  sim::Array<double> firstIonizationZ;
+  sim::Array<double> firstIonizationT;
 
   //  void BorisMove(double dt, double xMinV, double xMaxV, double yMin, double
   //  yMax, double zMin, double zMax);
 
   //  void Ionization(double dt);
   CUDA_CALLABLE_MEMBER
-  void setParticle(int indx, float x, float y, float z, float Ex, float Ey,
-                   float Ez, float Z, float amu, float charge) {
+  void setParticle(int indx, double x, double y, double z, double Ex, double Ey,
+                   double Ez, double Z, double amu, double charge) {
 
     // this->index[indx] = indx;
     this->xprevious[indx] = x;
@@ -106,7 +141,7 @@ public:
     this->amu[indx] = amu;
     this->hitWall[indx] = 0.0;
     this->wallIndex[indx] = 0;
-    //        float Ex,Ey,Ez;
+    //        double Ex,Ey,Ez;
     //        Ex = E*cos(theta)*sin(phi);
     //        Ey = E*sin(theta)*sin(phi);
     //        Ez = E*cos(phi);
@@ -131,8 +166,8 @@ public:
   };
 
   CUDA_CALLABLE_MEMBER
-  void setParticleV(int indx, float x, float y, float z, float Vx, float Vy,
-                    float Vz, float Z, float amu, float charge) {
+  void setParticleV(int indx, double x, double y, double z, double Vx, double Vy,
+                    double Vz, double Z, double amu, double charge) {
     int indTmp = indx;
     this->index[indx] = indTmp;
     this->xprevious[indx] = x;
@@ -154,26 +189,26 @@ public:
   CUDA_CALLABLE_MEMBER
   void swapP(int indx, int n) {
     int iT = this->index[indx];
-    float xpT = this->xprevious[indx];
-    float ypT = this->yprevious[indx];
-    float zpT = this->zprevious[indx];
-    float xT = this->x[indx];
-    float yT = this->y[indx];
-    float zT = this->z[indx];
-    float wT = this->weight[indx];
-    float ZT = this->Z[indx];
-    float cT = this->charge[indx];
-    float aT = this->amu[indx];
-    float hWT = this->hitWall[indx];
+    double xpT = this->xprevious[indx];
+    double ypT = this->yprevious[indx];
+    double zpT = this->zprevious[indx];
+    double xT = this->x[indx];
+    double yT = this->y[indx];
+    double zT = this->z[indx];
+    double wT = this->weight[indx];
+    double ZT = this->Z[indx];
+    double cT = this->charge[indx];
+    double aT = this->amu[indx];
+    double hWT = this->hitWall[indx];
     int wIT = this->wallIndex[indx];
-    float vxT = this->vx[indx];
-    float vyT = this->vy[indx];
-    float vzT = this->vz[indx];
+    double vxT = this->vx[indx];
+    double vyT = this->vy[indx];
+    double vzT = this->vz[indx];
     int wHT = this->wallHit[indx];
-    float ttT = this->transitTime[indx];
-    float dtT = this->distTraveled[indx];
-    float firstIonizationZT = this->firstIonizationZ[indx];
-    float firstIonizationTT = this->firstIonizationT[indx];
+    double ttT = this->transitTime[indx];
+    double dtT = this->distTraveled[indx];
+    double firstIonizationZT = this->firstIonizationZ[indx];
+    double firstIonizationTT = this->firstIonizationT[indx];
 
     this->index[indx] = this->index[n];
     this->xprevious[indx] = this->xprevious[n];

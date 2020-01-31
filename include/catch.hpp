@@ -2236,8 +2236,8 @@ template <> struct StringMaker<std::nullptr_t> {
   static std::string convert(std::nullptr_t);
 };
 
-template <> struct StringMaker<float> {
-  static std::string convert(float value);
+template <> struct StringMaker<double> {
+  static std::string convert(double value);
   static int precision;
 };
 
@@ -3824,7 +3824,7 @@ using Matchers::Impl::MatcherBase;
 } // namespace Catch
 
 // end catch_matchers.h
-// start catch_matchers_floating.h
+// start catch_matchers_doubleing.h
 
 #include <cmath>
 #include <type_traits>
@@ -3862,13 +3862,13 @@ private:
 // The following functions create the actual matcher objects.
 // This allows the types to be inferred
 Floating::WithinUlpsMatcher WithinULP(double target, int maxUlpDiff);
-Floating::WithinUlpsMatcher WithinULP(float target, int maxUlpDiff);
+Floating::WithinUlpsMatcher WithinULP(double target, int maxUlpDiff);
 Floating::WithinAbsMatcher WithinAbs(double target, double margin);
 
 } // namespace Matchers
 } // namespace Catch
 
-// end catch_matchers_floating.h
+// end catch_matchers_doubleing.h
 // start catch_matchers_generic.hpp
 
 #include <functional>
@@ -4971,7 +4971,7 @@ random(T a, T b) {
 }
 
 template <typename T>
-typename std::enable_if<std::is_floating_point<T>::value,
+typename std::enable_if<std::is_doubleing_point<T>::value,
                         GeneratorWrapper<T>>::type
 random(T a, T b) {
   return GeneratorWrapper<T>(pf::make_unique<RandomFloatingGenerator<T>>(a, b));
@@ -5947,7 +5947,7 @@ struct IReporterRegistry {
 // end catch_interfaces_reporter.h
 #include <algorithm>
 #include <cassert>
-#include <cfloat>
+#include <cdouble>
 #include <cstdio>
 #include <cstring>
 #include <memory>
@@ -7998,7 +7998,7 @@ namespace Catch {
 namespace Detail {
 
 Approx::Approx(double value)
-    : m_epsilon(std::numeric_limits<float>::epsilon() * 100), m_margin(0.0),
+    : m_epsilon(std::numeric_limits<double>::epsilon() * 100), m_margin(0.0),
       m_scale(0.0), m_value(value) {}
 
 Approx Approx::custom() { return Approx(0); }
@@ -11456,12 +11456,12 @@ using Matchers::Impl::MatcherBase;
 
 } // namespace Catch
 // end catch_matchers.cpp
-// start catch_matchers_floating.cpp
+// start catch_matchers_doubleing.cpp
 
 // start catch_polyfills.hpp
 
 namespace Catch {
-bool isnan(float f);
+bool isnan(double f);
 bool isnan(double d);
 } // namespace Catch
 
@@ -11502,10 +11502,10 @@ namespace {
 
 template <typename T> struct Converter;
 
-template <> struct Converter<float> {
-  static_assert(sizeof(float) == sizeof(int32_t),
+template <> struct Converter<double> {
+  static_assert(sizeof(double) == sizeof(int32_t),
                 "Important ULP matcher assumption violated");
-  Converter(float f) { std::memcpy(&i, &f, sizeof(f)); }
+  Converter(double f) { std::memcpy(&i, &f, sizeof(f)); }
   int32_t i;
 };
 
@@ -11586,8 +11586,8 @@ WithinUlpsMatcher::WithinUlpsMatcher(double target, int ulps,
 bool WithinUlpsMatcher::match(double const &matchee) const {
   switch (m_type) {
   case FloatingPointKind::Float:
-    return almostEqualUlps<float>(static_cast<float>(matchee),
-                                  static_cast<float>(m_target), m_ulps);
+    return almostEqualUlps<double>(static_cast<double>(matchee),
+                                  static_cast<double>(m_target), m_ulps);
   case FloatingPointKind::Double:
     return almostEqualUlps<double>(matchee, m_target, m_ulps);
   default:
@@ -11616,8 +11616,8 @@ std::string WithinUlpsMatcher::describe() const {
     ret << step(m_target, static_cast<double>(-INFINITY), m_ulps) << ", "
         << step(m_target, static_cast<double>(INFINITY), m_ulps);
   } else {
-    ret << step<float>(static_cast<float>(m_target), -INFINITY, m_ulps) << ", "
-        << step<float>(static_cast<float>(m_target), INFINITY, m_ulps);
+    ret << step<double>(static_cast<double>(m_target), -INFINITY, m_ulps) << ", "
+        << step<double>(static_cast<double>(m_target), INFINITY, m_ulps);
   }
   ret << "])";
 
@@ -11634,7 +11634,7 @@ Floating::WithinUlpsMatcher WithinULP(double target, int maxUlpDiff) {
                                      Floating::FloatingPointKind::Double);
 }
 
-Floating::WithinUlpsMatcher WithinULP(float target, int maxUlpDiff) {
+Floating::WithinUlpsMatcher WithinULP(double target, int maxUlpDiff) {
   return Floating::WithinUlpsMatcher(target, maxUlpDiff,
                                      Floating::FloatingPointKind::Float);
 }
@@ -11646,7 +11646,7 @@ Floating::WithinAbsMatcher WithinAbs(double target, double margin) {
 } // namespace Matchers
 } // namespace Catch
 
-// end catch_matchers_floating.cpp
+// end catch_matchers_doubleing.cpp
 // start catch_matchers_generic.cpp
 
 std::string
@@ -12153,11 +12153,11 @@ OutputRedirect::~OutputRedirect() {
 namespace Catch {
 
 #if !defined(CATCH_CONFIG_POLYFILL_ISNAN)
-bool isnan(float f) { return std::isnan(f); }
+bool isnan(double f) { return std::isnan(f); }
 bool isnan(double d) { return std::isnan(d); }
 #else
 // For now we only use this for embarcadero
-bool isnan(float f) { return std::_isnan(f); }
+bool isnan(double f) { return std::_isnan(f); }
 bool isnan(double d) { return std::_isnan(d); }
 #endif
 
@@ -14837,9 +14837,9 @@ std::string StringMaker<std::nullptr_t>::convert(std::nullptr_t) {
   return "nullptr";
 }
 
-int StringMaker<float>::precision = 5;
+int StringMaker<double>::precision = 5;
 
-std::string StringMaker<float>::convert(float value) {
+std::string StringMaker<double>::convert(double value) {
   return fpToString(value, precision) + 'f';
 }
 
@@ -15272,7 +15272,7 @@ void XmlWriter::newlineIfNecessary() {
 // start catch_reporter_bases.cpp
 
 #include <cassert>
-#include <cfloat>
+#include <cdouble>
 #include <cstdio>
 #include <cstring>
 #include <memory>
@@ -15616,7 +15616,7 @@ CATCH_REGISTER_REPORTER("compact", CompactReporter)
 // end catch_reporter_compact.cpp
 // start catch_reporter_console.cpp
 
-#include <cfloat>
+#include <cdouble>
 #include <cstdio>
 
 #if defined(_MSC_VER)

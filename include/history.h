@@ -17,18 +17,18 @@ struct history {
     int nT;
     int subSampleFac;
     int nP;
-    float *histX;
-    float *histY;
-    float *histZ;
-    float *histv;
-    float *histvx;
-    float *histvy;
-    float *histvz;
-    float *histcharge;
-    float *histweight;
+    double *histX;
+    double *histY;
+    double *histZ;
+    double *histv;
+    double *histvx;
+    double *histvy;
+    double *histvz;
+    double *histcharge;
+    double *histweight;
 
-    history(Particles *_particlesPointer, int* _tt, int _nT,int _subSampleFac, int _nP, float *_histX,float *_histY,float *_histZ,
-          float *_histv,float *_histvx,float *_histvy,float *_histvz, float * _histcharge, float * _histweight) : 
+    history(Particles *_particlesPointer, int* _tt, int _nT,int _subSampleFac, int _nP, double *_histX,double *_histY,double *_histZ,
+          double *_histv,double *_histvx,double *_histvy,double *_histvz, double * _histcharge, double * _histweight) : 
         particlesPointer(_particlesPointer), tt(_tt),nT(_nT),subSampleFac(_subSampleFac), nP(_nP), 
         histX(_histX),histY(_histY),histZ(_histZ),histv(_histv),histvx(_histvx),histvy(_histvy),histvz(_histvz), histcharge(_histcharge), histweight(_histweight) {}
 

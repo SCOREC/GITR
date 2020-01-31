@@ -155,7 +155,7 @@ print_gpu_memory_usage(world_rank);
   }
 */
   // Background species info
-  float background_Z = 0.0, background_amu = 0.0;
+  double background_Z = 0.0, background_amu = 0.0;
   if (world_rank == 0) {
     getVariable(cfg, "backgroundPlasmaProfiles.Z", background_Z);
     getVariable(cfg, "backgroundPlasmaProfiles.amu", background_amu);
@@ -167,7 +167,7 @@ print_gpu_memory_usage(world_rank);
 #endif
 
   auto finish_clock0nc = gitr_time::now();
-  typedef std::chrono::duration<float> fsec0nc;
+  typedef std::chrono::duration<double> fsec0nc;
   fsec0nc fs0nc = finish_clock0nc - gitr_start_clock;
   //printf("Time taken for geometry import is %6.3f (secs) \n", fs0nc.count());
   
@@ -186,10 +186,10 @@ print_gpu_memory_usage(world_rank);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-  sim::Array<float> bfieldGridr(nR_Bfield), bfieldGridy(nY_Bfield),
+  sim::Array<double> bfieldGridr(nR_Bfield), bfieldGridy(nY_Bfield),
       bfieldGridz(nZ_Bfield);
   n_Bfield = nR_Bfield * nY_Bfield * nZ_Bfield;
-  sim::Array<float> br(n_Bfield), by(n_Bfield), bz(n_Bfield);
+  sim::Array<double> br(n_Bfield), by(n_Bfield), bz(n_Bfield);
 
   if (world_rank == 0) {
     importVectorField(cfg, input_path, BFIELD_INTERP, bfieldCfg, nR_Bfield,
@@ -206,7 +206,7 @@ print_gpu_memory_usage(world_rank);
   MPI_Bcast(bfieldGridz.data(), nZ_Bfield, MPI_FLOAT, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
-  float Btest[3] = {0.0f};
+  double Btest[3] = {0.0f};
   interp2dVector(&Btest[0], 5.5, 0.0, -4.0, nR_Bfield, nZ_Bfield,
                  bfieldGridr.data(), bfieldGridz.data(), br.data(), bz.data(),
                  by.data());
@@ -270,7 +270,7 @@ print_gpu_memory_usage(world_rank);
   MPI_Bcast(&boundaries[0], nLines + 1, boundary_type, 0, MPI_COMM_WORLD);
 #endif
 
-  float biasPotential = 0.0;
+  double biasPotential = 0.0;
 #if BIASED_SURFACE > 0
   if (world_rank == 0) {
     getVariable(cfg, "backgroundPlasmaProfiles.biasPotential", biasPotential);
@@ -283,11 +283,11 @@ print_gpu_memory_usage(world_rank);
 
   // create Surface data structures
   int nEdist = 1;
-  float E0dist = 0.0;
-  float Edist = 0.0;
+  double E0dist = 0.0;
+  double Edist = 0.0;
   int nAdist = 1;
-  float A0dist = 0.0;
-  float Adist = 0.0;
+  double A0dist = 0.0;
+  double Adist = 0.0;
 #if FLUX_EA > 0
   if (world_rank == 0) {
     getVariable(cfg, "surfaces.flux.nE", nEdist);
@@ -361,13 +361,13 @@ print_gpu_memory_usage(world_rank);
 
   //#if USE_MPI > 0
   // Arrays used for reduction at end of sim
-  sim::Array<float> grossDeposition(nSurfaces, 0.0);
-  sim::Array<float> grossErosion(nSurfaces, 0.0);
-  sim::Array<float> sumWeightStrike(nSurfaces, 0.0);
-  sim::Array<float> energyDistribution(nSurfaces * nEdist * nAdist, 0.0);
-  sim::Array<float> reflDistribution(nSurfaces * nEdist * nAdist, 0.0);
-  sim::Array<float> sputtDistribution(nSurfaces * nEdist * nAdist, 0.0);
-  sim::Array<float> aveSputtYld(nSurfaces, 0.0);
+  sim::Array<double> grossDeposition(nSurfaces, 0.0);
+  sim::Array<double> grossErosion(nSurfaces, 0.0);
+  sim::Array<double> sumWeightStrike(nSurfaces, 0.0);
+  sim::Array<double> energyDistribution(nSurfaces * nEdist * nAdist, 0.0);
+  sim::Array<double> reflDistribution(nSurfaces * nEdist * nAdist, 0.0);
+  sim::Array<double> sputtDistribution(nSurfaces * nEdist * nAdist, 0.0);
+  sim::Array<double> aveSputtYld(nSurfaces, 0.0);
   sim::Array<int> sputtYldCount(nSurfaces, 0);
   sim::Array<int> sumParticlesStrike(nSurfaces, 0);
   //#endif
@@ -546,7 +546,7 @@ print_gpu_memory_usage(world_rank);
   std::cout << "allocating closGeomGrids " << nR_closeGeomTotal << " "
             << nY_closeGeomTotal << " " << nZ_closeGeomTotal << " " << nGeomHash
             << std::endl;
-  sim::Array<float> closeGeomGridr(nR_closeGeomTotal),
+  sim::Array<double> closeGeomGridr(nR_closeGeomTotal),
       closeGeomGridy(nY_closeGeomTotal), closeGeomGridz(nZ_closeGeomTotal);
 //TODO fix this
 //  nGeomHash = nR_closeGeomTotal*nY_closeGeomTotal*nZ_closeGeomTotal*nHashPointsTotal;
@@ -555,7 +555,7 @@ print_gpu_memory_usage(world_rank);
 
 #if GEOM_HASH == 1
   std::cout << "GEOM_HASH 1 nHashes " <<  nHashes << "\n";
-  sim::Array<float> hashX0(nHashes, 0.0), hashX1(nHashes, 0.0),
+  sim::Array<double> hashX0(nHashes, 0.0), hashX1(nHashes, 0.0),
       hashY0(nHashes, 0.0), hashY1(nHashes, 0.0), hashZ0(nHashes, 0.0),
       hashZ1(nHashes, 0.0);
   if (world_rank == 0) {
@@ -652,7 +652,7 @@ print_gpu_memory_usage(world_rank);
   }
 
   std::cout << "Maxn_closeGeomElements " << Maxn_closeGeomElements << std::endl;
-  sim::Array<float> minDist1(Maxn_closeGeomElements, 1e6);
+  sim::Array<double> minDist1(Maxn_closeGeomElements, 1e6);
   std::cout << "Generating geometry hash" << sizeof(int) << " bytes per int, "
             << nGeomHash << " for the entire hash " << std::endl;
 
@@ -675,7 +675,7 @@ print_gpu_memory_usage(world_rank);
 #endif
   std::cout << "starting geomhash" << std::endl;
   typedef std::chrono::high_resolution_clock Time0;
-  typedef std::chrono::duration<float> fsec0;
+  typedef std::chrono::duration<double> fsec0;
   auto start_clock0 = Time0::now();
   hashGeom geo1(nLines, nHashes, boundaries.data(), closeGeomGridr.data(),
                 closeGeomGridy.data(), closeGeomGridz.data(),
@@ -908,14 +908,14 @@ print_gpu_memory_usage(world_rank);
 #endif
 #endif
 
-  sim::Array<float> closeGeomGridr_sheath(nR_closeGeom_sheath),
+  sim::Array<double> closeGeomGridr_sheath(nR_closeGeom_sheath),
       closeGeomGridy_sheath(nY_closeGeom_sheath),
       closeGeomGridz_sheath(nZ_closeGeom_sheath);
   sim::Array<int> closeGeom_sheath(nGeomHash_sheath);
   std::cout << "\nAllcated " << nGeomHash_sheath << " array for closeGeom_sheath \n";
 
 #if GEOM_HASH_SHEATH == 1
-  float hashX0_s, hashX1_s, hashY0_s, hashY1_s, hashZ0_s, hashZ1_s;
+  double hashX0_s, hashX1_s, hashY0_s, hashY1_s, hashZ0_s, hashZ1_s;
   if (world_rank == 0) {
     getVariable(cfg, geomHashSheathCfg + "hashX0", hashX0_s);
     getVariable(cfg, geomHashSheathCfg + "hashX1", hashX1_s);
@@ -952,7 +952,7 @@ print_gpu_memory_usage(world_rank);
   thrust::counting_iterator<std::size_t> lines0_s(0);
   thrust::counting_iterator<std::size_t> lines1_s(nR_closeGeom_sheath *
                                                   nY_closeGeom_sheath);
-  sim::Array<float> minDist1_s(nGeomHash_sheath, 1e6);
+  sim::Array<double> minDist1_s(nGeomHash_sheath, 1e6);
   int nHashMeshPointsPerProcess_s =
       ceil(nR_closeGeom_sheath * nY_closeGeom_sheath * nZ_closeGeom_sheath /
            world_size);
@@ -964,7 +964,7 @@ print_gpu_memory_usage(world_rank);
       nR_closeGeom_sheath * nY_closeGeom_sheath * nZ_closeGeom_sheath -
       (world_size - 1) * nHashMeshPointsPerProcess_s;
   typedef std::chrono::high_resolution_clock Time0_s;
-  typedef std::chrono::duration<float> fsec0_s;
+  typedef std::chrono::duration<double> fsec0_s;
   auto start_clock0_s = Time0_s::now();
   hashGeom_sheath geo_s(
       nLines, boundaries.data(), closeGeomGridr_sheath.data(),
@@ -1069,7 +1069,7 @@ print_gpu_memory_usage(world_rank);
   int nY_Lc = 1;
   int nZ_Lc = 1;
   int nTracers = 1;
-  float r0_Lc, r1_Lc, y0_Lc, y1_Lc, z0_Lc, z1_Lc, dr;
+  double r0_Lc, r1_Lc, y0_Lc, y1_Lc, z0_Lc, z1_Lc, dr;
   int nTraceSteps;
   std::string connLengthCfg = "connectionLength.";
   std::string lcFile;
@@ -1119,26 +1119,26 @@ print_gpu_memory_usage(world_rank);
   nTracers = nR_Lc * nZ_Lc;
 #endif
 
-  sim::Array<float> Lc(nTracers), s(nTracers);
-  sim::Array<float> gridRLc(nR_Lc), gridYLc(nY_Lc), gridZLc(nZ_Lc);
+  sim::Array<double> Lc(nTracers), s(nTracers);
+  sim::Array<double> gridRLc(nR_Lc), gridYLc(nY_Lc), gridZLc(nZ_Lc);
   sim::Array<int> noIntersectionNodes(nTracers);
 #if GENERATE_LC > 0
-  float lcBuffer = 0.0;
+  double lcBuffer = 0.0;
   // if( !boost::filesystem::exists( lcFile ) )
   // {
   //   std::cout << "No pre-existing connection length file found" << std::endl;
 #if USE3DTETGEOM > 0
-  float dy_Lc = (y1_Lc - y0_Lc) / (nY_Lc - 1);
+  double dy_Lc = (y1_Lc - y0_Lc) / (nY_Lc - 1);
   for (int j = 0; j < nY_Lc; j++) {
     gridYLc[j] = y0_Lc + j * dy_Lc;
   }
 #endif
-  float dr_Lc = (r1_Lc - r0_Lc) / (nR_Lc - 1);
+  double dr_Lc = (r1_Lc - r0_Lc) / (nR_Lc - 1);
   for (int i = 0; i < nR_Lc; i++) {
     gridRLc[i] = r0_Lc + i * dr_Lc;
   }
 
-  float dz_Lc = (z1_Lc - z0_Lc) / (nZ_Lc - 1);
+  double dz_Lc = (z1_Lc - z0_Lc) / (nZ_Lc - 1);
   for (int j = 0; j < nZ_Lc; j++) {
     gridZLc[j] = z0_Lc + j * dz_Lc;
   }
@@ -1185,7 +1185,7 @@ print_gpu_memory_usage(world_rank);
   dummy_surfaces->setSurface(1, 1, 1, 1, 1, 1);
 
   typedef std::chrono::high_resolution_clock Time_trace;
-  typedef std::chrono::duration<float> fsec_trace;
+  typedef std::chrono::duration<double> fsec_trace;
   auto start_clock_trace = Time_trace::now();
   std::cout << "Starting trace loop" << std::endl;
   std::cout << "nTraceSteps" << nTraceSteps << " dr " << dr << std::endl;
@@ -1231,19 +1231,19 @@ print_gpu_memory_usage(world_rank);
   fsec_trace fstrace = finish_clock_trace - start_clock_trace;
   printf("Time taken          is %6.3f (secs) \n", fstrace.count());
   printf("Time taken per step is %6.3f (secs) \n",
-         fstrace.count() / (float)nTraceSteps);
+         fstrace.count() / (double)nTraceSteps);
 #if USE_CUDA
   cudaDeviceSynchronize();
 #endif
 #if USE_MPI > 0
-  sim::Array<float> forwardHitWall(nTracers, 0.0),
+  sim::Array<double> forwardHitWall(nTracers, 0.0),
       backwardHitWall(nTracers, 0.0), forwardTracerX(nTracers, 0.0),
       backwardTracerX(nTracers, 0.0);
-  sim::Array<float> forwardTracerY(nTracers, 0.0),
+  sim::Array<double> forwardTracerY(nTracers, 0.0),
       backwardTracerY(nTracers, 0.0);
-  sim::Array<float> forwardTracerZ(nTracers, 0.0),
+  sim::Array<double> forwardTracerZ(nTracers, 0.0),
       backwardTracerZ(nTracers, 0.0);
-  sim::Array<float> forwardDistanceTraveled(nTracers, 0.0),
+  sim::Array<double> forwardDistanceTraveled(nTracers, 0.0),
       backwardDistanceTraveled(nTracers, 0.0);
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Gather(
@@ -1290,8 +1290,8 @@ print_gpu_memory_usage(world_rank);
   if (world_rank == 0) {
 #endif
     addIndex = 0;
-    float forwardDist = 0.0;
-    float backwardDist = 0.0;
+    double forwardDist = 0.0;
+    double backwardDist = 0.0;
     for (int i = 0; i < nR_Lc; i++) {
       for (int j = 0; j < nY_Lc; j++) {
         for (int k = 0; k < nZ_Lc; k++) {
@@ -1455,9 +1455,9 @@ print_gpu_memory_usage(world_rank);
 #endif
 #endif
 
-  sim::Array<float> TempGridr(nR_Temp), TempGridz(nZ_Temp), TempGridy(nY_Temp);
+  sim::Array<double> TempGridr(nR_Temp), TempGridz(nZ_Temp), TempGridy(nY_Temp);
   n_Temp = nR_Temp * nY_Temp * nZ_Temp;
-  sim::Array<float> ti(n_Temp), te(n_Temp);
+  sim::Array<double> ti(n_Temp), te(n_Temp);
 
 #if USE_MPI > 0
   if (world_rank == 0) {
@@ -1491,7 +1491,7 @@ print_gpu_memory_usage(world_rank);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-  float testVec = 0.0;
+  double testVec = 0.0;
   testVec = interp2dCombined(0.0, 0.1, 0.0, nR_Temp, nZ_Temp, TempGridr.data(),
                              TempGridz.data(), ti.data());
   std::cout << "Finished Temperature import " << testVec << std::endl;
@@ -1527,9 +1527,9 @@ print_gpu_memory_usage(world_rank);
 #endif
 #endif
 
-  sim::Array<float> DensGridr(nR_Dens), DensGridz(nZ_Dens), DensGridy(nY_Dens);
+  sim::Array<double> DensGridr(nR_Dens), DensGridz(nZ_Dens), DensGridy(nY_Dens);
   n_Dens = nR_Dens * nY_Dens * nZ_Dens;
-  sim::Array<float> ni(n_Dens), ne(n_Dens);
+  sim::Array<double> ni(n_Dens), ne(n_Dens);
 
 #if USE_MPI > 0
   if (world_rank == 0) {
@@ -1621,10 +1621,10 @@ print_gpu_memory_usage(world_rank);
 #endif
 #endif
 
-  sim::Array<float> flowVGridr(nR_flowV), flowVGridy(nY_flowV),
+  sim::Array<double> flowVGridr(nR_flowV), flowVGridy(nY_flowV),
       flowVGridz(nZ_flowV);
   n_flowV = nR_flowV * nY_flowV * nZ_flowV;
-  sim::Array<float> flowVr(n_flowV), flowVz(n_flowV), flowVt(n_flowV);
+  sim::Array<double> flowVr(n_flowV), flowVz(n_flowV), flowVt(n_flowV);
 
 #if USE_MPI > 0
   if (world_rank == 0) {
@@ -1679,16 +1679,16 @@ print_gpu_memory_usage(world_rank);
     flowVGridy[i] = gridYLc[i];
   nFlowVs = nR_Lc * nY_Lc * nZ_Lc;
 #endif
-  float thisY = 0.0;
-  float cs0 = 0.0;
-  float teLocal = 0.0;
-  float tiLocal = 0.0;
-  float BLocal[3] = {0.0, 0.0, 0.0};
-  float Bnorm[3] = {0.0, 0.0, 0.0};
-  float Bmag = 0.0;
+  double thisY = 0.0;
+  double cs0 = 0.0;
+  double teLocal = 0.0;
+  double tiLocal = 0.0;
+  double BLocal[3] = {0.0, 0.0, 0.0};
+  double Bnorm[3] = {0.0, 0.0, 0.0};
+  double Bmag = 0.0;
   int index = 0;
-  float cs = 0.0;
-  float absS = 0.0;
+  double cs = 0.0;
+  double absS = 0.0;
   std::cout << "Beginning analytic flowV calculation " << std::endl;
   for (int i = 0; i < nR_Lc; i++) {
 #if LC_INTERP == 3
@@ -1737,11 +1737,11 @@ print_gpu_memory_usage(world_rank);
     }
   }
   std::cout << "Done with initial calculation, beginning sorting" << std::endl;
-  sim::Array<float> flowVrSub(nFlowVs), flowVzSub(nFlowVs), flowVySub(nFlowVs);
+  sim::Array<double> flowVrSub(nFlowVs), flowVzSub(nFlowVs), flowVySub(nFlowVs);
   sim::Array<int> noIntersectionNearestMax(nFlowVs);
-  float surroundingMinimumR = 0.0;
-  float surroundingMinimumY = 0.0;
-  float surroundingMinimumZ = 0.0;
+  double surroundingMinimumR = 0.0;
+  double surroundingMinimumY = 0.0;
+  double surroundingMinimumZ = 0.0;
   int iterIndex = 0;
   for (int i = 0; i < nR_Lc; i++) {
     std::cout << "i of " << i << " " << nR_Lc << std::endl;
@@ -1852,9 +1852,9 @@ print_gpu_memory_usage(world_rank);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
   n_gradT = nR_gradT * nY_gradT * nZ_gradT;
-  sim::Array<float> gradTGridr(nR_gradT), gradTGridy(nY_gradT),
+  sim::Array<double> gradTGridr(nR_gradT), gradTGridy(nY_gradT),
       gradTGridz(nZ_gradT);
-  sim::Array<float> gradTeR(n_gradT), gradTeZ(n_gradT), gradTeY(n_gradT),
+  sim::Array<double> gradTeR(n_gradT), gradTeZ(n_gradT), gradTeY(n_gradT),
       gradTiR(n_gradT), gradTiZ(n_gradT), gradTiY(n_gradT);
 
   if (world_rank == 0) {
@@ -1907,12 +1907,41 @@ print_gpu_memory_usage(world_rank);
   MPI_Bcast(&gradTiZ[0], n_gradT, MPI_FLOAT, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
-  float gradTi[3] = {0.0};
+  double gradTi[3] = {0.0};
   interp2dVector(&gradTi[0], 1.45, 0.0, -1.2, nR_gradT, nZ_gradT,
                  gradTGridr.data(), gradTGridz.data(), gradTiR.data(),
                  gradTiZ.data(), gradTiY.data());
   std::cout << "thermal gradient interpolation gradTi " << gradTi[0] << " "
             << gradTi[1] << " " << gradTi[2] << " " << std::endl;
+
+  bool interp2dVectorTest = true;
+  if(interp2dVectorTest) {
+    constexpr int np = 16;
+    double positions[np*3] ={
+      -0.00594345, 0.0192005, 0.00165384,  0.0113458, -0.0145734, 0.00617403,
+      -0.00109902, -0.0297618, 0.00487984, 0.0189906, 0.00744021, 0.00383919,
+      0.00763451, -0.0121241, 0.00832174,  0.0141843, -0.0188253, 0.00716646,
+      0.0149736, -0.0147498, 0.0062472,  -0.00599064, -0.0201362, 0.00482855,
+      0.0172442, 0.00414935, 0.0037038, 0.00729308, -0.0117277, 0.00803973,
+      0.00700167, -0.0167152, 0.00688208, 0.00115834, -0.0103882, 0.00654887,
+      0.0236956, -0.0505513, 0.00409376,  0.0216041, 0.00953564, 0.00436738,
+      0.00137706, -0.00957907, 0.00943867, 0.0199658, -0.0202374, 0.00732015
+     };
+    printf("interp2dVector test %d %d grid %g %g  : grad %g %g %g  \n", nR_gradT, nZ_gradT, 
+      gradTGridr[0], gradTGridz[0], gradTiR[0], gradTiZ[0], gradTiY[0] );
+    for(int i=0; i<np; ++i) {
+      double x = positions[i*3+0];
+      double y = positions[i*3+1];
+      double z = positions[i*3+2];
+      double v[3] = {0.0, 0.0, 0.0};
+      //printf( "xyz %g %g %g \n", x,y,z );
+      interp2dVector(&v[0], x, y, z, nR_gradT, nZ_gradT,
+        gradTGridr.data(), gradTGridz.data(), gradTiR.data(), gradTiZ.data(), gradTiY.data());
+      printf(" %.8f , %.8f , %.8f , ",  v[0],v[1],v[2]);
+      if(i%2==0 || i==np-1) printf("\n");
+    }
+  }
+
 
   // Initialization of ionization and recombination coefficients
   int nCS_Ionize = 1, nCS_Recombine = 1;
@@ -1991,13 +2020,13 @@ print_gpu_memory_usage(world_rank);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 #endif
-  sim::Array<float> rateCoeff_Ionization(nCS_Ionize * nTemperaturesIonize *
+  sim::Array<double> rateCoeff_Ionization(nCS_Ionize * nTemperaturesIonize *
                                          nDensitiesIonize);
-  sim::Array<float> gridTemperature_Ionization(nTemperaturesIonize),
+  sim::Array<double> gridTemperature_Ionization(nTemperaturesIonize),
       gridDensity_Ionization(nDensitiesIonize);
-  sim::Array<float> rateCoeff_Recombination(
+  sim::Array<double> rateCoeff_Recombination(
       nCS_Recombine * nTemperaturesRecombine * nDensitiesRecombine);
-  sim::Array<float> gridTemperature_Recombination(nTemperaturesRecombine),
+  sim::Array<double> gridTemperature_Recombination(nTemperaturesRecombine),
       gridDensity_Recombination(nDensitiesRecombine);
   if (world_rank == 0) {
 #if USEIONIZATION > 0
@@ -2049,7 +2078,7 @@ print_gpu_memory_usage(world_rank);
   int nZ_PreSheathEfield = 1;
   int nPSEs = 1;
   std::string PSECfg = "backgroundPlasmaProfiles.Efield.";
-// sim::Array<float> preSheathEGridy(1);
+// sim::Array<double> preSheathEGridy(1);
 #if USEPRESHEATHEFIELD > 0
 
   std::cout << "Using presheath Efield " << std::endl;
@@ -2081,9 +2110,9 @@ print_gpu_memory_usage(world_rank);
 #endif
 #endif
   nPSEs = nR_PreSheathEfield * nY_PreSheathEfield * nZ_PreSheathEfield;
-  sim::Array<float> preSheathEGridr(nR_PreSheathEfield),
+  sim::Array<double> preSheathEGridr(nR_PreSheathEfield),
       preSheathEGridy(nY_PreSheathEfield), preSheathEGridz(nZ_PreSheathEfield);
-  sim::Array<float> PSEr(nPSEs), PSEz(nPSEs), PSEt(nPSEs);
+  sim::Array<double> PSEr(nPSEs), PSEz(nPSEs), PSEt(nPSEs);
 #if USE_MPI > 0
   if (world_rank == 0) {
 #endif
@@ -2135,13 +2164,13 @@ print_gpu_memory_usage(world_rank);
     preSheathEGridz[i] = gridZLc[i];
   }
   std::cout << "length of PSE vec " << nPSEs << std::endl;
-  float teLocal1 = 0.0;
-  float BLocal1[3] = {0.0, 0.0, 0.0};
-  float Bnorm1[3] = {0.0, 0.0, 0.0};
-  float Bmag1 = 0.0;
+  double teLocal1 = 0.0;
+  double BLocal1[3] = {0.0, 0.0, 0.0};
+  double Bnorm1[3] = {0.0, 0.0, 0.0};
+  double Bmag1 = 0.0;
   int index1 = 0;
-  float absS1 = 0.0;
-  float Epar = 0.0;
+  double absS1 = 0.0;
+  double Epar = 0.0;
   for (int i = 0; i < nR_PreSheathEfield; i++) {
 #if LC_INTERP == 3
     for (int k = 0; k < nY_PreSheathEfield; k++) {
@@ -2182,7 +2211,7 @@ print_gpu_memory_usage(world_rank);
     }
 #endif
   }
-  sim::Array<float> PSErSub(nPSEs), PSEzSub(nPSEs), PSEySub(nPSEs);
+  sim::Array<double> PSErSub(nPSEs), PSEzSub(nPSEs), PSEySub(nPSEs);
 
   for (int i = 0; i < nR_Lc; i++) {
     for (int j = 0; j < nY_Lc; j++) {
@@ -2239,9 +2268,9 @@ print_gpu_memory_usage(world_rank);
 #endif
 #else
   nPSEs = nR_PreSheathEfield * nY_PreSheathEfield * nZ_PreSheathEfield;
-  sim::Array<float> preSheathEGridr(nR_PreSheathEfield),
+  sim::Array<double> preSheathEGridr(nR_PreSheathEfield),
       preSheathEGridy(nY_PreSheathEfield), preSheathEGridz(nZ_PreSheathEfield);
-  sim::Array<float> PSEr(nPSEs), PSEz(nPSEs), PSEt(nPSEs);
+  sim::Array<double> PSEr(nPSEs), PSEz(nPSEs), PSEt(nPSEs);
 
 #endif
   std::string outnamePSEfieldR = "PSEfieldR.m";
@@ -2257,13 +2286,13 @@ print_gpu_memory_usage(world_rank);
   // OUTPUT3d(profiles_folder,outnamePSEfieldZ,
   // nR_PreSheathEfield,nY_PreSheathEfield, nZ_PreSheathEfield, &PSEz.front());
   std::cout << "Completed presheath Efield Init " << std::endl;
-  sim::Array<float> Efieldr(nR_Bfield * nZ_Bfield),
+  sim::Array<double> Efieldr(nR_Bfield * nZ_Bfield),
       Efieldz(nR_Bfield * nZ_Bfield), Efieldt(nR_Bfield * nZ_Bfield),
       minDist(nR_Bfield * nZ_Bfield);
 
 #if USESHEATHEFIELD > 0
 #if EFIELD_INTERP == 1
-  float thisE[3] = {0.0, 0.0, 0.0};
+  double thisE[3] = {0.0, 0.0, 0.0};
   for (int i = 0; i < nR_Bfield; i++) {
     for (int j = 0; j < nZ_Bfield; j++) {
       minDist[(nR_Bfield - 1 - i) * nZ_Bfield + (nZ_Bfield - 1 - j)] =
@@ -2284,8 +2313,8 @@ print_gpu_memory_usage(world_rank);
       cfg.lookup("backgroundPlasmaProfiles.dtsEfield.gridNzString"),
       nR_dtsEfield, nZ_dtsEfield);
 
-  sim::Array<float> dtsEfieldGridr(nR_dtsEfield), dtsEfieldGridz(nZ_dtsEfield);
-  sim::Array<float> dtsE(nR_dtsEfield * nZ_dtsEfield);
+  sim::Array<double> dtsEfieldGridr(nR_dtsEfield), dtsEfieldGridz(nZ_dtsEfield);
+  sim::Array<double> dtsE(nR_dtsEfield * nZ_dtsEfield);
 
   int d2 = read_profile1d(
       cfg.lookup("backgroundPlasmaProfiles.dtsEfield.fileString"),
@@ -2312,8 +2341,8 @@ print_gpu_memory_usage(world_rank);
       cfg.lookup("backgroundPlasmaProfiles.dtsEfield.gridNzString"),
       nR_dtsEfield, nZ_dtsEfield);
 
-  sim::Array<float> dtsEfieldGridr(nR_dtsEfield), dtsEfieldGridz(nZ_dtsEfield);
-  sim::Array<float> dtsE(nR_dtsEfield * nZ_dtsEfield);
+  sim::Array<double> dtsEfieldGridr(nR_dtsEfield), dtsEfieldGridz(nZ_dtsEfield);
+  sim::Array<double> dtsE(nR_dtsEfield * nZ_dtsEfield);
 
   int d2 = read_profile1d(
       cfg.lookup("backgroundPlasmaProfiles.dtsEfield.fileString"),
@@ -2332,8 +2361,8 @@ print_gpu_memory_usage(world_rank);
 #else
   int nR_dtsEfield = 1;
   int nZ_dtsEfield = 1;
-  sim::Array<float> dtsEfieldGridr(nR_dtsEfield), dtsEfieldGridz(nZ_dtsEfield);
-  sim::Array<float> dtsE(nR_dtsEfield * nZ_dtsEfield);
+  sim::Array<double> dtsEfieldGridr(nR_dtsEfield), dtsEfieldGridz(nZ_dtsEfield);
+  sim::Array<double> dtsE(nR_dtsEfield * nZ_dtsEfield);
 #endif
 
   std::string outnameEfieldR = "EfieldR.m";
@@ -2348,7 +2377,7 @@ print_gpu_memory_usage(world_rank);
   // &minDist.front());
 
 #if SPECTROSCOPY > 0
-  float netX0 = 0.0, netX1 = 0.0, netY0 = 0.0, netY1 = 0.0, netZ0 = 0.0,
+  double netX0 = 0.0, netX1 = 0.0, netY0 = 0.0, netY1 = 0.0, netZ0 = 0.0,
         netZ1 = 0.0;
   int net_nX = 0, net_nY = 0, net_nZ = 0;
   int nBins = 0;
@@ -2410,7 +2439,7 @@ print_gpu_memory_usage(world_rank);
 
       }
   */
-  sim::Array<float> gridX_bins(net_nX), gridY_bins(net_nY), gridZ_bins(net_nZ);
+  sim::Array<double> gridX_bins(net_nX), gridY_bins(net_nY), gridZ_bins(net_nZ);
 
   for (int i = 0; i < net_nX; i++) {
     gridX_bins[i] = netX0 + 1.0 / (net_nX - 1) * i * (netX1 - netX0);
@@ -2426,7 +2455,7 @@ print_gpu_memory_usage(world_rank);
 
   // Perp DiffusionCoeff initialization - only used when Diffusion interpolator
   // is = 0
-  float perpDiffusionCoeff = 0.0;
+  double perpDiffusionCoeff = 0.0;
   if (world_rank == 0) {
     if (cfg.lookupValue("backgroundPlasmaProfiles.Diffusion.Dperp",
                         perpDiffusionCoeff)) {
@@ -2494,7 +2523,7 @@ print_gpu_memory_usage(world_rank);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 #endif
-  sim::Array<float> E_sputtRefCoeff(nE_sputtRefCoeff),
+  sim::Array<double> E_sputtRefCoeff(nE_sputtRefCoeff),
       A_sputtRefCoeff(nA_sputtRefCoeff), Elog_sputtRefCoeff(nE_sputtRefCoeff),
       energyDistGrid01(nE_sputtRefDistOut),
       energyDistGrid01Ref(nE_sputtRefDistOutRef),
@@ -2665,41 +2694,41 @@ print_gpu_memory_usage(world_rank);
     ///EDist_CDF_R_regrid[0*nA_sputtRefDistIn*nE_sputtRefDistOut +
     ///0*nE_sputtRefDistOut+k] << std::endl;
     // }
-    // float spylInterpVal = interp2d(5.0,log10(250.0),nA_sputtRefCoeff,
+    // double spylInterpVal = interp2d(5.0,log10(250.0),nA_sputtRefCoeff,
     // nE_sputtRefCoeff,A_sputtRefCoeff.data(),
     //                          Elog_sputtRefCoeff.data(),spyl_surfaceModel.data());
-    // float rfylInterpVal = interp2d(5.0,log10(250.0),nA_sputtRefCoeff,
+    // double rfylInterpVal = interp2d(5.0,log10(250.0),nA_sputtRefCoeff,
     // nE_sputtRefCoeff,A_sputtRefCoeff.data(),
     //                        Elog_sputtRefCoeff.data(),rfyl_surfaceModel.data());
-    float spylAInterpVal = interp3d(
+    double spylAInterpVal = interp3d(
         0.44, 5.0, std::log10(250.0), nA_sputtRefDistOut, nA_sputtRefDistIn,
         nE_sputtRefDistIn, angleDistGrid01.data(), A_sputtRefDistIn.data(),
         Elog_sputtRefDistIn.data(), AphiDist_CDF_Y_regrid.data());
-    float spylAthetaInterpVal = interp3d(
+    double spylAthetaInterpVal = interp3d(
         0.44, 5.0, std::log10(250.0), nA_sputtRefDistOut, nA_sputtRefDistIn,
         nE_sputtRefDistIn, angleDistGrid01.data(), A_sputtRefDistIn.data(),
         Elog_sputtRefDistIn.data(), AthetaDist_CDF_Y_regrid.data());
-    float sputEInterpVal = interp3d(
+    double sputEInterpVal = interp3d(
         0.44, 63.0, std::log10(10.0), nE_sputtRefDistOut, nA_sputtRefDistIn,
         nE_sputtRefDistIn, energyDistGrid01.data(), A_sputtRefDistIn.data(),
         Elog_sputtRefDistIn.data(), EDist_CDF_Y_regrid.data());
-    float rfylAInterpVal = interp3d(
+    double rfylAInterpVal = interp3d(
         0.44, 5.0, std::log10(250.0), nA_sputtRefDistOut, nA_sputtRefDistIn,
         nE_sputtRefDistIn, angleDistGrid01.data(), A_sputtRefDistIn.data(),
         Elog_sputtRefDistIn.data(), AphiDist_CDF_R_regrid.data());
-    float rfylAthetaInterpVal = interp3d(
+    double rfylAthetaInterpVal = interp3d(
         0.44, 5.0, std::log10(250.0), nA_sputtRefDistOut, nA_sputtRefDistIn,
         nE_sputtRefDistIn, angleDistGrid01.data(), A_sputtRefDistIn.data(),
         Elog_sputtRefDistIn.data(), AthetaDist_CDF_R_regrid.data());
-    float rflEInterpVal = interp3d(
+    double rflEInterpVal = interp3d(
         0.44, 63.0, std::log10(10.0), nE_sputtRefDistOut, nA_sputtRefDistIn,
         nE_sputtRefDistIn, energyDistGrid01.data(), A_sputtRefDistIn.data(),
         Elog_sputtRefDistIn.data(), EDist_CDF_R_regrid.data());
-    // float rflAInterpVal = interp3d (
+    // double rflAInterpVal = interp3d (
     // 0.44,5.0,log10(250.0),nA_sputtRefDistOut,nA_sputtRefDistIn,nE_sputtRefDistIn,
     //       angleDistGrid01.data(),A_sputtRefDistIn.data(),Elog_sputtRefDistIn.data()
     //       ,ADist_CDF_R_regrid.data() );
-    // float rflEInterpVal = interp3d (
+    // double rflEInterpVal = interp3d (
     // 0.44,5.0,log10(250.0),nE_sputtRefDistOut,nA_sputtRefDistIn,nE_sputtRefDistIn,
     //         energyDistGrid01.data(),A_sputtRefDistIn.data(),Elog_sputtRefDistIn.data()
     //         ,EDist_CDF_R_regrid.data() );
@@ -2811,7 +2840,7 @@ print_gpu_memory_usage(world_rank);
   //                               ompPrint());
 #endif
 
-  float dt;
+  double dt;
   int nP = 0;          // cfg.lookup("impurityParticleSource.nP");
   long nParticles = 0; // nP;
   int nT = 0;
@@ -2867,7 +2896,7 @@ print_gpu_memory_usage(world_rank);
   auto particleArray = new Particles(nParticles);
   // auto particleArray2 = new Particles(nParticles);
 
-  float x, y, z, E, vtotal, vx, vy, vz, Ex, Ey, Ez, amu, Z, charge, phi, theta,
+  double x, y, z, E, vtotal, vx, vy, vz, Ex, Ey, Ez, amu, Z, charge, phi, theta,
       Ex_prime, Ez_prime, theta_transform;
   if (world_rank == 0) {
     if (cfg.lookupValue("impurityParticleSource.initialConditions.impurity_amu",
@@ -2927,7 +2956,7 @@ print_gpu_memory_usage(world_rank);
   Setting &particleSourceSetting = cfg_particles.lookup("particleSource");
   std::cout << "Successfully set particleSource setting " << std::endl;
   int nSourceBoundaries = 0, nSourceElements = 0;
-  float sourceMaterialZ = 0.0, accumulatedLengthArea = 0.0,
+  double sourceMaterialZ = 0.0, accumulatedLengthArea = 0.0,
         sourceSampleResolution = 0.0;
   if (cfg_particles.lookupValue("particleSource.materialZ", sourceMaterialZ)) {
     std::cout << "Particle Source Material Z: " << sourceMaterialZ << std::endl;
@@ -2978,7 +3007,7 @@ print_gpu_memory_usage(world_rank);
   std::cout << "nSourceBoundaries accumulatedLength nSourceElements "
             << nSourceBoundaries << " " << accumulatedLengthArea << " "
             << nSourceElements << std::endl;
-  sim::Array<float> particleSourceSpaceCDF(nSourceElements, 0.0),
+  sim::Array<double> particleSourceSpaceCDF(nSourceElements, 0.0),
       particleSourceX(nSourceElements, 0.0),
       particleSourceY(nSourceElements, 0.0),
       particleSourceZ(nSourceElements, 0.0),
@@ -2991,10 +3020,10 @@ print_gpu_memory_usage(world_rank);
         particleSourceSetting["surfaceIndices"][i];
   }
   int currentSegmentIndex = 0, currentBoundaryIndex = 0;
-  float currentAccumulatedLengthArea = 0.0, lengthAlongBoundary = 0.0,
+  double currentAccumulatedLengthArea = 0.0, lengthAlongBoundary = 0.0,
         bDotSurfaceNorm = 0.0;
-  float parVec[3] = {0.0};
-  float perpVec[3] = {0.0};
+  double parVec[3] = {0.0};
+  double perpVec[3] = {0.0};
   currentBoundaryIndex = particleSourceBoundaryIndices[currentSegmentIndex];
   currentAccumulatedLengthArea =
       currentAccumulatedLengthArea + boundaries[currentBoundaryIndex].length;
@@ -3016,21 +3045,21 @@ print_gpu_memory_usage(world_rank);
         boundaries[currentBoundaryIndex].x1 + parVec[0] * lengthAlongBoundary;
     particleSourceZ[i] =
         boundaries[currentBoundaryIndex].z1 + parVec[2] * lengthAlongBoundary;
-    float localN = interp2dCombined(particleSourceX[i], 0.0, particleSourceZ[i],
+    double localN = interp2dCombined(particleSourceX[i], 0.0, particleSourceZ[i],
                                     nR_Dens, nZ_Dens, DensGridr.data(),
                                     DensGridz.data(), ni.data());
-    float localT = interp2dCombined(particleSourceX[i], 0.0, particleSourceZ[i],
+    double localT = interp2dCombined(particleSourceX[i], 0.0, particleSourceZ[i],
                                     nR_Temp, nZ_Temp, TempGridr.data(),
                                     TempGridz.data(), ti.data());
-    float localCs = std::sqrt(2 * localT * 1.602e-19 / (1.66e-27 * background_amu));
-    float localBnorm[3] = {0.0};
+    double localCs = std::sqrt(2 * localT * 1.602e-19 / (1.66e-27 * background_amu));
+    double localBnorm[3] = {0.0};
     interp2dVector(&localBnorm[0], particleSourceX[i], 0.0, particleSourceZ[i],
                    nR_Bfield, nZ_Bfield, bfieldGridr.data(), bfieldGridz.data(),
                    br.data(), bz.data(), by.data());
     vectorNormalize(localBnorm, localBnorm);
     boundaries[currentBoundaryIndex].getSurfaceNormal(perpVec);
     bDotSurfaceNorm = std::abs(vectorDotProduct(localBnorm, perpVec));
-    float localY = interp2dCombined(
+    double localY = interp2dCombined(
         std::log10(3.0 * localT), 0.0, std::acos(bDotSurfaceNorm) * 180 / 3.14159,
         nE_surfaceModel, nA_surfaceModel, Elog_surfaceModel.data(),
         A_surfaceModel.data(), spyl_surfaceModel.data());
@@ -3041,7 +3070,7 @@ print_gpu_memory_usage(world_rank);
     std::cout << "LocalPotential localAngle localY " << 3.0 * localT << " "
               << std::acos(bDotSurfaceNorm) * 180 / 3.1415 << " " << localY
               << std::endl;
-    float localFlux = localCs * localN * bDotSurfaceNorm; // dotB*surf
+    double localFlux = localCs * localN * bDotSurfaceNorm; // dotB*surf
     std::cout << "segment boundary pos x z n t cs flux " << i << " "
               << currentBoundaryIndex << " " << particleSourceX[i] << " "
               << particleSourceZ[i] << " " << localN << " " << localT << " "
@@ -3071,7 +3100,7 @@ print_gpu_memory_usage(world_rank);
   //boost::random::mt19937 s0;
   s0.seed(123456);
   //boost::random::uniform_01<> dist01;
-  float rand0 = 0.0;
+  double rand0 = 0.0;
   int lowInd = 0;
   int currentSegment = 0;
 #else
@@ -3096,14 +3125,14 @@ print_gpu_memory_usage(world_rank);
 #elif PARTICLE_SOURCE_ENERGY > 0
 #if PARTICLE_SOURCE_ENERGY == 1
   // Create Thompson Distribution
-  float surfaceBindingEnergy =
+  double surfaceBindingEnergy =
       cfg.lookup("impurityParticleSource.source_material_SurfaceBindingEnergy");
-  float surfaceAlpha =
+  double surfaceAlpha =
       cfg.lookup("impurityParticleSource.source_materialAlpha");
   std::cout << "surface binding energy " << surfaceBindingEnergy << std::endl;
   int nThompDistPoints = 200;
-  float max_Energy = 100.0;
-  sim::Array<float> ThompsonDist(nThompDistPoints),
+  double max_Energy = 100.0;
+  sim::Array<double> ThompsonDist(nThompDistPoints),
       CumulativeDFThompson(nThompDistPoints);
   for (int i = 0; i < nThompDistPoints; i++) {
     if (surfaceAlpha > 0.0) {
@@ -3134,7 +3163,7 @@ print_gpu_memory_usage(world_rank);
 #endif
   //boost::random::mt19937 sE;
   //boost::random::uniform_01<> dist01E;
-  float randE = 0.0;
+  double randE = 0.0;
   int lowIndE = 0;
 #endif
 #if PARTICLE_SOURCE_ANGLE == 0
@@ -3175,9 +3204,9 @@ print_gpu_memory_usage(world_rank);
   // cfg_particles.readFile((input_path+"particleSource.cfg").c_str());
   // Setting& particleSource = cfg_particles.lookup("particleSource");
   // int nSegmentsAngle = particleSource["nSegmentsAngle"];
-  // float angleSample;
-  // sim::Array<float> sourceAngleSegments(nSegmentsAngle);
-  // sim::Array<float> angleCDF(nSegmentsAngle);
+  // double angleSample;
+  // sim::Array<double> sourceAngleSegments(nSegmentsAngle);
+  // sim::Array<double> angleCDF(nSegmentsAngle);
   // for (int i=0; i<(nSegmentsAngle); i++)
   //{
   //    sourceAngleSegments[i] = particleSource["angles"][i];
@@ -3185,14 +3214,14 @@ print_gpu_memory_usage(world_rank);
   //}
   std::random_device randDevice_particleA;
   std::mt19937 sA(randDevice_particleA());
-  std::uniform_real_distribution<float> dist01A(0.0, 1.0);
-  float randA = 0.0;
+  std::uniform_real_distribution<double> dist01A(0.0, 1.0);
+  double randA = 0.0;
   int lowIndA = 0;
 #endif
   std::cout << "Starting psourcefile import " << std::endl;
 #if PARTICLE_SOURCE_FILE > 0 // File source
   libconfig::Config cfg_particles;
-  vector<float> xpfile(nP), ypfile(nP), zpfile(nP), vxpfile(nP), vypfile(nP),
+  vector<double> xpfile(nP), ypfile(nP), zpfile(nP), vxpfile(nP), vypfile(nP),
       vzpfile(nP);
   std::string ncParticleSourceFile;
   int nPfile = 0;
@@ -3268,28 +3297,28 @@ print_gpu_memory_usage(world_rank);
 #if USE3DTETGEOM > 0
   // MPI_Bcast(&boundaries[0].area, nLines,MPI_FLOAT,0,MPI_COMM_WORLD);
 #endif
-  sim::Array<float> pSurfNormX(nP), pSurfNormY(nP), pSurfNormZ(nP), px(nP),
+  sim::Array<double> pSurfNormX(nP), pSurfNormY(nP), pSurfNormZ(nP), px(nP),
       py(nP), pz(nP), pvx(nP), pvy(nP), pvz(nP);
   int surfIndexMod = 0;
-  float eVec[3] = {0.0};
+  double eVec[3] = {0.0};
   for (int i = 0; i < nP; i++) {
   //std::cout<< "setting particle " << i << std::endl;
 #if PARTICLE_SOURCE_SPACE > 0 // File source
 #if USE3DTETGEOM > 0
     surfIndexMod = i % nSourceSurfaces;
-    float xCentroid = (boundaries[sourceElements[surfIndexMod]].x1 +
+    double xCentroid = (boundaries[sourceElements[surfIndexMod]].x1 +
                        boundaries[sourceElements[surfIndexMod]].x2 +
                        boundaries[sourceElements[surfIndexMod]].x3) /
                       3.0;
-    float yCentroid = (boundaries[sourceElements[surfIndexMod]].y1 +
+    double yCentroid = (boundaries[sourceElements[surfIndexMod]].y1 +
                        boundaries[sourceElements[surfIndexMod]].y2 +
                        boundaries[sourceElements[surfIndexMod]].y3) /
                       3.0;
-    float zCentroid = (boundaries[sourceElements[surfIndexMod]].z1 +
+    double zCentroid = (boundaries[sourceElements[surfIndexMod]].z1 +
                        boundaries[sourceElements[surfIndexMod]].z2 +
                        boundaries[sourceElements[surfIndexMod]].z3) /
                       3.0;
-    float bufferLaunch = 1.0e-4;
+    double bufferLaunch = 1.0e-4;
     x = xCentroid -
         bufferLaunch * boundaries[sourceElements[surfIndexMod]].a /
             boundaries[sourceElements[surfIndexMod]]
@@ -3305,14 +3334,14 @@ print_gpu_memory_usage(world_rank);
 #else
     // x = sampled
     rand0 = dist01(s0);
-    float distAlongSegs =
+    double distAlongSegs =
         interp1dUnstructured(rand0, nSourceElements, accumulatedLengthArea,
                              &particleSourceSpaceCDF[0], lowInd);
     currentSegment = particleSourceIndices[lowInd];
     std::cout << "rand of " << rand0 << " puts the particle " << distAlongSegs
               << " along the segments on the boundary element "
               << currentSegment << std::endl;
-    float parVec[3] = {0.0};
+    double parVec[3] = {0.0};
     boundaries[currentSegment].getSurfaceParallel(parVec);
     x = particleSourceX[lowInd] + (rand0 - particleSourceSpaceCDF[lowInd]) /
                                       (particleSourceSpaceCDF[lowInd + 1] -
@@ -3323,7 +3352,7 @@ print_gpu_memory_usage(world_rank);
                                       (particleSourceSpaceCDF[lowInd + 1] -
                                        particleSourceSpaceCDF[lowInd]) *
                                       sourceSampleResolution * parVec[2];
-    float buffer = 1e-6; // 0.0;//2e-6;
+    double buffer = 1e-6; // 0.0;//2e-6;
     x = x - buffer * boundaries[currentSegment].a /
                 boundaries[currentSegment]
                     .plane_norm; // boundaries[sourceElements[surfIndexMod]].x1;
@@ -3338,17 +3367,17 @@ print_gpu_memory_usage(world_rank);
     E = interp1dUnstructured(randE, nThompDistPoints, max_Energy,
                              &CumulativeDFThompson.front(), lowIndE);
 #elif PARTICLE_SOURCE_ENERGY == 2
-    float localT = interp2dCombined(x, y, z, nR_Temp, nZ_Temp, TempGridr.data(),
+    double localT = interp2dCombined(x, y, z, nR_Temp, nZ_Temp, TempGridr.data(),
                                     TempGridz.data(), ti.data());
-    float localBnorm[3] = {0.0};
+    double localBnorm[3] = {0.0};
     interp2dVector(&localBnorm[0], x, y, z, nR_Bfield, nZ_Bfield,
                    bfieldGridr.data(), bfieldGridz.data(), br.data(), bz.data(),
                    by.data());
     vectorNormalize(localBnorm, localBnorm);
     boundaries[currentSegment].getSurfaceNormal(perpVec);
     bDotSurfaceNorm = std::abs(vectorDotProduct(localBnorm, perpVec));
-    float localAngle = std::acos(bDotSurfaceNorm) * 180 / 3.1415;
-    float sputtE =
+    double localAngle = std::acos(bDotSurfaceNorm) * 180 / 3.1415;
+    double sputtE =
         interp3d(randE, localAngle, std::log10(3.0 * localT),
                  nEdistBins_surfaceModel, nA_surfaceModel, nE_surfaceModel,
                  energyDistGrid01.data(), A_surfaceModel.data(),
@@ -3369,7 +3398,7 @@ print_gpu_memory_usage(world_rank);
 
 #elif PARTICLE_SOURCE_ANGLE > 1
     randA = dist01A(sA);
-    float sputtA =
+    double sputtA =
         interp3d(randA, localAngle, std::log10(3.0 * localT),
                  nAdistBins_surfaceModel, nA_surfaceModel, nE_surfaceModel,
                  cosDistGrid01.data(), A_surfaceModel.data(),
@@ -3389,8 +3418,8 @@ print_gpu_memory_usage(world_rank);
     std::cout << "current segment and perpVec " << currentSegment << " "
               << perpVec[0] << " " << perpVec[1] << " " << perpVec[2]
               << std::endl;
-    float Ezx = std::sqrt(Ez * Ez + Ex * Ex);
-    float thetaEzx = atan2(Ez, Ex);
+    double Ezx = std::sqrt(Ez * Ez + Ex * Ex);
+    double thetaEzx = atan2(Ez, Ex);
     std::cout << "Ezx thetaEzx " << Ezx << " " << thetaEzx << std::endl;
     // positive slope equals negative upward normal
     theta_transform =
@@ -3419,7 +3448,7 @@ print_gpu_memory_usage(world_rank);
     eVec[0] = Ex;
     eVec[1] = Ey;
     eVec[2] = Ez;
-    float EdotP = vectorDotProduct(perpVec, eVec);
+    double EdotP = vectorDotProduct(perpVec, eVec);
     if (EdotP < 0.0) {
       std::cout << "This dot product negative " << std::endl;
       Ex = -Ex;
@@ -3493,17 +3522,17 @@ print_gpu_memory_usage(world_rank);
 #endif
 
 #if GEOM_TRACE > 0
-  std::uniform_real_distribution<float> dist2(0, 1);
+  std::uniform_real_distribution<double> dist2(0, 1);
   // std::random_device rd2;
   // std::default_random_engine generator2(rd2());
-  float randDevice02 = 6.52E+5;
+  double randDevice02 = 6.52E+5;
   std::default_random_engine generatorTrace(randDevice02);
   std::cout << "Randomizing velocities to trace geometry. " << std::endl;
 
   for (int i = 0; i < nParticles; i++) {
-    float theta_trace = dist2(generatorTrace) * 2 * 3.1415;
-    float phi_trace = dist2(generatorTrace) * 3.1415;
-    float mag_trace = 2e3;
+    double theta_trace = dist2(generatorTrace) * 2 * 3.1415;
+    double phi_trace = dist2(generatorTrace) * 3.1415;
+    double mag_trace = 2e3;
     particleArray->vx[i] = mag_trace * std::cos(theta_trace) * std::sin(phi_trace);
     particleArray->vy[i] = mag_trace * std::sin(theta_trace) * std::sin(phi_trace);
     particleArray->vz[i] = mag_trace * std::cos(phi_trace);
@@ -3536,56 +3565,56 @@ print_gpu_memory_usage(world_rank);
   const int *phpn = &pHistPerNode[0];
   std::cout << "History array length " << nHistories << std::endl;
 #if USE_CUDA > 0
-  sim::Array<float> positionHistoryX(nHistories);
-  sim::Array<float> positionHistoryXgather(nHistories, 0.0);
-  sim::Array<float> positionHistoryY(nHistories);
-  sim::Array<float> positionHistoryYgather(nHistories);
-  sim::Array<float> positionHistoryZ(nHistories);
-  sim::Array<float> positionHistoryZgather(nHistories);
-  sim::Array<float> velocityHistory(nHistories);
-  sim::Array<float> velocityHistoryX(nHistories);
-  sim::Array<float> velocityHistoryY(nHistories);
-  sim::Array<float> velocityHistoryZ(nHistories);
-  sim::Array<float> velocityHistorygather(nHistories);
-  sim::Array<float> velocityHistoryXgather(nHistories);
-  sim::Array<float> velocityHistoryYgather(nHistories);
-  sim::Array<float> velocityHistoryZgather(nHistories);
-  sim::Array<float> chargeHistory(nHistories);
-  sim::Array<float> chargeHistoryGather(nHistories);
-  sim::Array<float> weightHistory(nHistories);
-  sim::Array<float> weightHistoryGather(nHistories);
+  sim::Array<double> positionHistoryX(nHistories);
+  sim::Array<double> positionHistoryXgather(nHistories, 0.0);
+  sim::Array<double> positionHistoryY(nHistories);
+  sim::Array<double> positionHistoryYgather(nHistories);
+  sim::Array<double> positionHistoryZ(nHistories);
+  sim::Array<double> positionHistoryZgather(nHistories);
+  sim::Array<double> velocityHistory(nHistories);
+  sim::Array<double> velocityHistoryX(nHistories);
+  sim::Array<double> velocityHistoryY(nHistories);
+  sim::Array<double> velocityHistoryZ(nHistories);
+  sim::Array<double> velocityHistorygather(nHistories);
+  sim::Array<double> velocityHistoryXgather(nHistories);
+  sim::Array<double> velocityHistoryYgather(nHistories);
+  sim::Array<double> velocityHistoryZgather(nHistories);
+  sim::Array<double> chargeHistory(nHistories);
+  sim::Array<double> chargeHistoryGather(nHistories);
+  sim::Array<double> weightHistory(nHistories);
+  sim::Array<double> weightHistoryGather(nHistories);
 #else
-  std::vector<float> positionHistoryX(nHistories);
-  std::vector<float> positionHistoryXgather(nHistories, 0.0);
-  std::vector<float> positionHistoryY(nHistories);
-  std::vector<float> positionHistoryYgather(nHistories);
-  std::vector<float> positionHistoryZ(nHistories);
-  std::vector<float> positionHistoryZgather(nHistories);
-  std::vector<float> velocityHistory(nHistories);
-  std::vector<float> velocityHistoryX(nHistories);
-  std::vector<float> velocityHistoryY(nHistories);
-  std::vector<float> velocityHistoryZ(nHistories);
-  std::vector<float> velocityHistorygather(nHistories);
-  std::vector<float> velocityHistoryXgather(nHistories);
-  std::vector<float> velocityHistoryYgather(nHistories);
-  std::vector<float> velocityHistoryZgather(nHistories);
-  std::vector<float> chargeHistory(nHistories);
-  std::vector<float> chargeHistoryGather(nHistories);
-  std::vector<float> weightHistory(nHistories);
-  std::vector<float> weightHistoryGather(nHistories);
+  std::vector<double> positionHistoryX(nHistories);
+  std::vector<double> positionHistoryXgather(nHistories, 0.0);
+  std::vector<double> positionHistoryY(nHistories);
+  std::vector<double> positionHistoryYgather(nHistories);
+  std::vector<double> positionHistoryZ(nHistories);
+  std::vector<double> positionHistoryZgather(nHistories);
+  std::vector<double> velocityHistory(nHistories);
+  std::vector<double> velocityHistoryX(nHistories);
+  std::vector<double> velocityHistoryY(nHistories);
+  std::vector<double> velocityHistoryZ(nHistories);
+  std::vector<double> velocityHistorygather(nHistories);
+  std::vector<double> velocityHistoryXgather(nHistories);
+  std::vector<double> velocityHistoryYgather(nHistories);
+  std::vector<double> velocityHistoryZgather(nHistories);
+  std::vector<double> chargeHistory(nHistories);
+  std::vector<double> chargeHistoryGather(nHistories);
+  std::vector<double> weightHistory(nHistories);
+  std::vector<double> weightHistoryGather(nHistories);
 #endif
 #endif
-  float *finalPosX = new float[nP];
-  float *finalPosY = new float[nP];
-  float *finalPosZ = new float[nP];
-  float *finalVx = new float[nP];
-  float *finalVy = new float[nP];
-  float *finalVz = new float[nP];
-  float *transitTime = new float[nP];
-  float *hitWall = new float[nP];
+  double *finalPosX = new double[nP];
+  double *finalPosY = new double[nP];
+  double *finalPosZ = new double[nP];
+  double *finalVx = new double[nP];
+  double *finalVy = new double[nP];
+  double *finalVz = new double[nP];
+  double *transitTime = new double[nP];
+  double *hitWall = new double[nP];
 
   std::cout << "Beginning random number seeds" << std::endl;
-  std::uniform_real_distribution<float> dist(0, 1e6);
+  std::uniform_real_distribution<double> dist(0, 1e6);
 
 #if FIXEDSEEDS == 0
   std::random_device rd;
@@ -3648,14 +3677,14 @@ print_gpu_memory_usage(world_rank);
 #endif
 #endif
   auto randInitEnd_clock = gitr_time::now();
-  std::chrono::duration<float> fsRandInit = randInitEnd_clock - randInitStart_clock;
+  std::chrono::duration<double> fsRandInit = randInitEnd_clock - randInitStart_clock;
   printf(
       "Random Number Initialize time for node %i          is %6.3f (secs) \n",
       world_rank, fsRandInit.count());
 
-  float moveTime = 0.0;
-  float geomCheckTime = 0.0;
-  float ionizTime = 0.0;
+  double moveTime = 0.0;
+  double geomCheckTime = 0.0;
+  double ionizTime = 0.0;
 #if USE_CUDA > 0
   int *dev_tt;
   cudaMallocManaged(&dev_tt, sizeof(int));
@@ -3782,23 +3811,23 @@ print_gpu_memory_usage(world_rank);
 #if FORCE_EVAL > 0
   if (world_rank == 0) {
     int nR_force, nZ_force;
-    float forceX0, forceX1, forceZ0, forceZ1, testEnergy;
+    double forceX0, forceX1, forceZ0, forceZ1, testEnergy;
     std::string forceCfg = "forceEvaluation.";
 
     getVariable(cfg, forceCfg + "nR", nR_force);
     getVariable(cfg, forceCfg + "nZ", nZ_force);
-    std::vector<float> forceR(nR_force, 0.0), forceZ(nZ_force, 0.0);
-    std::vector<float> tIon(nR_force * nZ_force, 0.0),
+    std::vector<double> forceR(nR_force, 0.0), forceZ(nZ_force, 0.0);
+    std::vector<double> tIon(nR_force * nZ_force, 0.0),
         tRecomb(nR_force * nZ_force, 0.0);
-    std::vector<float> dvEr(nR_force * nZ_force, 0.0),
+    std::vector<double> dvEr(nR_force * nZ_force, 0.0),
         dvEz(nR_force * nZ_force, 0.0), dvEt(nR_force * nZ_force, 0.0);
-    std::vector<float> dvBr(nR_force * nZ_force, 0.0),
+    std::vector<double> dvBr(nR_force * nZ_force, 0.0),
         dvBz(nR_force * nZ_force, 0.0), dvBt(nR_force * nZ_force, 0.0);
-    std::vector<float> dvCollr(nR_force * nZ_force, 0.0),
+    std::vector<double> dvCollr(nR_force * nZ_force, 0.0),
         dvCollz(nR_force * nZ_force, 0.0), dvCollt(nR_force * nZ_force, 0.0);
-    std::vector<float> dvITGr(nR_force * nZ_force, 0.0),
+    std::vector<double> dvITGr(nR_force * nZ_force, 0.0),
         dvITGz(nR_force * nZ_force, 0.0), dvITGt(nR_force * nZ_force, 0.0);
-    std::vector<float> dvETGr(nR_force * nZ_force, 0.0),
+    std::vector<double> dvETGr(nR_force * nZ_force, 0.0),
         dvETGz(nR_force * nZ_force, 0.0), dvETGt(nR_force * nZ_force, 0.0);
     getVariable(cfg, forceCfg + "X0", forceX0);
     getVariable(cfg, forceCfg + "X1", forceX1);
@@ -3811,7 +3840,7 @@ print_gpu_memory_usage(world_rank);
     for (int i = 0; i < nZ_force; i++) {
       forceZ[i] = forceZ0 + (forceZ1 - forceZ0) * i / (nZ_force - 1);
     }
-    float Btotal = 0.0;
+    double Btotal = 0.0;
     for (int i = 0; i < nR_force; i++) {
       for (int j = 0; j < nZ_force; j++) {
         interp2dVector(&Btest[0], forceR[i], 0.0, forceZ[j], nR_Bfield,
@@ -3820,7 +3849,7 @@ print_gpu_memory_usage(world_rank);
         Btotal = vectorNorm(Btest);
         // std::cout << "node " << world_rank << "Bfield at  "<< forceR[i] << "
         // " << forceZ[j]<< " " << Btest[0] << " " << Btest[1] <<
-        float testTi =
+        double testTi =
             interp2dCombined(0.0, 0.1, 0.0, nR_Temp, nZ_Temp, TempGridr.data(),
                              TempGridz.data(), ti.data());
         std::cout << "Finished Temperature import " << testVec << std::endl;
@@ -3919,10 +3948,10 @@ print_gpu_memory_usage(world_rank);
 #endif
 
   auto start_clock = gitr_time::now();
-  std::chrono::duration<float> fs1 = start_clock - gitr_start_clock;
+  std::chrono::duration<double> fs1 = start_clock - gitr_start_clock;
   printf("Initialize time for node %i          is %6.3f (secs) \n", world_rank,
          fs1.count());
-  float testFlowVec[3] = {0.0f};
+  double testFlowVec[3] = {0.0f};
 #if USEFIELDALIGNEDVALUES > 0
   interpFieldAlignedVector(&testFlowVec[0], 1.4981, 0.0, -1.2408, nR_flowV,
                            nZ_flowV, flowVGridr.data(), flowVGridz.data(),
@@ -3935,7 +3964,7 @@ print_gpu_memory_usage(world_rank);
                  flowVz.data(), flowVt.data());
 #endif
 
-  float leakZ = 0.0;
+  double leakZ = 0.0;
   if (world_rank == 0) {
 
     std::string diagnosticCfg = "diagnostics.";
@@ -3971,8 +4000,8 @@ print_gpu_memory_usage(world_rank);
     // thrust::generate(h_vec.begin(), h_vec.end(), rand);
     //// transfer data to the device
     // thrust::device_vector<int> d_vec = h_vec;
-    // float *d_vec2;
-    // cudaMallocManaged(&d_vec2, 1000*sizeof(float));
+    // double *d_vec2;
+    // cudaMallocManaged(&d_vec2, 1000*sizeof(double));
     // std::cout << "created d_vec and cmalloc, starting init " << std::endl;
     // for(int k=0;k<1000;k++)
     //{   //std::cout << "k " << k << std::endl;
@@ -4091,9 +4120,9 @@ print_gpu_memory_usage(world_rank);
 #endif
 
   auto finish_clock = gitr_time::now();
-  std::chrono::duration<float> fs = finish_clock - start_clock;
+  std::chrono::duration<double> fs = finish_clock - start_clock;
   printf("Time taken          is %6.3f (secs) \n", fs.count());
-  printf("Time taken per step is %6.3f (secs) \n", fs.count() / (float)nT);
+  printf("Time taken per step is %6.3f (secs) \n", fs.count() / (double)nT);
 
     bool debugRnd = true;
     if(world_rank == 0 && writeIntermediate) {
@@ -4144,7 +4173,7 @@ for(int i=0; i<nP ; i++)
        " trans " << particleArray->transitTime[i] << std::endl;
 }
 */
-  // float tmp202 =0.0;
+  // double tmp202 =0.0;
 #if USE_CUDA
   cudaDeviceSynchronize();
 #endif
@@ -4190,24 +4219,24 @@ for(int i=0; i<nP ; i++)
   }
 #endif
   std::cout << "reached gather initialization " << nP << std::endl;
-  sim::Array<float> xGather(nP, 0.0);
-  sim::Array<float> test0Gather(nP, 0.0);
-  sim::Array<float> test1Gather(nP, 0.0);
-  sim::Array<float> yGather(nP, 0.0);
-  sim::Array<float> zGather(nP, 0.0);
-  sim::Array<float> vGather(nP, 0.0);
-  sim::Array<float> vxGather(nP, 0.0);
-  sim::Array<float> vyGather(nP, 0.0);
-  sim::Array<float> vzGather(nP, 0.0);
-  sim::Array<float> hitWallGather(nP, 0.0);
-  sim::Array<float> weightGather(nP, 0.0);
-  sim::Array<float> chargeGather(nP, 0.0);
-  sim::Array<float> firstIonizationTGather(nP, 0.0);
-  sim::Array<float> firstIonizationZGather(nP, 0.0);
+  sim::Array<double> xGather(nP, 0.0);
+  sim::Array<double> test0Gather(nP, 0.0);
+  sim::Array<double> test1Gather(nP, 0.0);
+  sim::Array<double> yGather(nP, 0.0);
+  sim::Array<double> zGather(nP, 0.0);
+  sim::Array<double> vGather(nP, 0.0);
+  sim::Array<double> vxGather(nP, 0.0);
+  sim::Array<double> vyGather(nP, 0.0);
+  sim::Array<double> vzGather(nP, 0.0);
+  sim::Array<double> hitWallGather(nP, 0.0);
+  sim::Array<double> weightGather(nP, 0.0);
+  sim::Array<double> chargeGather(nP, 0.0);
+  sim::Array<double> firstIonizationTGather(nP, 0.0);
+  sim::Array<double> firstIonizationZGather(nP, 0.0);
   sim::Array<int> hasLeakedGather(nP, 0);
-  // float *x_gather = NULL;
+  // double *x_gather = NULL;
   // if (world_rank == 0) {
-  //      x_gather = malloc(sizeof(float)*nP);
+  //      x_gather = malloc(sizeof(double)*nP);
   //}
   std::cout << "Reached MPI barrier for gather" << std::endl;
   std::cout << "gather pstart and npperrank " << pStartIndx[world_rank] << " " << nPPerRank[world_rank] << std::endl;
@@ -4261,8 +4290,8 @@ for(int i=0; i<nP ; i++)
   MPI_Barrier(MPI_COMM_WORLD);
 #if PARTICLE_TRACKS > 0
 
-  std::vector<float> exampleArray(4, 0.0);
-  std::vector<float> exampleArrayGather(4, 0.0);
+  std::vector<double> exampleArray(4, 0.0);
+  std::vector<double> exampleArrayGather(4, 0.0);
   if (world_rank == 0) {
     exampleArray[0] = 1;
     exampleArray[1] = 1;
@@ -4382,7 +4411,7 @@ for(int i=0; i<nP ; i++)
 #endif
   if (world_rank == 0) {
     auto MPIfinish_clock = gitr_time::now();
-    std::chrono::duration<float> fsmpi = MPIfinish_clock - finish_clock;
+    std::chrono::duration<double> fsmpi = MPIfinish_clock - finish_clock;
     printf("Time taken for mpi reduction          is %6.3f (secs) \n",
            fsmpi.count());
   }
@@ -4399,7 +4428,7 @@ for(int i=0; i<nP ; i++)
         totalHitWall++;
     }
 #if USE3DTETGEOM > 0
-    float meanTransitTime0 = 0.0;
+    double meanTransitTime0 = 0.0;
     /*
     for (int i=0; i<nP; i++)
     {
@@ -4412,17 +4441,17 @@ for(int i=0; i<nP ; i++)
     */
     meanTransitTime0 = meanTransitTime0 / nP;
     int max_boundary = 0;
-    float max_impacts = 0.0;
+    double max_impacts = 0.0;
     int max_boundary1 = 0;
-    float max_impacts1 = 0.0;
-    float *impacts = new float[nLines];
-    float *xOut = new float[nP];
-    float *redeposit = new float[nLines];
-    float *startingParticles = new float[nLines];
-    float *surfZ = new float[nLines];
+    double max_impacts1 = 0.0;
+    double *impacts = new double[nLines];
+    double *xOut = new double[nP];
+    double *redeposit = new double[nLines];
+    double *startingParticles = new double[nLines];
+    double *surfZ = new double[nLines];
     // int nA = 90;
     // int nE = 1000;
-    // float* impactEnergy = new float[nLines*nA*nE];
+    // double* impactEnergy = new double[nLines*nA*nE];
     for (int i = 0; i < nLines; i++) {
       impacts[i] = boundaries[i].impacts;
       redeposit[i] = boundaries[i].redeposit;
@@ -4470,7 +4499,7 @@ for(int i=0; i<nP ; i++)
       nc_meshz.putVar(&bdryz[0]);
     }
 /*
-sim::Array<float> tally00(nLines,0);
+sim::Array<double> tally00(nLines,0);
 for (int j=0; j<nP; j++)
 {
     tally00[particleArray->wallHit[j]] = tally00[particleArray->wallHit[j]] + 1;
@@ -4483,10 +4512,10 @@ std::cout << "bound 164 " << boundaries[164].impacts << std::endl;
 std::cout << "bound 255 " << boundaries[255].impacts << std::endl;
 */
 #else
-  float *impacts = new float[nLines];
-  float *startingParticles = new float[nLines];
-  float *surfZ = new float[nLines];
-  // float* impactEnergy = new float[nLines*1000];
+  double *impacts = new double[nLines];
+  double *startingParticles = new double[nLines];
+  double *surfZ = new double[nLines];
+  // double* impactEnergy = new double[nLines*1000];
   for (int i = 0; i < nLines; i++) {
     impacts[i] = boundaries[i].impacts;
     startingParticles[i] = boundaries[i].startingParticles;
@@ -4497,8 +4526,8 @@ printf("add initial particle erosion to surface counting\n");
     // add initial particle erosion to surface counting
     int closestBoundaryIndex = 0;
     int surfIndex = 0;
-    float minDistance = 0.0;
-    float thisE[3] = {0.0f};
+    double minDistance = 0.0;
+    double thisE[3] = {0.0f};
     for (int j = 0; j < nP; j++) {
       minDistance =
           getE(px[j], py[j], pz[j], thisE, boundaries.data(), nLines,
@@ -4524,7 +4553,7 @@ printf("writing positions file \n");
     // int ring1 = 0;
     // int ring2 = 0;
     // int noWall = 0;
-    // float meanTransitTime = 0.0;
+    // double meanTransitTime = 0.0;
     //
     // for(int i=0; i<nP ; i++)
     //{
@@ -4612,9 +4641,9 @@ printf("done writing positions file\n");
 
     // std::cout << "particleArray2 z weight"<<particleArray2->z[0] << " " <<
     // particleArray2->weight[0] << std::endl;
-    // sim::Array<thrust::pair<int,float>> pair1(100);
-    // sim::Array<float> weights1(100,0.0);
-    // sim::Array<float> charge1(particleArray->charge);
+    // sim::Array<thrust::pair<int,double>> pair1(100);
+    // sim::Array<double> weights1(100,0.0);
+    // sim::Array<double> charge1(particleArray->charge);
     // charge1=particleArray->weight;
     // for(int i=0;i<nP;i++) std::cout << " charge "<< i << " "  << charge1[i]
     // << std::endl;
@@ -4639,7 +4668,7 @@ printf("done writing positions file\n");
     // std::cout << "pair "  << " " << pair1[i].first << " " << pair1[i].second
     // << std::endl; weights1[i] = pair1[i].second;
     //}
-    // sim::Array<float> weightThreshold(1,38.0);
+    // sim::Array<double> weightThreshold(1,38.0);
     // sim::Array<int> lowerBoundIndex(1,0);
     // for(int i=0;i<100;i++)
     //{
@@ -4648,9 +4677,9 @@ printf("done writing positions file\n");
     //}
     // thrust::lower_bound(weights1.begin(), weights1.end(),
     //                    weightThreshold.begin(),weightThreshold.end() ,
-    // 		   lowerBoundIndex.begin(),thrust::less<float>());
+    // 		   lowerBoundIndex.begin(),thrust::less<double>());
     // std::cout << " min index " << lowerBoundIndex[0] << " " <<
-    // weights1[lowerBoundIndex[0]] << std::endl; float tmpWeight = 0.0; for(int
+    // weights1[lowerBoundIndex[0]] << std::endl; double tmpWeight = 0.0; for(int
     // i=0;i<=lowerBoundIndex[0];i++)
     //{
     // tmpWeight = weights1[i];
@@ -4842,7 +4871,7 @@ particleArray->test4[i] << std::endl;
 #endif
   if (world_rank == 0) {
     auto gitr_finish_clock = gitr_time::now();
-    std::chrono::duration<float> fstotal = gitr_finish_clock - gitr_start_clock;
+    std::chrono::duration<double> fstotal = gitr_finish_clock - gitr_start_clock;
     printf("Total runtime for GITR is %6.3f (secs) \n", fstotal.count());
   }
 #if USE_MPI > 0

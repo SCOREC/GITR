@@ -30,21 +30,21 @@ struct recombine {
   Particles *particlesPointer;
   int nR_Dens;
   int nZ_Dens;
-  float* DensGridr;
-  float* DensGridz;
-  float* ne;
+  double* DensGridr;
+  double* DensGridz;
+  double* ne;
   int nR_Temp;
   int nZ_Temp;
-  float* TempGridr;
-  float* TempGridz;
-  float* te;
+  double* TempGridr;
+  double* TempGridz;
+  double* te;
   int nTemperaturesRecomb;
   int nDensitiesRecomb;
-  float* gridDensity_Recombination;
-  float* gridTemperature_Recombination;
-  float* rateCoeff_Recombination;
-  const float dt;
-  float tion;
+  double* gridDensity_Recombination;
+  double* gridTemperature_Recombination;
+  double* rateCoeff_Recombination;
+  const double dt;
+  double tion;
 
   int dof_intermediate = 0;
   int idof = -1;
@@ -58,17 +58,17 @@ struct recombine {
       std::mt19937 *state;
 #endif
 
-  recombine(Particles *_particlesPointer, float _dt,
+  recombine(Particles *_particlesPointer, double _dt,
 #if __CUDACC__
       curandState *_state,
 #else
       std::mt19937 *_state,
 #endif
-     int _nR_Dens,int _nZ_Dens,float* _DensGridr,
-     float* _DensGridz,float* _ne,int _nR_Temp, int _nZ_Temp,
-     float* _TempGridr, float* _TempGridz,float* _te,int _nTemperaturesRecomb,
-     int _nDensitiesRecomb,float* _gridTemperature_Recombination,float* _gridDensity_Recombination,
-     float* _rateCoeff_Recombination,  double* intermediate, int nT, int idof, int dof_intermediate): 
+     int _nR_Dens,int _nZ_Dens,double* _DensGridr,
+     double* _DensGridz,double* _ne,int _nR_Temp, int _nZ_Temp,
+     double* _TempGridr, double* _TempGridz,double* _te,int _nTemperaturesRecomb,
+     int _nDensitiesRecomb,double* _gridTemperature_Recombination,double* _gridDensity_Recombination,
+     double* _rateCoeff_Recombination,  double* intermediate, int nT, int idof, int dof_intermediate): 
     particlesPointer(_particlesPointer),
 
                                                nR_Dens(_nR_Dens),
@@ -94,12 +94,12 @@ struct recombine {
   
   CUDA_CALLABLE_MEMBER_DEVICE 
   void operator()(size_t indx) { 
-  float P1 = 0.0f;
+  double P1 = 0.0f;
       if(particlesPointer->charge[indx] > 0)
     {
        tion = interpRateCoeff2d ( particlesPointer->charge[indx], particlesPointer->x[indx], particlesPointer->y[indx], particlesPointer->z[indx],nR_Temp,nZ_Temp, TempGridr,TempGridz,te,DensGridr,DensGridz, ne,nTemperaturesRecomb,nDensitiesRecomb,gridTemperature_Recombination,gridDensity_Recombination,rateCoeff_Recombination);
-       //float PrP = particlesPointer->PrecombinationPrevious[indx];
-       float P = expf(-dt/tion);
+       //double PrP = particlesPointer->PrecombinationPrevious[indx];
+       double P = expf(-dt/tion);
        //particlesPointer->PrecombinationPrevious[indx] = PrP*P;
        P1 = 1.0-P;
     }
@@ -108,17 +108,17 @@ struct recombine {
 	{        
 #if PARTICLESEEDS > 0
         #ifdef __CUDACC__
-        float r1 = curand_uniform(&state[indx]);
+        double r1 = curand_uniform(&state[indx]);
         #else
-        std::uniform_real_distribution<float> dist(0.0, 1.0);
-        float r1=dist(state[indx]);
+        std::uniform_real_distribution<double> dist(0.0, 1.0);
+        double r1=dist(state[indx]);
         #endif
 #else
     #if __CUDACC__
-    float r1 = curand_uniform(&state[1]);
+    double r1 = curand_uniform(&state[1]);
     #else
-            std::uniform_real_distribution<float> dist(0.0, 1.0);
-    float r1=dist(state[1]);
+            std::uniform_real_distribution<double> dist(0.0, 1.0);
+    double r1=dist(state[1]);
     #endif
 #endif  
 

@@ -23,16 +23,16 @@ using namespace std:
 #endif
 
 CUDA_CALLABLE_MEMBER
-void getBoundaryNormal(Boundary* boundaryVector,int wallIndex,float surfaceNormalVector[],float x,float y){
+void getBoundaryNormal(Boundary* boundaryVector,int wallIndex,double surfaceNormalVector[],double x,double y){
   #if USE3DTETGEOM > 0
-           float norm_normal = boundaryVector[wallIndex].plane_norm; 
+           double norm_normal = boundaryVector[wallIndex].plane_norm; 
             surfaceNormalVector[0] = boundaryVector[wallIndex].a/norm_normal;
             surfaceNormalVector[1] = boundaryVector[wallIndex].b/norm_normal;
             
             surfaceNormalVector[2] = boundaryVector[wallIndex].c/norm_normal;
   #else
-            float tol = 1e12;
-            float norm_normal = 0.0f;
+            double tol = 1e12;
+            double norm_normal = 0.0f;
             if (boundaryVector[wallIndex].slope_dzdx == 0.0)
                 {
                  surfaceNormalVector[0] = 0.0f;
@@ -57,8 +57,8 @@ void getBoundaryNormal(Boundary* boundaryVector,int wallIndex,float surfaceNorma
             surfaceNormalVector[2] = surfaceNormalVector[2]/norm_normal;
                 }
 #if USECYLSYMM > 0 
-            float theta = atan2f(y,x);
-            float Sr = surfaceNormalVector[0];
+            double theta = atan2f(y,x);
+            double Sr = surfaceNormalVector[0];
             surfaceNormalVector[0] = cos(theta)*Sr;
             surfaceNormalVector[1] = sin(theta)*Sr;
 #endif            
@@ -126,33 +126,33 @@ struct reflection {
     Surfaces * surfaces;
     int nE_sputtRefCoeff;
     int nA_sputtRefCoeff;
-    float* A_sputtRefCoeff;
-    float* Elog_sputtRefCoeff;
-    float* spyl_surfaceModel;
-    float* rfyl_surfaceModel;
+    double* A_sputtRefCoeff;
+    double* Elog_sputtRefCoeff;
+    double* spyl_surfaceModel;
+    double* rfyl_surfaceModel;
     int nE_sputtRefDistOut; 
     int nE_sputtRefDistOutRef; 
     int nA_sputtRefDistOut;
     int nE_sputtRefDistIn;
     int nA_sputtRefDistIn;
-    float* E_sputtRefDistIn;
-    float* A_sputtRefDistIn;
-    float* E_sputtRefDistOut;
-    float* E_sputtRefDistOutRef;
-    float* A_sputtRefDistOut;
-    float* energyDistGrid01;
-    float* energyDistGrid01Ref;
-    float* angleDistGrid01;
-    float* EDist_CDF_Y_regrid;
-    float* ADist_CDF_Y_regrid;
-    float* EDist_CDF_R_regrid;
-    float* ADist_CDF_R_regrid;
+    double* E_sputtRefDistIn;
+    double* A_sputtRefDistIn;
+    double* E_sputtRefDistOut;
+    double* E_sputtRefDistOutRef;
+    double* A_sputtRefDistOut;
+    double* energyDistGrid01;
+    double* energyDistGrid01Ref;
+    double* angleDistGrid01;
+    double* EDist_CDF_Y_regrid;
+    double* ADist_CDF_Y_regrid;
+    double* EDist_CDF_R_regrid;
+    double* ADist_CDF_R_regrid;
     int nEdist;
-    float E0dist;
-    float Edist;
+    double E0dist;
+    double Edist;
     int nAdist;
-    float A0dist;
-    float Adist;
+    double A0dist;
+    double Adist;
 
     int dof_intermediate = 0;
     int idof = -1;
@@ -173,33 +173,33 @@ struct reflection {
             Surfaces * _surfaces,
     int _nE_sputtRefCoeff,
     int _nA_sputtRefCoeff,
-    float* _A_sputtRefCoeff,
-    float* _Elog_sputtRefCoeff,
-    float* _spyl_surfaceModel,
-    float* _rfyl_surfaceModel,
+    double* _A_sputtRefCoeff,
+    double* _Elog_sputtRefCoeff,
+    double* _spyl_surfaceModel,
+    double* _rfyl_surfaceModel,
     int _nE_sputtRefDistOut,
     int _nE_sputtRefDistOutRef,
     int _nA_sputtRefDistOut,
     int _nE_sputtRefDistIn,
     int _nA_sputtRefDistIn,
-    float* _E_sputtRefDistIn,
-    float* _A_sputtRefDistIn,
-    float* _E_sputtRefDistOut,
-    float* _E_sputtRefDistOutRef,
-    float* _A_sputtRefDistOut,
-    float* _energyDistGrid01,
-    float* _energyDistGrid01Ref,
-    float* _angleDistGrid01,
-    float* _EDist_CDF_Y_regrid,
-    float* _ADist_CDF_Y_regrid, 
-    float* _EDist_CDF_R_regrid,
-    float* _ADist_CDF_R_regrid,
+    double* _E_sputtRefDistIn,
+    double* _A_sputtRefDistIn,
+    double* _E_sputtRefDistOut,
+    double* _E_sputtRefDistOutRef,
+    double* _A_sputtRefDistOut,
+    double* _energyDistGrid01,
+    double* _energyDistGrid01Ref,
+    double* _angleDistGrid01,
+    double* _EDist_CDF_Y_regrid,
+    double* _ADist_CDF_Y_regrid, 
+    double* _EDist_CDF_R_regrid,
+    double* _ADist_CDF_R_regrid,
     int _nEdist,
-    float _E0dist,
-    float _Edist,
+    double _E0dist,
+    double _Edist,
     int _nAdist,
-    float _A0dist,
-    float _Adist, double* intermediate, int nT, int idof, int dof_intermediate) :
+    double _A0dist,
+    double _Adist, double* intermediate, int nT, int idof, int dof_intermediate) :
 particles(_particles),
                              dt(_dt),
                              nLines(_nLines),
@@ -242,24 +242,24 @@ CUDA_CALLABLE_MEMBER_DEVICE
 void operator()(size_t indx) const {
     
     if (particles->hitWall[indx] == 1.0) {
-      float E0 = 0.0;
-      float thetaImpact = 0.0;
-      float particleTrackVector[3] = {0.0f};
-      float surfaceNormalVector[3] = {0.0f};
-      float vSampled[3] = {0.0f};
-      float norm_part = 0.0;
+      double E0 = 0.0;
+      double thetaImpact = 0.0;
+      double particleTrackVector[3] = {0.0f};
+      double surfaceNormalVector[3] = {0.0f};
+      double vSampled[3] = {0.0f};
+      double norm_part = 0.0;
       int signPartDotNormal = 0;
-      float partDotNormal = 0.0;
-      float Enew = 0.0f;
-      float angleSample = 0.0f;
+      double partDotNormal = 0.0;
+      double Enew = 0.0f;
+      double angleSample = 0.0f;
       int wallIndex = 0;
-      float tol = 1e12;
-      float Sr = 0.0;
-      float St = 0.0;
-      float Y0 = 0.0;
-      float R0 = 0.0;
-      float totalYR = 0.0;
-      float newWeight = 0.0;
+      double tol = 1e12;
+      double Sr = 0.0;
+      double St = 0.0;
+      double Y0 = 0.0;
+      double R0 = 0.0;
+      double totalYR = 0.0;
+      double newWeight = 0.0;
       int wallHit = particles->wallHit[indx];
       int surfaceHit = boundaryVector[wallHit].surfaceNumber;
       int surface = boundaryVector[wallHit].surface;
@@ -275,15 +275,15 @@ void operator()(size_t indx) const {
         surface = 260;
       if (surface < 0)
         surface = 0;
-      float eInterpVal = 0.0;
-      float aInterpVal = 0.0;
-      float weight = particles->weight[indx];
-      float vx = particles->vx[indx];
-      float vy = particles->vy[indx];
-      float vz = particles->vz[indx];
+      double eInterpVal = 0.0;
+      double aInterpVal = 0.0;
+      double weight = particles->weight[indx];
+      double vx = particles->vx[indx];
+      double vy = particles->vy[indx];
+      double vz = particles->vz[indx];
 #if FLUX_EA > 0
-      float dEdist = (Edist - E0dist) / static_cast<float>(nEdist);
-      float dAdist = (Adist - A0dist) / static_cast<float>(nAdist);
+      double dEdist = (Edist - E0dist) / static_cast<double>(nEdist);
+      double dAdist = (Adist - A0dist) / static_cast<double>(nAdist);
       int AdistInd = 0;
       int EdistInd = 0;
 #endif
@@ -341,30 +341,30 @@ void operator()(size_t indx) const {
 //cout << "Energy angle yield " << E0 << " " << thetaImpact << " " << Y0 << endl;
 #if PARTICLESEEDS > 0
 #ifdef __CUDACC__
-      float r7 = curand_uniform(&state[indx]);
-      float r8 = curand_uniform(&state[indx]);
-      float r9 = curand_uniform(&state[indx]);
-      float r10 = curand_uniform(&state[indx]);
+      double r7 = curand_uniform(&state[indx]);
+      double r8 = curand_uniform(&state[indx]);
+      double r9 = curand_uniform(&state[indx]);
+      double r10 = curand_uniform(&state[indx]);
 #else
       std::uniform_real_distribution<double> dist(0.0, 1.0);
-      float r7 = dist(state[indx]);
-      float r8 = dist(state[indx]);
-      float r9 = dist(state[indx]);
-      float r10 = dist(state[indx]);
+      double r7 = dist(state[indx]);
+      double r8 = dist(state[indx]);
+      double r9 = dist(state[indx]);
+      double r10 = dist(state[indx]);
 #endif
 
             #else
               #if __CUDACC__
-                float r7 = curand_uniform(&state[6]);
-                float r8 = curand_uniform(&state[7]);
-                float r9 = curand_uniform(&state[8]);
+                double r7 = curand_uniform(&state[6]);
+                double r8 = curand_uniform(&state[7]);
+                double r9 = curand_uniform(&state[8]);
               #else
-                std::uniform_real_distribution<float> dist(0.0, 1.0);
-                float r7=dist(state[6]);
-                float r8=dist(state[7]);
-                float r9=dist(state[8]);
+                std::uniform_real_distribution<double> dist(0.0, 1.0);
+                double r7=dist(state[6]);
+                double r8=dist(state[7]);
+                double r9=dist(state[8]);
               #endif
-                //float r7 = 0.0;
+                //double r7 = 0.0;
             #endif
 
     
@@ -380,7 +380,7 @@ void operator()(size_t indx) const {
       }
     
                 //particle either reflects or deposits
-            float sputtProb = Y0/totalYR;
+            double sputtProb = Y0/totalYR;
 	    int didReflect = 0;
             if(totalYR > 0.0)
             {
@@ -404,7 +404,7 @@ void operator()(size_t indx) const {
                  (AdistInd >= 0) && (AdistInd < nAdist))
               {
             #if USE_CUDA > 0
-                  atomicAdd(&surfaces->reflDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd],newWeight);
+                  atomicAdd1(&surfaces->reflDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd],newWeight);
             #else      
                   surfaces->reflDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] = 
                     surfaces->reflDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] +  newWeight;
@@ -415,7 +415,7 @@ void operator()(size_t indx) const {
                 {
 
             #if USE_CUDA > 0
-                    atomicAdd(&surfaces->grossDeposition[surfaceHit],weight*(1.0-R0));
+                    atomicAdd1(&surfaces->grossDeposition[surfaceHit],weight*(1.0-R0));
             #else
                     surfaces->grossDeposition[surfaceHit] = surfaces->grossDeposition[surfaceHit]+weight*(1.0-R0);
             #endif
@@ -449,7 +449,7 @@ void operator()(size_t indx) const {
               {
                 //cout << " particle sputters with " << EdistInd << AdistInd <<  endl;
             #if USE_CUDA > 0
-                  atomicAdd(&surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd],newWeight);
+                  atomicAdd1(&surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd],newWeight);
             #else      
                   surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] = 
                     surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] +  newWeight;
@@ -462,12 +462,12 @@ void operator()(size_t indx) const {
                 {
 
             #if USE_CUDA > 0
-                    atomicAdd(&surfaces->grossDeposition[surfaceHit],weight*(1.0-R0));
-                    atomicAdd(&surfaces->grossErosion[surfaceHit],newWeight);
-                    atomicAdd(&surfaces->aveSputtYld[surfaceHit],Y0);
+                    atomicAdd1(&surfaces->grossDeposition[surfaceHit],weight*(1.0-R0));
+                    atomicAdd1(&surfaces->grossErosion[surfaceHit],newWeight);
+                    atomicAdd1(&surfaces->aveSputtYld[surfaceHit],Y0);
                     if(weight > 0.0)
                     {
-                        atomicAdd(&surfaces->sputtYldCount[surfaceHit],1);
+                        atomicAdd1(&surfaces->sputtYldCount[surfaceHit],1);
                     }
             #else
                     surfaces->grossDeposition[surfaceHit] = surfaces->grossDeposition[surfaceHit]+weight*(1.0-R0);
@@ -485,7 +485,7 @@ void operator()(size_t indx) const {
                   if(surface > 0)
                 {
             #if USE_CUDA > 0
-                    atomicAdd(&surfaces->grossDeposition[surfaceHit],weight);
+                    atomicAdd1(&surfaces->grossDeposition[surfaceHit],weight);
             #else
                     surfaces->grossDeposition[surfaceHit] = surfaces->grossDeposition[surfaceHit]+weight;
             #endif
@@ -501,7 +501,7 @@ void operator()(size_t indx) const {
 		    if(didReflect)
 		    {
             #if USE_CUDA > 0
-                    atomicAdd(&surfaces->grossDeposition[surfaceHit],weight);
+                    atomicAdd1(&surfaces->grossDeposition[surfaceHit],weight);
             #else
                     surfaces->grossDeposition[surfaceHit] = surfaces->grossDeposition[surfaceHit]+weight;
             #endif
@@ -517,8 +517,8 @@ void operator()(size_t indx) const {
             if(surface)
             {
             #if USE_CUDA > 0
-                atomicAdd(&surfaces->sumWeightStrike[surfaceHit],weight);
-                atomicAdd(&surfaces->sumParticlesStrike[surfaceHit],1);
+                atomicAdd1(&surfaces->sumWeightStrike[surfaceHit],weight);
+                atomicAdd1(&surfaces->sumParticlesStrike[surfaceHit],1);
             #else
                 surfaces->sumWeightStrike[surfaceHit] =surfaces->sumWeightStrike[surfaceHit] +weight;
                 surfaces->sumParticlesStrike[surfaceHit] = surfaces->sumParticlesStrike[surfaceHit]+1;
@@ -532,7 +532,7 @@ void operator()(size_t indx) const {
                   (AdistInd >= 0) && (AdistInd < nAdist))
                 {
 #if USE_CUDA > 0
-                    atomicAdd(&surfaces->energyDistribution[surfaceHit*nEdist*nAdist + 
+                    atomicAdd1(&surfaces->energyDistribution[surfaceHit*nEdist*nAdist + 
                                                EdistInd*nAdist + AdistInd], weight);
 #else
 
@@ -550,13 +550,13 @@ void operator()(size_t indx) const {
         particles->weight[indx] = newWeight;
         particles->hitWall[indx] = 0.0;
         particles->charge[indx] = 0.0;
-        float V0 = sqrt(2 * eInterpVal * 1.602e-19 / (particles->amu[indx] * 1.66e-27));
+        double V0 = sqrt(2 * eInterpVal * 1.602e-19 / (particles->amu[indx] * 1.66e-27));
         particles->newVelocity[indx] = V0;
         vSampled[0] = V0 * sin(aInterpVal * 3.1415 / 180) * cos(2.0 * 3.1415 * r10);
         vSampled[1] = V0 * sin(aInterpVal * 3.1415 / 180) * sin(2.0 * 3.1415 * r10);
         vSampled[2] = V0 * cos(aInterpVal * 3.1415 / 180);
         boundaryVector[wallHit].transformToSurface(vSampled, particles->y[indx], particles->x[indx]);
-        //float rr = sqrt(particles->x[indx]*particles->x[indx] + particles->y[indx]*particles->y[indx]);
+        //double rr = sqrt(particles->x[indx]*particles->x[indx] + particles->y[indx]*particles->y[indx]);
         //if (particles->z[indx] < -4.1 && -signPartDotNormal*vSampled[0] > 0.0)
         //{
         //  cout << "particle index " << indx  << endl;
@@ -569,9 +569,9 @@ void operator()(size_t indx) const {
         //  cout << "Position of particle0 " << particles->xprevious[indx] << " " << particles->yprevious[indx] << " " << particles->zprevious[indx] << endl;
         //  cout << "Position of particle " << particles->x[indx] << " " << particles->y[indx] << " " << particles->z[indx] << endl;
         //  }
-        particles->vx[indx] = -static_cast<float>(boundaryVector[wallHit].inDir) * surfaceNormalVector[0] * vSampled[0];
-        particles->vy[indx] = -static_cast<float>(boundaryVector[wallHit].inDir) * surfaceNormalVector[1] * vSampled[1];
-        particles->vz[indx] = -static_cast<float>(boundaryVector[wallHit].inDir) * surfaceNormalVector[2] * vSampled[2];
+        particles->vx[indx] = -static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[0] * vSampled[0];
+        particles->vy[indx] = -static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[1] * vSampled[1];
+        particles->vz[indx] = -static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[2] * vSampled[2];
         //        //if(particles->test[indx] == 0.0)
         //        //{
         //        //    particles->test[indx] = 1.0;
@@ -581,9 +581,9 @@ void operator()(size_t indx) const {
         //        //    particles->test3[indx] = vSampled[2];
         //        //}
 
-        particles->xprevious[indx] = particles->x[indx] - static_cast<float>(boundaryVector[wallHit].inDir) * surfaceNormalVector[0] * 1e-4;
-        particles->yprevious[indx] = particles->y[indx] - static_cast<float>(boundaryVector[wallHit].inDir) * surfaceNormalVector[1] * 1e-4;
-      particles->zprevious[indx] = particles->z[indx] - static_cast<float>(boundaryVector[wallHit].inDir) * surfaceNormalVector[2] * 1e-4;
+        particles->xprevious[indx] = particles->x[indx] - static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[0] * 1e-4;
+        particles->yprevious[indx] = particles->y[indx] - static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[1] * 1e-4;
+      particles->zprevious[indx] = particles->z[indx] - static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[2] * 1e-4;
         //cout << "New vel " << particles->vx[indx] << " " << particles->vy[indx] << " " << particles->vz[indx] << endl;
         //cout << "New pos " << particles->xprevious[indx] << " " << particles->yprevious[indx] << " " << particles->zprevious[indx] << endl;
         //if(particles->test[indx] == 0.0)

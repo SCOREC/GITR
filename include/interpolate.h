@@ -14,9 +14,9 @@
 #endif
 
 struct interpolate { 
-  float value;
+  double value;
   
-  interpolate(float v) : value{v} {};
+  interpolate(double v) : value{v} {};
 };
 
 #endif

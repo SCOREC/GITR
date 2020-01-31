@@ -15,31 +15,31 @@
 //using namespace std;
 CUDA_CALLABLE_MEMBER
 
-float interp2d ( float x, float z,int nx, int nz,
-    float* gridx,float* gridz,float* data );
+double interp2d ( double x, double z,int nx, int nz,
+    double* gridx,double* gridz,double* data );
 
 CUDA_CALLABLE_MEMBER
 
-float interp2dCombined ( float x, float y, float z,int nx, int nz,
-    float* gridx,float* gridz,float* data );
+double interp2dCombined ( double x, double y, double z,int nx, int nz,
+    double* gridx,double* gridz,double* data );
 CUDA_CALLABLE_MEMBER
 
-float interp3d ( float x, float y, float z,int nx,int ny, int nz,
-    float* gridx,float* gridy, float* gridz,float* data );
+double interp3d ( double x, double y, double z,int nx,int ny, int nz,
+    double* gridx,double* gridy, double* gridz,double* data );
 CUDA_CALLABLE_MEMBER
-void interp3dVector (float* field, float x, float y, float z,int nx,int ny, int nz,
-        float* gridx,float* gridy,float* gridz,float* datar, float* dataz, float* datat );
+void interp3dVector (double* field, double x, double y, double z,int nx,int ny, int nz,
+        double* gridx,double* gridy,double* gridz,double* datar, double* dataz, double* datat );
 CUDA_CALLABLE_MEMBER
-void interp2dVector (float* field, float x, float y, float z,int nx, int nz,
-float* gridx,float* gridz,float* datar, float* dataz, float* datat );
+void interp2dVector (double* field, double x, double y, double z,int nx, int nz,
+double* gridx,double* gridz,double* datar, double* dataz, double* datat );
 CUDA_CALLABLE_MEMBER
-void interpFieldAlignedVector (float* field, float x, float y, float z,int nx, int nz,
-        float* gridx,float* gridz,float* datar, float* dataz, float* datat,
-        int nxB, int nzB, float* gridxB,float* gridzB,float* datarB,float* datazB, float* datatB);
+void interpFieldAlignedVector (double* field, double x, double y, double z,int nx, int nz,
+        double* gridx,double* gridz,double* datar, double* dataz, double* datat,
+        int nxB, int nzB, double* gridxB,double* gridzB,double* datarB,double* datazB, double* datatB);
 CUDA_CALLABLE_MEMBER
-float interp1dUnstructured(float samplePoint,int nx, float max_x, float* data,int &lowInd);
+double interp1dUnstructured(double samplePoint,int nx, double max_x, double* data,int &lowInd);
 CUDA_CALLABLE_MEMBER
-float interp1dUnstructured2(float samplePoint,int nx, float *xdata, float* data);
+double interp1dUnstructured2(double samplePoint,int nx, double *xdata, double* data);
 CUDA_CALLABLE_MEMBER
-float interp2dUnstructured(float x,float y,int nx,int ny, float *xgrid,float *ygrid, float* data);
+double interp2dUnstructured(double x,double y,int nx,int ny, double *xgrid,double *ygrid, double* data);
 #endif

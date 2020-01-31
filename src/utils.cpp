@@ -186,8 +186,8 @@ T getVariable (libconfig::Config &cfg,const std::string& s, T &a)
 }
 
 template int getVariable(libconfig::Config &cfg,const std::string& s, int &a);
-template float getVariable(libconfig::Config &cfg,const std::string& s, float &a);
 template double getVariable(libconfig::Config &cfg,const std::string& s, double &a);
+//template double getVariable(libconfig::Config &cfg,const std::string& s, double &a);
 template std::string getVariable(libconfig::Config &cfg,const std::string& s, std::string &a);
 
 int getDimFromFile (libconfig::Config &cfg,const std::string& file,const std::string& section,
@@ -198,7 +198,7 @@ int getDimFromFile (libconfig::Config &cfg,const std::string& file,const std::st
   int dim = readFileDim(file,str);
   return dim;
 }
-int make2dCDF(int nX, int nY, int nZ, float* distribution, float* cdf)
+int make2dCDF(int nX, int nY, int nZ, double* distribution, double* cdf)
 {
     int index=0;
     for(int i=0;i<nX;i++)
@@ -236,12 +236,12 @@ int make2dCDF(int nX, int nY, int nZ, float* distribution, float* cdf)
     }
   return 0;
 }
-int regrid2dCDF(int nX, int nY, int nZ,float* xGrid,int nNew,float maxNew, float*cdf, float* cdf_regrid)
+int regrid2dCDF(int nX, int nY, int nZ,double* xGrid,int nNew,double maxNew, double*cdf, double* cdf_regrid)
 {
   //std::cout << " inside regrid function "<<nX << " " << nY << " " << nZ << std::endl;
   int lowInd=0;
   int index=0;
-  float spline = 0.0;
+  double spline = 0.0;
   for(int i=0;i<nX;i++)
   {
     for(int j=0;j<nY;j++)
@@ -263,7 +263,7 @@ int regrid2dCDF(int nX, int nY, int nZ,float* xGrid,int nNew,float maxNew, float
   }
   return 0;  
 }
-void OUTPUT2d(std::string folder,std::string outname,int nX, int nY, float *array2d)
+void OUTPUT2d(std::string folder,std::string outname,int nX, int nY, double *array2d)
 {
        ofstream outfile;
             std::string full_path = folder + "/" + outname;
@@ -284,7 +284,7 @@ void OUTPUT2d(std::string folder,std::string outname,int nX, int nY, float *arra
 		
 }
 
-void OUTPUT1d(std::string folder,std::string outname,int nX, float *array2d)
+void OUTPUT1d(std::string folder,std::string outname,int nX, double *array2d)
 {
        ofstream outfile;
             std::string full_path = folder + "/" + outname;
@@ -301,7 +301,7 @@ void OUTPUT1d(std::string folder,std::string outname,int nX, float *array2d)
 		
 }
 
-void OUTPUT3d(std::string folder,std::string outname,int nX, int nY, int nZ, float *array3d)
+void OUTPUT3d(std::string folder,std::string outname,int nX, int nY, int nZ, double *array3d)
 {
        ofstream outfile;
             std::string full_path = folder + "/" + outname;
@@ -437,7 +437,7 @@ int importVectorFieldNs(libconfig::Config &cfg,std::string input_path,int interp
   }
   return 0;
 }
-int importVectorField(libconfig::Config &cfg,std::string input_path,int interpDim,std::string fieldCfgString,int nR, int nY,int nZ,float &gridR,float &gridY,float &gridZ,float &r, float &y,float &z,std::string &fileToRead)
+int importVectorField(libconfig::Config &cfg,std::string input_path,int interpDim,std::string fieldCfgString,int nR, int nY,int nZ,double &gridR,double &gridY,double &gridZ,double &r, double &y,double &z,std::string &fileToRead)
 {
   if(interpDim == 0)
   {
@@ -627,7 +627,7 @@ int importHashNs(libconfig::Config &cfg,std::string input_path,int nHashes,std::
       std::cout << "hhhash nr ny nz total " << nGeomHash << " " << nRTotal << " " << nYTotal << " " << nZTotal<< std::endl;
   return 0;
 }
-int read_ar2Input( string fileName, float *Bfield[]) {
+int read_ar2Input( string fileName, double *Bfield[]) {
 
     // Check input file exists
 
@@ -648,18 +648,18 @@ int read_ar2Input( string fileName, float *Bfield[]) {
     NcVar nc_r(nc.getVar("r"));
     NcVar nc_z(nc.getVar("z"));
 
-    vector<float> r;
+    vector<double> r;
     r.resize(nR);
     nc_r.getVar(&r[0]);
 
-    vector<float> z;
+    vector<double> z;
     z.resize(nZ);
     nc_z.getVar(&z[0]);
 
 
     // Allocate contiguous 2D array for netcdf to work
-    float **br = new float*[nR];
-    br[0] = new float[nR*nZ];
+    double **br = new double*[nR];
+    br[0] = new double[nR*nZ];
     for(int i=0; i<nR; i++){
         br[i] = &br[0][i*nZ];
     }
@@ -728,8 +728,8 @@ int read_profileNsChar(const char *fileName,const char *nxName,const char *nzNam
 
 }
 
-int read_profiles( string fileName, int &n_x, int &n_z,string gridxName, sim::Array<float>& gridx,string gridzName,
-          sim::Array<float>& gridz,string dataName, sim::Array<float>& data) {
+int read_profiles( string fileName, int &n_x, int &n_z,string gridxName, sim::Array<double>& gridx,string gridzName,
+          sim::Array<double>& gridz,string dataName, sim::Array<double>& data) {
 
     // Check input file exists
 
@@ -754,7 +754,7 @@ int read_profiles( string fileName, int &n_x, int &n_z,string gridxName, sim::Ar
 
 }
 
-int read_profile2d( string fileName,string dataName, sim::Array<float>& data) {
+int read_profile2d( string fileName,string dataName, sim::Array<double>& data) {
     std::cout << "reading 2d profile" << std::endl;
     //NcError err(2);
     //NcError::Behavior bb= (NcError::Behavior) 0;
@@ -811,7 +811,7 @@ int read_profile3d( string fileName,string dataName, sim::Array<int>& data) {
     return(0);
 
 }
-int read_profile1d( string fileName,string gridxName, sim::Array<float>& gridx) {
+int read_profile1d( string fileName,string gridxName, sim::Array<double>& gridx) {
 
     // Check input file exists
 
@@ -831,7 +831,7 @@ int read_profile1d( string fileName,string gridxName, sim::Array<float>& gridx) 
     return(0);
 
 }
-void OUTPUT(char outname[],int nX, int nY, float **array2d)
+void OUTPUT(char outname[],int nX, int nY, double **array2d)
 {
        ofstream outfile;
 				//Output
@@ -856,7 +856,7 @@ void OUTPUT(char outname[],int nX, int nY, float **array2d)
 
 int ncdfIO(int rwCode,const std::string& fileName,vector< std::string> dimNames,vector<int> dims,
         vector< std::string> gridNames,vector<int> gridMapToDims,
-         vector<float*> pointers,vector< std::string> intVarNames,vector<vector<int>> intVarDimMap, vector<int*> intVarPointers)
+         vector<double*> pointers,vector< std::string> intVarNames,vector<vector<int>> intVarDimMap, vector<int*> intVarPointers)
 {
     std::cout << "readWritecode " << rwCode << std::endl;//0 is read, 1 is write
     if(rwCode == 1)

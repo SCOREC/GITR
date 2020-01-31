@@ -33,7 +33,7 @@ struct randInit
     randInit(int _streamIndex) : streamIndex(_streamIndex) {}
   template <typename T>
   CUDA_CALLABLE_MEMBER_DEVICE
-  T operator()(T &strm, float &seed) {
+  T operator()(T &strm, double &seed) {
     #ifdef __CUDACC__
     curandState s;
     curand_init(seed, 0, 0, &s);
@@ -45,9 +45,9 @@ struct randInit
     return s;
     }
 };
-void OUTPUT2d(std::string folder,std::string outname,int nX, int nY, float *array2d);
-void OUTPUT1d(std::string folder,std::string outname,int nX, float *array2d);
-void OUTPUT3d(std::string folder,std::string outname,int nX, int nY, int nZ, float *array3d);
+void OUTPUT2d(std::string folder,std::string outname,int nX, int nY, double *array2d);
+void OUTPUT1d(std::string folder,std::string outname,int nX, double *array2d);
+void OUTPUT3d(std::string folder,std::string outname,int nX, int nY, int nZ, double *array3d);
 void OUTPUT2d(std::string folder,std::string outname,int nX, int nY, int *array2d);
 void OUTPUT1d(std::string folder,std::string outname,int nX, int *array2d);
 void OUTPUT3d(std::string folder,std::string outname,int nX, int nY, int nZ, int *array3d);
@@ -56,7 +56,7 @@ template <typename T>
 T getVariable (libconfig::Config &cfg,const std::string& s, T &a);
 
 extern template int getVariable(libconfig::Config &cfg,const std::string& s, int &a);
-extern template float getVariable(libconfig::Config &cfg,const std::string& s, float &a);
+extern template double getVariable(libconfig::Config &cfg,const std::string& s, double &a);
 extern template double getVariable(libconfig::Config &cfg,const std::string& s, double &a);
 extern template std::string getVariable(libconfig::Config &cfg,const std::string& s, std::string &a);
 template <typename T>
@@ -140,26 +140,26 @@ int getVarFromFile (libconfig::Config &cfg,const std::string& file,const std::st
   return dim;
 }
 int getDimFromFile(libconfig::Config &cfg,const std::string& file,const std::string& section,const std::string& s);
-int make2dCDF(int nX, int nY, int nZ, float* distribution, float* cdf);
-int regrid2dCDF(int nX, int nY, int nZ,float* xGrid,int nNew,float maxNew, float* cdf, float* cdf_regrid);
+int make2dCDF(int nX, int nY, int nZ, double* distribution, double* cdf);
+int regrid2dCDF(int nX, int nY, int nZ,double* xGrid,int nNew,double maxNew, double* cdf, double* cdf_regrid);
 int importLibConfig(libconfig::Config &cfg,std::string filepath);
 int importVectorFieldNs(libconfig::Config &cfg,std::string input_path,int interpDim,std::string fieldCfgString,int &nR, int &nY,int &nZ,std::string &fileToRead);
-int importVectorField(libconfig::Config &cfg,std::string input_path,int interpDim,std::string fieldCfgString,int nR, int nY,int nZ,float &gridR,float &gridY,float &gridZ,float &r, float &y,float &z,std::string &fileToRead);
+int importVectorField(libconfig::Config &cfg,std::string input_path,int interpDim,std::string fieldCfgString,int nR, int nY,int nZ,double &gridR,double &gridY,double &gridZ,double &r, double &y,double &z,std::string &fileToRead);
 int importGeometry(libconfig::Config &cfg,sim::Array<Boundary> &boundaries);
-int read_ar2Input( std::string fileName, float *Bfield[]);
+int read_ar2Input( std::string fileName, double *Bfield[]);
 
 int read_profileNs( std::string fileName,std::string nzName,std::string nxName,int &n_x,int &n_z );
 int read_profileNsChar(const char *fileName,const char *nxName,const char *nzName,int &n_x,int &n_z );
-int read_profile2d( string fileName,string dataName, sim::Array<float>& data);
-int read_profile1d( string fileName,string gridxName, sim::Array<float>& gridx);
+int read_profile2d( string fileName,string dataName, sim::Array<double>& data);
+int read_profile1d( string fileName,string gridxName, sim::Array<double>& gridx);
 int read_profile3d( string fileName,string dataName, sim::Array<int>& data);
 
-int read_profiles( std::string fileName, int &n_x, int &n_z,std::string gridxName, sim::Array<float>& gridx,std::string gridzName,
-                            sim::Array<float>& gridz, std::string dataName, sim::Array<float>& data);
-//void OUTPUT(char outname[],int nX, int nY, float **array2d);
-//void OUTPUT2d(std::string folder,std::string outname,int nX, int nY, float *array2d);
-//void OUTPUT1d(std::string folder,std::string outname,int nX, float *array2d);
-//void OUTPUT3d(std::string folder,std::string outname,int nX, int nY, int nZ, float *array3d);
+int read_profiles( std::string fileName, int &n_x, int &n_z,std::string gridxName, sim::Array<double>& gridx,std::string gridzName,
+                            sim::Array<double>& gridz, std::string dataName, sim::Array<double>& data);
+//void OUTPUT(char outname[],int nX, int nY, double **array2d);
+//void OUTPUT2d(std::string folder,std::string outname,int nX, int nY, double *array2d);
+//void OUTPUT1d(std::string folder,std::string outname,int nX, double *array2d);
+//void OUTPUT3d(std::string folder,std::string outname,int nX, int nY, int nZ, double *array3d);
 //void OUTPUT2d(std::string folder,std::string outname,int nX, int nY, int *array2d);
 //void OUTPUT1d(std::string folder,std::string outname,int nX, int *array2d);
 //void OUTPUT3d(std::string folder,std::string outname,int nX, int nY, int nZ, int *array3d);
@@ -168,7 +168,7 @@ int read_profiles( std::string fileName, int &n_x, int &n_z,std::string gridxNam
 
 int readFileDim(const std::string& fileName,const std::string& varName);
 int ncdfIO(int rwCode,const std::string& fileName,vector< std::string> dimNames,vector<int> dims,
-        vector< std::string> gridNames,vector<int> gridMapToDims,vector<float*> pointers,
+        vector< std::string> gridNames,vector<int> gridMapToDims,vector<double*> pointers,
         vector< std::string> intVarNames,vector<vector<int>> intVarDimMap, vector<int*> intVarPointers);
 int importHashNs(libconfig::Config &cfg,std::string input_path,int nHashes,std::string fieldCfgString,int *nR, int *nY,int *nZ,int *n,int &nRTotal,int &nYTotal,int &nZTotal,int *nHashPoints, int &nHashPointsTotal,int &nGeomHash);
 #endif

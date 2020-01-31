@@ -18,24 +18,24 @@
 
 CUDA_CALLABLE_MEMBER
 
-float interp2d ( float x, float z,int nx, int nz,
-    float* gridx,float* gridz,float* data ) {
+double interp2d ( double x, double z,int nx, int nz,
+    double* gridx,double* gridz,double* data ) {
     
-    float fxz = 0.0;
-    float fx_z1 = 0.0;
-    float fx_z2 = 0.0; 
+    double fxz = 0.0;
+    double fx_z1 = 0.0;
+    double fx_z2 = 0.0; 
     if(nx*nz == 1)
     {
         fxz = data[0];
     }
     else{
-    float dim1 = x;
-    float d_dim1 = gridx[1] - gridx[0];
-    float dz = gridz[1] - gridz[0];
+    double dim1 = x;
+    double d_dim1 = gridx[1] - gridx[0];
+    double dz = gridz[1] - gridz[0];
     int i = std::floor((dim1 - gridx[0])/d_dim1);//addition of 0.5 finds nearest gridpoint
     int j = std::floor((z - gridz[0])/dz);
     
-    //float interp_value = data[i + j*nx];
+    //double interp_value = data[i + j*nx];
     if (i < 0) i =0;
     if (j< 0 ) j=0;
     if (i >=nx-1 && j>=nz-1)
@@ -67,27 +67,27 @@ float interp2d ( float x, float z,int nx, int nz,
 
     return fxz;
 }
-float interp2dCombined ( float x, float y, float z,int nx, int nz,
-    float* gridx,float* gridz,float* data ) {
+double interp2dCombined ( double x, double y, double z,int nx, int nz,
+    double* gridx,double* gridz,double* data ) {
     
-    float fxz = 0.0;
-    float fx_z1 = 0.0;
-    float fx_z2 = 0.0; 
+    double fxz = 0.0;
+    double fx_z1 = 0.0;
+    double fx_z2 = 0.0; 
     if(nx*nz == 1)
     {
         fxz = data[0];
     }
     else{
 #if USECYLSYMM > 0
-    float dim1 = std::sqrt(x*x + y*y);
+    double dim1 = std::sqrt(x*x + y*y);
 #else
-    float dim1 = x;
+    double dim1 = x;
 #endif    
-    float d_dim1 = gridx[1] - gridx[0];
-    float dz = gridz[1] - gridz[0];
+    double d_dim1 = gridx[1] - gridx[0];
+    double dz = gridz[1] - gridz[0];
     int i = std::floor((dim1 - gridx[0])/d_dim1);//addition of 0.5 finds nearest gridpoint
     int j = std::floor((z - gridz[0])/dz);
-    //float interp_value = data[i + j*nx];
+    //double interp_value = data[i + j*nx];
     if (i < 0) i=0;
     if (j < 0) j=0;
     if (i >=nx-1 && j>=nz-1)
@@ -122,16 +122,16 @@ float interp2dCombined ( float x, float y, float z,int nx, int nz,
 
 CUDA_CALLABLE_MEMBER
 
-float interp3d ( float x, float y, float z,int nx,int ny, int nz,
-    float* gridx,float* gridy, float* gridz,float* data ) {
+double interp3d ( double x, double y, double z,int nx,int ny, int nz,
+    double* gridx,double* gridy, double* gridz,double* data ) {
     //std::cout << "xyz " << x << " "<<y << " " << z<< std::endl;
     //std::cout << "nxyz " << nx << " "<<ny << " " << nz<< std::endl;
     
-    float fxyz = 0.0;
+    double fxyz = 0.0;
 
-    float dx = gridx[1] - gridx[0];
-    float dy = gridy[1] - gridy[0];
-    float dz = gridz[1] - gridz[0];
+    double dx = gridx[1] - gridx[0];
+    double dy = gridy[1] - gridy[0];
+    double dz = gridz[1] - gridz[0];
     
     int i = std::floor((x - gridx[0])/dx);//addition of 0.5 finds nearest gridpoint
     int j = std::floor((y - gridy[0])/dy);
@@ -150,8 +150,8 @@ float interp3d ( float x, float y, float z,int nx,int ny, int nz,
       //  << " " << j << " " << k << std::endl;
     //if(j <0 || j>ny-1) j=0;
     //if(k <0 || k>nz-1) k=0;
-    float fx_z0 = (data[i + j*nx + k*nx*ny]*(gridx[i+1]-x) + data[i +1 + j*nx + k*nx*ny]*(x-gridx[i]))/dx;
-    float fx_z1 = (data[i + j*nx + (k+1)*nx*ny]*(gridx[i+1]-x) + data[i +1 + j*nx + (k+1)*nx*ny]*(x-gridx[i]))/dx;
+    double fx_z0 = (data[i + j*nx + k*nx*ny]*(gridx[i+1]-x) + data[i +1 + j*nx + k*nx*ny]*(x-gridx[i]))/dx;
+    double fx_z1 = (data[i + j*nx + (k+1)*nx*ny]*(gridx[i+1]-x) + data[i +1 + j*nx + (k+1)*nx*ny]*(x-gridx[i]))/dx;
     //std::cout << "dataInd 1 2 3 4 " << i + j*nx + k*nx*ny << " "<<i+1 + j*nx + k*nx*ny << " " << i + j*nx + (k+1)*nx*ny<< " " << i +1 + j*nx + (k+1)*nx*ny
     //    << std::endl;
 
@@ -159,12 +159,12 @@ float interp3d ( float x, float y, float z,int nx,int ny, int nz,
     //    << std::endl;
     
     //std::cout << "fxz0 fxz1 " << fx_z0 << " "<<fx_z1 << std::endl;
-    float fxy_z0 = (data[i + (j+1)*nx + k*nx*ny]*(gridx[i+1]-x) + data[i +1 + (j+1)*nx + k*nx*ny]*(x-gridx[i]))/dx;
-    float fxy_z1 = (data[i + (j+1)*nx + (k+1)*nx*ny]*(gridx[i+1]-x) + data[i +1 + (j+1)*nx + (k+1)*nx*ny]*(x-gridx[i]))/dx;
+    double fxy_z0 = (data[i + (j+1)*nx + k*nx*ny]*(gridx[i+1]-x) + data[i +1 + (j+1)*nx + k*nx*ny]*(x-gridx[i]))/dx;
+    double fxy_z1 = (data[i + (j+1)*nx + (k+1)*nx*ny]*(gridx[i+1]-x) + data[i +1 + (j+1)*nx + (k+1)*nx*ny]*(x-gridx[i]))/dx;
     //std::cout << "fxyz0 fxyz1 " << fxy_z0 << " "<<fxy_z1 << std::endl;
 
-    float fxz0 = (fx_z0*(gridz[k+1] - z) + fx_z1*(z-gridz[k]))/dz;
-    float fxz1 = (fxy_z0*(gridz[k+1] - z) + fxy_z1*(z-gridz[k]))/dz;
+    double fxz0 = (fx_z0*(gridz[k+1] - z) + fx_z1*(z-gridz[k]))/dz;
+    double fxz1 = (fxy_z0*(gridz[k+1] - z) + fxy_z1*(z-gridz[k]))/dz;
     //std::cout << "fxz0 fxz1 " << fxz0 << " "<<fxz1 << std::endl;
 
     fxyz = (fxz0*(gridy[j+1] - y) + fxz1*(y-gridy[j]))/dy;
@@ -175,22 +175,22 @@ float interp3d ( float x, float y, float z,int nx,int ny, int nz,
 }
 
 CUDA_CALLABLE_MEMBER
-void interp3dVector (float* field, float x, float y, float z,int nx,int ny, int nz,
-        float* gridx,float* gridy,float* gridz,float* datar, float* dataz, float* datat ) {
+void interp3dVector (double* field, double x, double y, double z,int nx,int ny, int nz,
+        double* gridx,double* gridy,double* gridz,double* datar, double* dataz, double* datat ) {
 
     field[0] =  interp3d (x,y,z,nx,ny,nz,gridx, gridy,gridz,datar );
     field[1] =  interp3d (x,y,z,nx,ny,nz,gridx, gridy,gridz,datat );
     field[2] =  interp3d (x,y,z,nx,ny,nz,gridx, gridy,gridz,dataz );
 }
 CUDA_CALLABLE_MEMBER
-void interp2dVector (float* field, float x, float y, float z,int nx, int nz,
-float* gridx,float* gridz,float* datar, float* dataz, float* datat ) {
+void interp2dVector (double* field, double x, double y, double z,int nx, int nz,
+double* gridx,double* gridz,double* datar, double* dataz, double* datat ) {
 
-   float Ar = interp2dCombined(x,y,z,nx,nz,gridx,gridz, datar);
-   float At = interp2dCombined(x,y,z,nx,nz,gridx,gridz, datat);
+   double Ar = interp2dCombined(x,y,z,nx,nz,gridx,gridz, datar);
+   double At = interp2dCombined(x,y,z,nx,nz,gridx,gridz, datat);
    field[2] = interp2dCombined(x,y,z,nx,nz,gridx,gridz, dataz);
 #if USECYLSYMM > 0
-            float theta = std::atan2(y,x);   
+            double theta = std::atan2(y,x);   
             field[0] = std::cos(theta)*Ar - std::sin(theta)*At;
             field[1] = std::sin(theta)*Ar + std::cos(theta)*At;
 #else
@@ -200,14 +200,14 @@ float* gridx,float* gridz,float* datar, float* dataz, float* datat ) {
 
 }
 CUDA_CALLABLE_MEMBER
-void interpFieldAlignedVector (float* field, float x, float y, float z,int nx, int nz,
-float* gridx,float* gridz,float* datar, float* dataz, float* datat,
-int nxB, int nzB, float* gridxB,float* gridzB,float* datarB,float* datazB, float* datatB) {
+void interpFieldAlignedVector (double* field, double x, double y, double z,int nx, int nz,
+double* gridx,double* gridz,double* datar, double* dataz, double* datat,
+int nxB, int nzB, double* gridxB,double* gridzB,double* datarB,double* datazB, double* datatB) {
 
-   float Ar = interp2dCombined(x,y,z,nx,nz,gridx,gridz, datar);
-   float B[3] = {0.0};
-   float B_unit[3] = {0.0};
-   float Bmag = 0.0;
+   double Ar = interp2dCombined(x,y,z,nx,nz,gridx,gridz, datar);
+   double B[3] = {0.0};
+   double B_unit[3] = {0.0};
+   double Bmag = 0.0;
    interp2dVector (&B[0],x,y,z,nxB,nzB,
                    gridxB,gridzB,datarB,datazB,datatB);
    Bmag = std::sqrt(B[0]*B[0] + B[1]*B[1] + B[2]*B[2]);
@@ -222,11 +222,11 @@ int nxB, int nzB, float* gridxB,float* gridzB,float* datarB,float* datazB, float
 
 }
 CUDA_CALLABLE_MEMBER
-float interp1dUnstructured(float samplePoint,int nx, float max_x, float* data,int &lowInd)
+double interp1dUnstructured(double samplePoint,int nx, double max_x, double* data,int &lowInd)
 {
     int done = 0;
     int low_index = 0;
-    float interpolated_value = 0.0;
+    double interpolated_value = 0.0;
 
     for(int i=0;i<nx;i++)
     {
@@ -272,11 +272,11 @@ float interp1dUnstructured(float samplePoint,int nx, float max_x, float* data,in
     return interpolated_value;
 }
 CUDA_CALLABLE_MEMBER
-float interp1dUnstructured2(float samplePoint,int nx, float *xdata, float* data)
+double interp1dUnstructured2(double samplePoint,int nx, double *xdata, double* data)
 {
     int done = 0;
     int low_index = 0;
-    float interpolated_value = 0.0;
+    double interpolated_value = 0.0;
 
     for(int i=0;i<nx;i++)
     {
@@ -296,22 +296,22 @@ float interp1dUnstructured2(float samplePoint,int nx, float *xdata, float* data)
     return interpolated_value;
 }
 CUDA_CALLABLE_MEMBER
-float interp2dUnstructured(float x,float y,int nx,int ny, float *xgrid,float *ygrid, float* data)
+double interp2dUnstructured(double x,double y,int nx,int ny, double *xgrid,double *ygrid, double* data)
 {
     int doneX = 0;
     int doneY = 0;
     int xInd = 0;
-    float xDiffUp = 0.0;
-    float xDiffDown = 0.0;
+    double xDiffUp = 0.0;
+    double xDiffDown = 0.0;
     int yInd = 0;
-    float dx;
-    float yLowValue; 
-    float yHighValue;
-    float yDiffUp;
-    float yDiffDown; 
-    float dy;
-    float fxy=0.0;
-    float factor = 1.0;
+    double dx;
+    double yLowValue; 
+    double yHighValue;
+    double yDiffUp;
+    double yDiffDown; 
+    double dy;
+    double fxy=0.0;
+    double factor = 1.0;
 
     if(x >= xgrid[0] && x<= xgrid[nx-1])
     {

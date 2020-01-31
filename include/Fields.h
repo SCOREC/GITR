@@ -26,10 +26,10 @@
 //public:
 //  std::size_t nD;
 //  sim::Array<int> dimensions;
-//  sim::Array<float> x;
-//  sim::Array<float> y;
-//  sim::Array<float> z;
-//  sim::Array<float> values;
+//  sim::Array<double> x;
+//  sim::Array<double> y;
+//  sim::Array<double> z;
+//  sim::Array<double> values;
 //  
 //  Field() :
 //    nD{0}, dimensions{0,0},
@@ -51,7 +51,7 @@
 //                                        dimensions[2])} {};
 //
 //  CUDA_CALLABLE_MEMBER
-//  float interpolate();
+//  double interpolate();
 //  
 //  Field operator()(int a, int b, int c)
 //  {
@@ -81,9 +81,9 @@
 //    return N;
 //  }
 //
-//  std::vector<float> getVariable(libconfig::Config &cfg, const std::string &s) {
-//    float val = 0.0;
-//    std::vector<float> value(1);
+//  std::vector<double> getVariable(libconfig::Config &cfg, const std::string &s) {
+//    double val = 0.0;
+//    std::vector<double> value(1);
 //    if (cfg.lookupValue(s, val)) {
 //      // std::cout << s << " = " << tmp << std::endl;
 //    } else {
@@ -105,7 +105,7 @@
 //    return val;
 //  }
 //
-//  std::vector<float> getVarFromFile(libconfig::Config &cfg,
+//  std::vector<double> getVarFromFile(libconfig::Config &cfg,
 //                                    const std::string &variable,
 //                                    const std::string &section, int dim) {
 //    // Get NC file name from cfg
@@ -113,7 +113,7 @@
 //    // Get NC variable name from cfg
 //    std::string ncVarName = getVariableName(cfg, section + variable);
 //    // Get NC variable from NC file
-//    std::vector<float> values(dim);
+//    std::vector<double> values(dim);
 //    std::cout << "dim " << dim << std::endl;
 //    std::cout << "ncvarname " << ncVarName << std::endl;
 //    int dim2 = readFileVar(file, section, ncVarName, values[0]);

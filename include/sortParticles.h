@@ -26,7 +26,7 @@ using namespace std;
 #ifdef USE_CUDA
 #else
 struct ordering {
-    bool operator ()(thrust::pair<int, float> const& a,thrust::pair<int, float> const& b) {
+    bool operator ()(thrust::pair<int, double> const& a,thrust::pair<int, double> const& b) {
             return (b.second) < (a.second);
 	        }
 };
@@ -34,7 +34,7 @@ struct ordering {
 struct sortParticles { 
     Particles *particles;
     int nP;
-    float weightThreshold;
+    double weightThreshold;
     int& tt;
     int nDtPerApply;
     int* startIndx;
@@ -46,7 +46,7 @@ struct sortParticles {
     mt19937 *state;
 #endif
 
-    sortParticles(Particles *_particles,int _nP, float _weightThreshold,int& _tt,int _nDtPerApply, int* _startIndx,int* _nActiveParticles,int _rank,
+    sortParticles(Particles *_particles,int _nP, double _weightThreshold,int& _tt,int _nDtPerApply, int* _startIndx,int* _nActiveParticles,int _rank,
 #if __CUDACC__
                 curandState *_state)
 #else
@@ -62,12 +62,12 @@ struct sortParticles {
        int start = startIndx[rank];
        int nPonRank = nActiveParticles[rank];
        int end = start+nPonRank-1;
-       sim::Array<float> weight(nPonRank,0.0); 
-       sim::Array<thrust::pair<int,float>> pairs(nPonRank);
+       sim::Array<double> weight(nPonRank,0.0); 
+       sim::Array<thrust::pair<int,double>> pairs(nPonRank);
        //cout << "rank tt n start " << rank<<" "<< tt<<" "<< start<< endl;
 //#ifdef __CUDACC__
 	//#else
-	//  uniform_real_distribution<float> dist(0.0, 1.0);
+	//  uniform_real_distribution<double> dist(0.0, 1.0);
         //#endif
        for(int i=0;i<nPonRank;i++)
        {
@@ -82,19 +82,19 @@ struct sortParticles {
         pairs[i].second = weight[i];
        //cout << "pair "  << " " << pairs[i].first << " " << pairs[i].second << endl;
        }
-       //sim::Array<float> weight0(weight); 
+       //sim::Array<double> weight0(weight); 
        thrust::sort(thrust::device,pairs.begin(),pairs.end(),ordering());
        for(int i=0;i<nPonRank;i++)
        {
        //cout << "pair "  << i<<" " << pairs[i].first << " " << pairs[i].second << endl;
        weight[i] = pairs[i].second; 
        }
-       sim::Array<float> weightThresholdA(1,weightThreshold);
+       sim::Array<double> weightThresholdA(1,weightThreshold);
        sim::Array<int> lowerBoundIndex(1,0);
        //cout << "weights " << " " << weightThresholdA[0] << endl;
        thrust::upper_bound(weight.begin(), weight.end(),
                            weightThresholdA.begin(),weightThresholdA.end() , 
-        		   lowerBoundIndex.begin(),thrust::greater<float>());
+        		   lowerBoundIndex.begin(),thrust::greater<double>());
        //cout << " min index " << lowerBoundIndex[0] << " " << weight[lowerBoundIndex[0]] << endl;
        int nUnderThresh=nPonRank-lowerBoundIndex[0];
        cout << " nPartivles under thresh " << nUnderThresh << endl;
