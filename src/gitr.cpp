@@ -161,8 +161,8 @@ print_gpu_memory_usage(world_rank);
     getVariable(cfg, "backgroundPlasmaProfiles.amu", background_amu);
   }
 #if USE_MPI > 0
-  MPI_Bcast(&background_Z, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&background_amu, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&background_Z, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&background_amu, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
@@ -198,12 +198,12 @@ print_gpu_memory_usage(world_rank);
                       by.front(), bz.front(), bfieldFile);
   }
 #if USE_MPI > 0
-  MPI_Bcast(br.data(), n_Bfield, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(by.data(), n_Bfield, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(bz.data(), n_Bfield, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(bfieldGridr.data(), nR_Bfield, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(bfieldGridy.data(), nY_Bfield, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(bfieldGridz.data(), nZ_Bfield, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(br.data(), n_Bfield, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(by.data(), n_Bfield, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(bz.data(), n_Bfield, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(bfieldGridr.data(), nR_Bfield, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(bfieldGridy.data(), nY_Bfield, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(bfieldGridz.data(), nZ_Bfield, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
   double Btest[3] = {0.0f};
@@ -256,11 +256,11 @@ print_gpu_memory_usage(world_rank);
   MPI_Datatype types[nBoundaryMembers] = {};
   for (int i = 0; i < nBoundaryMembers; i++) {
     lengths[i] = 1;
-    offsets[i] = i * 4;
+    offsets[i] = i * 8;
     if (i < nIntMembers) {
       types[i] = MPI_INT;
     } else {
-      types[i] = MPI_FLOAT;
+      types[i] = MPI_DOUBLE;
     }
   }
   MPI_Datatype boundary_type;
@@ -276,7 +276,7 @@ print_gpu_memory_usage(world_rank);
     getVariable(cfg, "backgroundPlasmaProfiles.biasPotential", biasPotential);
   }
 #if USE_MPI > 0
-  MPI_Bcast(&biasPotential, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&biasPotential, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 #endif
@@ -340,19 +340,19 @@ print_gpu_memory_usage(world_rank);
       offsetof(Surfaces, sputtYldCount),
       offsetof(Surfaces, energyDistribution)};
   MPI_Datatype typesSurface[nSurfaceMembers] = {
-      MPI_INT,   MPI_INT,   MPI_INT,   MPI_FLOAT, MPI_FLOAT, MPI_FLOAT,
-      MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_INT,   MPI_FLOAT, MPI_FLOAT,
-      MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT, MPI_FLOAT};
+      MPI_INT,   MPI_INT,   MPI_INT,   MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE,
+      MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_INT,   MPI_DOUBLE, MPI_DOUBLE,
+      MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE};
   MPI_Datatype surface_type;
   MPI_Type_create_struct(nSurfaceMembers, lengthsSurface, offsetsSurface,
                          typesSurface, &surface_type);
   MPI_Type_commit(&surface_type);
   MPI_Bcast(&nEdist, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast(&nAdist, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&E0dist, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&Edist, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&A0dist, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&Adist, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&E0dist, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&Edist, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&A0dist, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&Adist, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 #endif
@@ -583,12 +583,12 @@ print_gpu_memory_usage(world_rank);
     }
   }
 #if USE_MPI > 0
-  MPI_Bcast(&hashX0[0], nHashes, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&hashX1[0], nHashes, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&hashY0[0], nHashes, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&hashY1[0], nHashes, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&hashZ0[0], nHashes, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&hashZ1[0], nHashes, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&hashX0[0], nHashes, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&hashX1[0], nHashes, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&hashY0[0], nHashes, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&hashY1[0], nHashes, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&hashZ0[0], nHashes, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&hashZ1[0], nHashes, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
   int nHash = 0;
@@ -737,7 +737,7 @@ print_gpu_memory_usage(world_rank);
   MPI_Bcast(&closeGeomPointIndex[0], world_size, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast(&closeGeomPointIncrements[0], world_size, MPI_INT, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(&closeGeomPointTotal, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&closeGeomPointTotal, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
   std::cout << "collect closegeom " << world_rank << std::endl;
   // Collect stuff
@@ -839,11 +839,11 @@ print_gpu_memory_usage(world_rank);
     }
   }
 #if USE_MPI > 0
-  MPI_Bcast(closeGeomGridr.data(), nR_closeGeomTotal, MPI_FLOAT, 0,
+  MPI_Bcast(closeGeomGridr.data(), nR_closeGeomTotal, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(closeGeomGridy.data(), nY_closeGeomTotal, MPI_FLOAT, 0,
+  MPI_Bcast(closeGeomGridy.data(), nY_closeGeomTotal, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(closeGeomGridz.data(), nZ_closeGeomTotal, MPI_FLOAT, 0,
+  MPI_Bcast(closeGeomGridz.data(), nZ_closeGeomTotal, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
   MPI_Bcast(closeGeom.data(), nGeomHash, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
@@ -927,12 +927,12 @@ print_gpu_memory_usage(world_rank);
 #endif
   }
 #if USE_MPI > 0
-  MPI_Bcast(&hashX0_s, nHashes, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&hashX1_s, nHashes, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&hashY0_s, nHashes, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&hashY1_s, nHashes, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&hashZ0_s, nHashes, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&hashZ1_s, nHashes, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&hashX0_s, nHashes, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&hashX1_s, nHashes, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&hashY0_s, nHashes, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&hashY1_s, nHashes, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&hashZ0_s, nHashes, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&hashZ1_s, nHashes, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
@@ -1053,11 +1053,11 @@ print_gpu_memory_usage(world_rank);
                    "closeGeomString", closeGeom_sheath[0]);
 #if USE_MPI > 0
   }
-  MPI_Bcast(closeGeomGridr_sheath.data(), nR_closeGeom_sheath, MPI_FLOAT, 0,
+  MPI_Bcast(closeGeomGridr_sheath.data(), nR_closeGeom_sheath, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(closeGeomGridy_sheath.data(), nY_closeGeom_sheath, MPI_FLOAT, 0,
+  MPI_Bcast(closeGeomGridy_sheath.data(), nY_closeGeom_sheath, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(closeGeomGridz_sheath.data(), nZ_closeGeom_sheath, MPI_FLOAT, 0,
+  MPI_Bcast(closeGeomGridz_sheath.data(), nZ_closeGeom_sheath, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
   MPI_Bcast(closeGeom_sheath.data(), nGeomHash_sheath, MPI_INT, 0,
             MPI_COMM_WORLD);
@@ -1102,14 +1102,14 @@ print_gpu_memory_usage(world_rank);
   MPI_Bcast(&nR_Lc, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast(&nY_Lc, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast(&nZ_Lc, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&r0_Lc, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&r1_Lc, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&y0_Lc, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&y1_Lc, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&z0_Lc, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&z1_Lc, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&nTraceSteps, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&dr, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&r0_Lc, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&r1_Lc, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&y0_Lc, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&y1_Lc, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&z0_Lc, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&z1_Lc, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&nTraceSteps, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&dr, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
@@ -1248,38 +1248,38 @@ print_gpu_memory_usage(world_rank);
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Gather(
       &forwardTracerParticles->hitWall[world_rank * nTracers / world_size],
-      nTracers / world_size, MPI_FLOAT, &forwardHitWall[0],
-      nTracers / world_size, MPI_FLOAT, 0, MPI_COMM_WORLD);
+      nTracers / world_size, MPI_DOUBLE, &forwardHitWall[0],
+      nTracers / world_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gather(
       &backwardTracerParticles->hitWall[world_rank * nTracers / world_size],
-      nTracers / world_size, MPI_FLOAT, &backwardHitWall[0],
-      nTracers / world_size, MPI_FLOAT, 0, MPI_COMM_WORLD);
+      nTracers / world_size, MPI_DOUBLE, &backwardHitWall[0],
+      nTracers / world_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gather(&forwardTracerParticles
                   ->distanceTraveled[world_rank * nTracers / world_size],
-             nTracers / world_size, MPI_FLOAT, &forwardDistanceTraveled[0],
-             nTracers / world_size, MPI_FLOAT, 0, MPI_COMM_WORLD);
+             nTracers / world_size, MPI_DOUBLE, &forwardDistanceTraveled[0],
+             nTracers / world_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gather(&backwardTracerParticles
                   ->distanceTraveled[world_rank * nTracers / world_size],
-             nTracers / world_size, MPI_FLOAT, &backwardDistanceTraveled[0],
-             nTracers / world_size, MPI_FLOAT, 0, MPI_COMM_WORLD);
+             nTracers / world_size, MPI_DOUBLE, &backwardDistanceTraveled[0],
+             nTracers / world_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gather(&forwardTracerParticles->x[world_rank * nTracers / world_size],
-             nTracers / world_size, MPI_FLOAT, &forwardTracerX[0],
-             nTracers / world_size, MPI_FLOAT, 0, MPI_COMM_WORLD);
+             nTracers / world_size, MPI_DOUBLE, &forwardTracerX[0],
+             nTracers / world_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gather(&backwardTracerParticles->x[world_rank * nTracers / world_size],
-             nTracers / world_size, MPI_FLOAT, &backwardTracerX[0],
-             nTracers / world_size, MPI_FLOAT, 0, MPI_COMM_WORLD);
+             nTracers / world_size, MPI_DOUBLE, &backwardTracerX[0],
+             nTracers / world_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gather(&forwardTracerParticles->y[world_rank * nTracers / world_size],
-             nTracers / world_size, MPI_FLOAT, &forwardTracerY[0],
-             nTracers / world_size, MPI_FLOAT, 0, MPI_COMM_WORLD);
+             nTracers / world_size, MPI_DOUBLE, &forwardTracerY[0],
+             nTracers / world_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gather(&backwardTracerParticles->y[world_rank * nTracers / world_size],
-             nTracers / world_size, MPI_FLOAT, &backwardTracerY[0],
-             nTracers / world_size, MPI_FLOAT, 0, MPI_COMM_WORLD);
+             nTracers / world_size, MPI_DOUBLE, &backwardTracerY[0],
+             nTracers / world_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gather(&forwardTracerParticles->z[world_rank * nTracers / world_size],
-             nTracers / world_size, MPI_FLOAT, &forwardTracerZ[0],
-             nTracers / world_size, MPI_FLOAT, 0, MPI_COMM_WORLD);
+             nTracers / world_size, MPI_DOUBLE, &forwardTracerZ[0],
+             nTracers / world_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gather(&backwardTracerParticles->z[world_rank * nTracers / world_size],
-             nTracers / world_size, MPI_FLOAT, &backwardTracerZ[0],
-             nTracers / world_size, MPI_FLOAT, 0, MPI_COMM_WORLD);
+             nTracers / world_size, MPI_DOUBLE, &backwardTracerZ[0],
+             nTracers / world_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
   for (int i = 0; i < nTracers; i++) {
     forwardTracerParticles->hitWall[i] = forwardHitWall[i];
@@ -1401,9 +1401,9 @@ print_gpu_memory_usage(world_rank);
     ncFileLC.close();
 #if USE_MPI > 0
   }
-  MPI_Bcast(Lc.data(), nTracers, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(s.data(), nTracers, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(noIntersectionNodes.data(), nTracers, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(Lc.data(), nTracers, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(s.data(), nTracers, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(noIntersectionNodes.data(), nTracers, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 #endif
 #if USE_CUDA
   cudaDeviceSynchronize();
@@ -1483,11 +1483,11 @@ print_gpu_memory_usage(world_rank);
 #if USE_MPI > 0
   }
 
-  MPI_Bcast(TempGridr.data(), nR_Temp, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(TempGridy.data(), nY_Temp, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(TempGridz.data(), nZ_Temp, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(ti.data(), n_Temp, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(te.data(), n_Temp, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(TempGridr.data(), nR_Temp, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(TempGridy.data(), nY_Temp, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(TempGridz.data(), nZ_Temp, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(ti.data(), n_Temp, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(te.data(), n_Temp, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
@@ -1579,11 +1579,11 @@ print_gpu_memory_usage(world_rank);
 //}
 #if USE_MPI > 0
   }
-  MPI_Bcast(DensGridr.data(), nR_Dens, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(DensGridy.data(), nY_Dens, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(DensGridz.data(), nZ_Dens, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(ni.data(), n_Dens, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(ne.data(), n_Dens, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(DensGridr.data(), nR_Dens, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(DensGridy.data(), nY_Dens, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(DensGridz.data(), nZ_Dens, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(ni.data(), n_Dens, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(ne.data(), n_Dens, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
   // Background Plasma flow velocity initialization
@@ -1653,12 +1653,12 @@ print_gpu_memory_usage(world_rank);
 #endif
 #if USE_MPI > 0
   }
-  MPI_Bcast(flowVGridr.data(), nR_flowV, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(flowVGridy.data(), nY_flowV, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(flowVGridz.data(), nZ_flowV, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(flowVr.data(), n_flowV, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(flowVt.data(), n_flowV, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(flowVz.data(), n_flowV, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(flowVGridr.data(), nR_flowV, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(flowVGridy.data(), nY_flowV, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(flowVGridz.data(), nZ_flowV, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(flowVr.data(), n_flowV, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(flowVt.data(), n_flowV, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(flowVz.data(), n_flowV, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 #if FLOWV_INTERP == 1
@@ -1896,15 +1896,15 @@ print_gpu_memory_usage(world_rank);
 #endif
   }
 #if USE_MPI > 0
-  MPI_Bcast(&gradTGridr[0], nR_gradT, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&gradTGridy[0], nY_gradT, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&gradTGridz[0], nZ_gradT, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&gradTeR[0], n_gradT, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&gradTiR[0], n_gradT, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&gradTeY[0], n_gradT, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&gradTiY[0], n_gradT, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&gradTeZ[0], n_gradT, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&gradTiZ[0], n_gradT, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&gradTGridr[0], nR_gradT, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&gradTGridy[0], nY_gradT, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&gradTGridz[0], nZ_gradT, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&gradTeR[0], n_gradT, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&gradTiR[0], n_gradT, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&gradTeY[0], n_gradT, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&gradTiY[0], n_gradT, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&gradTeZ[0], n_gradT, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&gradTiZ[0], n_gradT, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
   double gradTi[3] = {0.0};
@@ -2044,18 +2044,18 @@ print_gpu_memory_usage(world_rank);
   }
 #if USE_MPI > 0
   MPI_Bcast(&rateCoeff_Ionization[0],
-            nCS_Ionize * nTemperaturesIonize * nDensitiesIonize, MPI_FLOAT, 0,
+            nCS_Ionize * nTemperaturesIonize * nDensitiesIonize, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(&gridTemperature_Ionization[0], nTemperaturesIonize, MPI_FLOAT, 0,
+  MPI_Bcast(&gridTemperature_Ionization[0], nTemperaturesIonize, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(&gridDensity_Ionization[0], nDensitiesIonize, MPI_FLOAT, 0,
+  MPI_Bcast(&gridDensity_Ionization[0], nDensitiesIonize, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
   MPI_Bcast(&rateCoeff_Recombination[0],
             nCS_Recombine * nTemperaturesRecombine * nDensitiesRecombine,
-            MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast(&gridTemperature_Recombination[0], nTemperaturesRecombine,
-            MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&gridDensity_Recombination[0], nDensitiesRecombine, MPI_FLOAT, 0,
+            MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&gridDensity_Recombination[0], nDensitiesRecombine, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -2139,15 +2139,15 @@ print_gpu_memory_usage(world_rank);
 #endif
 #if USE_MPI > 0
   }
-  MPI_Bcast(preSheathEGridr.data(), nR_PreSheathEfield, MPI_FLOAT, 0,
+  MPI_Bcast(preSheathEGridr.data(), nR_PreSheathEfield, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(preSheathEGridy.data(), nY_PreSheathEfield, MPI_FLOAT, 0,
+  MPI_Bcast(preSheathEGridy.data(), nY_PreSheathEfield, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(preSheathEGridz.data(), nZ_PreSheathEfield, MPI_FLOAT, 0,
+  MPI_Bcast(preSheathEGridz.data(), nZ_PreSheathEfield, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(PSEr.data(), nPSEs, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(PSEt.data(), nPSEs, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(PSEz.data(), nPSEs, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(PSEr.data(), nPSEs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(PSEt.data(), nPSEs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(PSEz.data(), nPSEs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
@@ -2406,12 +2406,12 @@ print_gpu_memory_usage(world_rank);
   nSpec = (nBins + 1) * net_nX * net_nY * net_nZ;
 #endif
 #if USE_MPI > 0
-  MPI_Bcast(&netX0, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&netX1, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&netY0, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&netY1, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&netZ0, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&netZ1, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&netX0, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&netX1, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&netY0, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&netY1, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&netZ0, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&netZ1, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast(&net_nX, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast(&net_nY, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast(&net_nZ, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -2466,7 +2466,7 @@ print_gpu_memory_usage(world_rank);
     }
   }
 #if USE_MPI > 0
-  MPI_Bcast(&perpDiffusionCoeff, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&perpDiffusionCoeff, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
   // Surface model import
@@ -2743,70 +2743,70 @@ print_gpu_memory_usage(world_rank);
               << std::endl;
 #if USE_MPI > 0
   }
-  MPI_Bcast(E_sputtRefCoeff.data(), nE_sputtRefCoeff, MPI_FLOAT, 0,
+  MPI_Bcast(E_sputtRefCoeff.data(), nE_sputtRefCoeff, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(A_sputtRefCoeff.data(), nA_sputtRefCoeff, MPI_FLOAT, 0,
+  MPI_Bcast(A_sputtRefCoeff.data(), nA_sputtRefCoeff, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(Elog_sputtRefCoeff.data(), nE_sputtRefCoeff, MPI_FLOAT, 0,
+  MPI_Bcast(Elog_sputtRefCoeff.data(), nE_sputtRefCoeff, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(energyDistGrid01.data(), nE_sputtRefDistOut, MPI_FLOAT, 0,
+  MPI_Bcast(energyDistGrid01.data(), nE_sputtRefDistOut, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(energyDistGrid01Ref.data(), nE_sputtRefDistOutRef, MPI_FLOAT, 0,
+  MPI_Bcast(energyDistGrid01Ref.data(), nE_sputtRefDistOutRef, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(angleDistGrid01.data(), nA_sputtRefDistOut, MPI_FLOAT, 0,
+  MPI_Bcast(angleDistGrid01.data(), nA_sputtRefDistOut, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
   MPI_Bcast(spyl_surfaceModel.data(), nE_sputtRefCoeff * nA_sputtRefCoeff,
-            MPI_FLOAT, 0, MPI_COMM_WORLD);
+            MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast(rfyl_surfaceModel.data(), nE_sputtRefCoeff * nA_sputtRefCoeff,
-            MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(E_sputtRefDistIn.data(), nE_sputtRefDistIn, MPI_FLOAT, 0,
+            MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(E_sputtRefDistIn.data(), nE_sputtRefDistIn, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(A_sputtRefDistIn.data(), nA_sputtRefDistIn, MPI_FLOAT, 0,
+  MPI_Bcast(A_sputtRefDistIn.data(), nA_sputtRefDistIn, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(Elog_sputtRefDistIn.data(), nE_sputtRefDistIn, MPI_FLOAT, 0,
+  MPI_Bcast(Elog_sputtRefDistIn.data(), nE_sputtRefDistIn, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(E_sputtRefDistOut.data(), nE_sputtRefDistOut, MPI_FLOAT, 0,
+  MPI_Bcast(E_sputtRefDistOut.data(), nE_sputtRefDistOut, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(E_sputtRefDistOutRef.data(), nE_sputtRefDistOutRef, MPI_FLOAT, 0,
+  MPI_Bcast(E_sputtRefDistOutRef.data(), nE_sputtRefDistOutRef, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(Aphi_sputtRefDistOut.data(), nA_sputtRefDistOut, MPI_FLOAT, 0,
+  MPI_Bcast(Aphi_sputtRefDistOut.data(), nA_sputtRefDistOut, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(Atheta_sputtRefDistOut.data(), nA_sputtRefDistOut, MPI_FLOAT, 0,
+  MPI_Bcast(Atheta_sputtRefDistOut.data(), nA_sputtRefDistOut, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(AphiDist_Y.data(), nDistA_surfaceModel, MPI_FLOAT, 0,
+  MPI_Bcast(AphiDist_Y.data(), nDistA_surfaceModel, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(AthetaDist_Y.data(), nDistA_surfaceModel, MPI_FLOAT, 0,
+  MPI_Bcast(AthetaDist_Y.data(), nDistA_surfaceModel, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(EDist_Y.data(), nDistE_surfaceModel, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(AphiDist_R.data(), nDistA_surfaceModel, MPI_FLOAT, 0,
+  MPI_Bcast(EDist_Y.data(), nDistE_surfaceModel, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(AphiDist_R.data(), nDistA_surfaceModel, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(AthetaDist_R.data(), nDistA_surfaceModel, MPI_FLOAT, 0,
+  MPI_Bcast(AthetaDist_R.data(), nDistA_surfaceModel, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(EDist_R.data(), nDistE_surfaceModelRef, MPI_FLOAT, 0,
+  MPI_Bcast(EDist_R.data(), nDistE_surfaceModelRef, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(AphiDist_CDF_Y.data(), nDistA_surfaceModel, MPI_FLOAT, 0,
+  MPI_Bcast(AphiDist_CDF_Y.data(), nDistA_surfaceModel, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(AthetaDist_CDF_Y.data(), nDistA_surfaceModel, MPI_FLOAT, 0,
+  MPI_Bcast(AthetaDist_CDF_Y.data(), nDistA_surfaceModel, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(EDist_CDF_Y.data(), nDistE_surfaceModel, MPI_FLOAT, 0,
+  MPI_Bcast(EDist_CDF_Y.data(), nDistE_surfaceModel, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(AphiDist_CDF_R.data(), nDistA_surfaceModel, MPI_FLOAT, 0,
+  MPI_Bcast(AphiDist_CDF_R.data(), nDistA_surfaceModel, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(AthetaDist_CDF_R.data(), nDistA_surfaceModel, MPI_FLOAT, 0,
+  MPI_Bcast(AthetaDist_CDF_R.data(), nDistA_surfaceModel, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(EDist_CDF_R.data(), nDistE_surfaceModelRef, MPI_FLOAT, 0,
+  MPI_Bcast(EDist_CDF_R.data(), nDistE_surfaceModelRef, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(AphiDist_CDF_Y_regrid.data(), nDistA_surfaceModel, MPI_FLOAT, 0,
+  MPI_Bcast(AphiDist_CDF_Y_regrid.data(), nDistA_surfaceModel, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(AthetaDist_CDF_Y_regrid.data(), nDistA_surfaceModel, MPI_FLOAT, 0,
+  MPI_Bcast(AthetaDist_CDF_Y_regrid.data(), nDistA_surfaceModel, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(EDist_CDF_Y_regrid.data(), nDistE_surfaceModel, MPI_FLOAT, 0,
+  MPI_Bcast(EDist_CDF_Y_regrid.data(), nDistE_surfaceModel, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(AphiDist_CDF_R_regrid.data(), nDistA_surfaceModel, MPI_FLOAT, 0,
+  MPI_Bcast(AphiDist_CDF_R_regrid.data(), nDistA_surfaceModel, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(AthetaDist_CDF_R_regrid.data(), nDistA_surfaceModel, MPI_FLOAT, 0,
+  MPI_Bcast(AthetaDist_CDF_R_regrid.data(), nDistA_surfaceModel, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
-  MPI_Bcast(EDist_CDF_R_regrid.data(), nDistE_surfaceModelRef, MPI_FLOAT, 0,
+  MPI_Bcast(EDist_CDF_R_regrid.data(), nDistE_surfaceModelRef, MPI_DOUBLE, 0,
             MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -2858,7 +2858,7 @@ print_gpu_memory_usage(world_rank);
     }
   }
 #if USE_MPI > 0
-  MPI_Bcast(&dt, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&dt, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast(&nP, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast(&nT, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast(&nParticles, 1, MPI_LONG, 0, MPI_COMM_WORLD);
@@ -2914,9 +2914,9 @@ print_gpu_memory_usage(world_rank);
     }
   }
 #if USE_MPI > 0
-  MPI_Bcast(&amu, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&Z, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&charge, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&amu, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&Z, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&charge, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
@@ -2938,9 +2938,9 @@ print_gpu_memory_usage(world_rank);
     }
   }
 #if USE_MPI > 0
-  MPI_Bcast(&x, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&y, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&z, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&x, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&y, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&z, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 #elif PARTICLE_SOURCE_SPACE > 0 // Material Surfaces - flux weighted source
@@ -3119,7 +3119,7 @@ print_gpu_memory_usage(world_rank);
   }
 
 #if USE_MPI > 0
-  MPI_Bcast(&E, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&E, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 #elif PARTICLE_SOURCE_ENERGY > 0
@@ -3180,8 +3180,8 @@ print_gpu_memory_usage(world_rank);
     }
   }
 #if USE_MPI > 0
-  MPI_Bcast(&phi, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(&theta, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&phi, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&theta, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
   phi = phi * 3.141592653589793 / 180.0;
@@ -3278,12 +3278,12 @@ print_gpu_memory_usage(world_rank);
     vypfile.resize(nPfile);
     vzpfile.resize(nPfile);
   }
-  MPI_Bcast(xpfile.data(), nPfile, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(ypfile.data(), nPfile, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(zpfile.data(), nPfile, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(vxpfile.data(), nPfile, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(vypfile.data(), nPfile, MPI_FLOAT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(vzpfile.data(), nPfile, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(xpfile.data(), nPfile, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(ypfile.data(), nPfile, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(zpfile.data(), nPfile, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(vxpfile.data(), nPfile, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(vypfile.data(), nPfile, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast(vzpfile.data(), nPfile, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
   // for(int i=0;i<nPfile;i++)
@@ -3295,7 +3295,7 @@ print_gpu_memory_usage(world_rank);
 #endif
   std::cout << "particle file import done" << std::endl;
 #if USE3DTETGEOM > 0
-  // MPI_Bcast(&boundaries[0].area, nLines,MPI_FLOAT,0,MPI_COMM_WORLD);
+  // MPI_Bcast(&boundaries[0].area, nLines,MPI_DOUBLE,0,MPI_COMM_WORLD);
 #endif
   sim::Array<double> pSurfNormX(nP), pSurfNormY(nP), pSurfNormZ(nP), px(nP),
       py(nP), pz(nP), pvx(nP), pvy(nP), pvz(nP);
@@ -3972,7 +3972,7 @@ print_gpu_memory_usage(world_rank);
     getVariable(cfg, diagnosticCfg + "leakZ", leakZ);
   }
 #if USE_MPI > 0
-  MPI_Bcast(&leakZ, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&leakZ, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
   for (int i = 0; i < nP; i++)
@@ -4242,51 +4242,51 @@ for(int i=0; i<nP ; i++)
   std::cout << "gather pstart and npperrank " << pStartIndx[world_rank] << " " << nPPerRank[world_rank] << std::endl;
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Gather(&particleArray->x[pStartIndx[world_rank]],nPPerRank[world_rank],
-             MPI_FLOAT, &xGather[0], nPPerRank[world_rank], MPI_FLOAT, 0,
+             MPI_DOUBLE, &xGather[0], nPPerRank[world_rank], MPI_DOUBLE, 0,
              MPI_COMM_WORLD);
   std::cout << "Passed x"<< world_rank << std::endl;
   MPI_Gather(&particleArray->y[world_rank * nP / world_size], nP / world_size,
-             MPI_FLOAT, &yGather[0], nP / world_size, MPI_FLOAT, 0,
+             MPI_DOUBLE, &yGather[0], nP / world_size, MPI_DOUBLE, 0,
              MPI_COMM_WORLD);
   MPI_Gather(&particleArray->z[world_rank * nP / world_size], nP / world_size,
-             MPI_FLOAT, &zGather[0], nP / world_size, MPI_FLOAT, 0,
+             MPI_DOUBLE, &zGather[0], nP / world_size, MPI_DOUBLE, 0,
              MPI_COMM_WORLD);
   MPI_Gather(&particleArray->v[world_rank * nP / world_size], nP / world_size,
-             MPI_FLOAT, &vGather[0], nP / world_size, MPI_FLOAT, 0,
+             MPI_DOUBLE, &vGather[0], nP / world_size, MPI_DOUBLE, 0,
              MPI_COMM_WORLD);
   MPI_Gather(&particleArray->vx[world_rank * nP / world_size], nP / world_size,
-             MPI_FLOAT, &vxGather[0], nP / world_size, MPI_FLOAT, 0,
+             MPI_DOUBLE, &vxGather[0], nP / world_size, MPI_DOUBLE, 0,
              MPI_COMM_WORLD);
   MPI_Gather(&particleArray->vy[world_rank * nP / world_size], nP / world_size,
-             MPI_FLOAT, &vyGather[0], nP / world_size, MPI_FLOAT, 0,
+             MPI_DOUBLE, &vyGather[0], nP / world_size, MPI_DOUBLE, 0,
              MPI_COMM_WORLD);
   MPI_Gather(&particleArray->vz[world_rank * nP / world_size], nP / world_size,
-             MPI_FLOAT, &vzGather[0], nP / world_size, MPI_FLOAT, 0,
+             MPI_DOUBLE, &vzGather[0], nP / world_size, MPI_DOUBLE, 0,
              MPI_COMM_WORLD);
   MPI_Gather(&particleArray->hitWall[world_rank * nP / world_size],
-             nP / world_size, MPI_FLOAT, &hitWallGather[0], nP / world_size,
-             MPI_FLOAT, 0, MPI_COMM_WORLD);
+             nP / world_size, MPI_DOUBLE, &hitWallGather[0], nP / world_size,
+             MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gather(&particleArray->weight[world_rank * nP / world_size],
-             nP / world_size, MPI_FLOAT, &weightGather[0], nP / world_size,
-             MPI_FLOAT, 0, MPI_COMM_WORLD);
+             nP / world_size, MPI_DOUBLE, &weightGather[0], nP / world_size,
+             MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gather(&particleArray->charge[world_rank * nP / world_size],
-             nP / world_size, MPI_FLOAT, &chargeGather[0], nP / world_size,
-             MPI_FLOAT, 0, MPI_COMM_WORLD);
+             nP / world_size, MPI_DOUBLE, &chargeGather[0], nP / world_size,
+             MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gather(&particleArray->hasLeaked[world_rank * nP / world_size],
              nP / world_size, MPI_INT, &hasLeakedGather[0], nP / world_size,
              MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Gather(&particleArray->firstIonizationT[world_rank * nP / world_size],
-             nP / world_size, MPI_FLOAT, &firstIonizationTGather[0],
-             nP / world_size, MPI_FLOAT, 0, MPI_COMM_WORLD);
+             nP / world_size, MPI_DOUBLE, &firstIonizationTGather[0],
+             nP / world_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gather(&particleArray->firstIonizationZ[world_rank * nP / world_size],
-             nP / world_size, MPI_FLOAT, &firstIonizationZGather[0],
-             nP / world_size, MPI_FLOAT, 0, MPI_COMM_WORLD);
+             nP / world_size, MPI_DOUBLE, &firstIonizationZGather[0],
+             nP / world_size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gather(&particleArray->test0[world_rank * nP / world_size],
-             nP / world_size, MPI_FLOAT, &test0Gather[0], nP / world_size,
-             MPI_FLOAT, 0, MPI_COMM_WORLD);
+             nP / world_size, MPI_DOUBLE, &test0Gather[0], nP / world_size,
+             MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gather(&particleArray->test1[world_rank * nP / world_size],
-             nP / world_size, MPI_FLOAT, &test1Gather[0], nP / world_size,
-             MPI_FLOAT, 0, MPI_COMM_WORLD);
+             nP / world_size, MPI_DOUBLE, &test1Gather[0], nP / world_size,
+             MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #if PARTICLE_TRACKS > 0
 
@@ -4306,7 +4306,7 @@ for(int i=0; i<nP ; i++)
   const int *exdispl = &exDispl[0];
   const int *excount = &exCount[0];
 
-  // MPI_Gatherv(&exampleArray[exDispl[world_rank]],2,MPI_FLOAT,&exampleArrayGather[0],excount,exdispl,MPI_FLOAT,0,MPI_COMM_WORLD);
+  // MPI_Gatherv(&exampleArray[exDispl[world_rank]],2,MPI_DOUBLE,&exampleArrayGather[0],excount,exdispl,MPI_DOUBLE,0,MPI_COMM_WORLD);
 
   // for(int i=0;i<4;i++)
   //{
@@ -4327,37 +4327,37 @@ for(int i=0; i<nP ; i++)
   // std::cout << "start gather 2 "<< world_rank<< " nppr "<<
   // nPPerRank[world_rank] << "nhist " << nHistoriesPerParticle << std::endl;
   MPI_Gatherv(&positionHistoryX[pDisplacement[world_rank]],
-              pHistPerNode[world_rank], MPI_FLOAT, &positionHistoryXgather[0],
-              phpn, displ, MPI_FLOAT, 0, MPI_COMM_WORLD);
+              pHistPerNode[world_rank], MPI_DOUBLE, &positionHistoryXgather[0],
+              phpn, displ, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gatherv(&positionHistoryY[pDisplacement[world_rank]],
-              pHistPerNode[world_rank], MPI_FLOAT, &positionHistoryYgather[0],
-              phpn, displ, MPI_FLOAT, 0, MPI_COMM_WORLD);
+              pHistPerNode[world_rank], MPI_DOUBLE, &positionHistoryYgather[0],
+              phpn, displ, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gatherv(&positionHistoryZ[pDisplacement[world_rank]],
-              pHistPerNode[world_rank], MPI_FLOAT, &positionHistoryZgather[0],
-              phpn, displ, MPI_FLOAT, 0, MPI_COMM_WORLD);
+              pHistPerNode[world_rank], MPI_DOUBLE, &positionHistoryZgather[0],
+              phpn, displ, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Gatherv(&velocityHistory[pStartIndx[world_rank] * nHistoriesPerParticle],
-              nPPerRank[world_rank] * nHistoriesPerParticle, MPI_FLOAT,
-              &velocityHistorygather[0], phpn, displ, MPI_FLOAT, 0,
+              nPPerRank[world_rank] * nHistoriesPerParticle, MPI_DOUBLE,
+              &velocityHistorygather[0], phpn, displ, MPI_DOUBLE, 0,
               MPI_COMM_WORLD);
   MPI_Gatherv(&velocityHistoryX[pStartIndx[world_rank] * nHistoriesPerParticle],
-              nPPerRank[world_rank] * nHistoriesPerParticle, MPI_FLOAT,
-              &velocityHistoryXgather[0], phpn, displ, MPI_FLOAT, 0,
+              nPPerRank[world_rank] * nHistoriesPerParticle, MPI_DOUBLE,
+              &velocityHistoryXgather[0], phpn, displ, MPI_DOUBLE, 0,
               MPI_COMM_WORLD);
   MPI_Gatherv(&velocityHistoryY[pStartIndx[world_rank] * nHistoriesPerParticle],
-              nPPerRank[world_rank] * nHistoriesPerParticle, MPI_FLOAT,
-              &velocityHistoryYgather[0], phpn, displ, MPI_FLOAT, 0,
+              nPPerRank[world_rank] * nHistoriesPerParticle, MPI_DOUBLE,
+              &velocityHistoryYgather[0], phpn, displ, MPI_DOUBLE, 0,
               MPI_COMM_WORLD);
   MPI_Gatherv(&velocityHistoryZ[pStartIndx[world_rank] * nHistoriesPerParticle],
-              nPPerRank[world_rank] * nHistoriesPerParticle, MPI_FLOAT,
-              &velocityHistoryZgather[0], phpn, displ, MPI_FLOAT, 0,
+              nPPerRank[world_rank] * nHistoriesPerParticle, MPI_DOUBLE,
+              &velocityHistoryZgather[0], phpn, displ, MPI_DOUBLE, 0,
               MPI_COMM_WORLD);
   MPI_Gatherv(&chargeHistory[pStartIndx[world_rank] * nHistoriesPerParticle],
-              nPPerRank[world_rank] * nHistoriesPerParticle, MPI_FLOAT,
-              &chargeHistoryGather[0], phpn, displ, MPI_FLOAT, 0,
+              nPPerRank[world_rank] * nHistoriesPerParticle, MPI_DOUBLE,
+              &chargeHistoryGather[0], phpn, displ, MPI_DOUBLE, 0,
               MPI_COMM_WORLD);
   MPI_Gatherv(&weightHistory[pStartIndx[world_rank] * nHistoriesPerParticle],
-              nPPerRank[world_rank] * nHistoriesPerParticle, MPI_FLOAT,
-              &weightHistoryGather[0], phpn, displ, MPI_FLOAT, 0,
+              nPPerRank[world_rank] * nHistoriesPerParticle, MPI_DOUBLE,
+              &weightHistoryGather[0], phpn, displ, MPI_DOUBLE, 0,
               MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 // if(world_rank ==0)
@@ -4380,15 +4380,15 @@ for(int i=0; i<nP ; i++)
   // for(int i=0;i<nSurfaces;i++) std::cout <<
   // surfaces->grossDeposition[i]<<std::endl;
   MPI_Reduce(&surfaces->grossDeposition[0], &grossDeposition[0], nSurfaces,
-             MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
+             MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
   // MPI_Barrier(MPI_COMM_WORLD);
-  MPI_Reduce(&surfaces->grossErosion[0], &grossErosion[0], nSurfaces, MPI_FLOAT,
+  MPI_Reduce(&surfaces->grossErosion[0], &grossErosion[0], nSurfaces, MPI_DOUBLE,
              MPI_SUM, 0, MPI_COMM_WORLD);
   // MPI_Barrier(MPI_COMM_WORLD);
   MPI_Reduce(&surfaces->sumWeightStrike[0], &sumWeightStrike[0], nSurfaces,
-             MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
+             MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
   // MPI_Barrier(MPI_COMM_WORLD);
-  MPI_Reduce(&surfaces->aveSputtYld[0], &aveSputtYld[0], nSurfaces, MPI_FLOAT,
+  MPI_Reduce(&surfaces->aveSputtYld[0], &aveSputtYld[0], nSurfaces, MPI_DOUBLE,
              MPI_SUM, 0, MPI_COMM_WORLD);
   // MPI_Barrier(MPI_COMM_WORLD);
   MPI_Reduce(&surfaces->sputtYldCount[0], &sputtYldCount[0], nSurfaces, MPI_INT,
@@ -4397,13 +4397,13 @@ for(int i=0; i<nP ; i++)
   MPI_Reduce(&surfaces->sumParticlesStrike[0], &sumParticlesStrike[0],
              nSurfaces, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
   MPI_Reduce(&surfaces->energyDistribution[0], &energyDistribution[0],
-             nSurfaces * nEdist * nAdist, MPI_FLOAT, MPI_SUM, 0,
+             nSurfaces * nEdist * nAdist, MPI_DOUBLE, MPI_SUM, 0,
              MPI_COMM_WORLD);
   MPI_Reduce(&surfaces->sputtDistribution[0], &sputtDistribution[0],
-             nSurfaces * nEdist * nAdist, MPI_FLOAT, MPI_SUM, 0,
+             nSurfaces * nEdist * nAdist, MPI_DOUBLE, MPI_SUM, 0,
              MPI_COMM_WORLD);
   MPI_Reduce(&surfaces->reflDistribution[0], &reflDistribution[0],
-             nSurfaces * nEdist * nAdist, MPI_FLOAT, MPI_SUM, 0,
+             nSurfaces * nEdist * nAdist, MPI_DOUBLE, MPI_SUM, 0,
              MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
   std::cout << "Finished surface reduce " << std::endl;
