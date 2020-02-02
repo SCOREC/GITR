@@ -96,7 +96,7 @@ class Boundary
 #else
 #if USECYLSYMM > 0
     double theta = atan2(y, x);
-    double B[3] = {0.0f};
+    double B[3] = {0.0};
     B[0] = cos(theta) * A[0] - sin(theta) * A[1];
     B[1] = sin(theta) * A[0] + cos(theta) * A[1];
     A[0] = B[0];
@@ -118,7 +118,7 @@ class Boundary
     } else {
       perpSlope = -copysign(1.0, slope_dzdx) / abs(slope_dzdx);
     }
-    double Br = 1.0f / sqrt(perpSlope * perpSlope + 1.0);
+    double Br = 1.0 / sqrt(perpSlope * perpSlope + 1.0);
     double Bt = 0.0;
     B[2] = copysign(1.0,perpSlope) * sqrt(1 - Br * Br);
 #if USECYLSYMM > 0
@@ -138,10 +138,10 @@ class Boundary
     CUDA_CALLABLE_MEMBER
         void transformToSurface(double C[],double y, double x)
         {
-            double X[3] = {0.0f};
-            double Y[3] = {0.0f};
-            double Z[3] = {0.0f};
-            double tmp[3] = {0.0f};
+            double X[3] = {0.0};
+            double Y[3] = {0.0};
+            double Z[3] = {0.0};
+            double tmp[3] = {0.0};
             getSurfaceParallel(X,y,x);
             getSurfaceNormal(Z,y,x);
             Y[0] = Z[1]*X[2] - Z[2]*X[1]; 

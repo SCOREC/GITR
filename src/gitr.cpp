@@ -206,7 +206,7 @@ print_gpu_memory_usage(world_rank);
   MPI_Bcast(bfieldGridz.data(), nZ_Bfield, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
-  double Btest[3] = {0.0f};
+  double Btest[3] = {0.0};
   interp2dVector(&Btest[0], 5.5, 0.0, -4.0, nR_Bfield, nZ_Bfield,
                  bfieldGridr.data(), bfieldGridz.data(), br.data(), bz.data(),
                  by.data());
@@ -255,11 +255,13 @@ print_gpu_memory_usage(world_rank);
   MPI_Aint offsets[nBoundaryMembers] = {};
   MPI_Datatype types[nBoundaryMembers] = {};
   for (int i = 0; i < nBoundaryMembers; i++) {
-    lengths[i] = 1;
-    offsets[i] = i * 8;
+    //lengths[i] = 1;
+    offsets[i] = i*4;
     if (i < nIntMembers) {
+      lengths[i] = 1;
       types[i] = MPI_INT;
     } else {
+      lengths[i] = 2;
       types[i] = MPI_DOUBLE;
     }
   }
@@ -3951,7 +3953,7 @@ print_gpu_memory_usage(world_rank);
   std::chrono::duration<double> fs1 = start_clock - gitr_start_clock;
   printf("Initialize time for node %i          is %6.3f (secs) \n", world_rank,
          fs1.count());
-  double testFlowVec[3] = {0.0f};
+  double testFlowVec[3] = {0.0};
 #if USEFIELDALIGNEDVALUES > 0
   interpFieldAlignedVector(&testFlowVec[0], 1.4981, 0.0, -1.2408, nR_flowV,
                            nZ_flowV, flowVGridr.data(), flowVGridz.data(),
@@ -4005,11 +4007,11 @@ print_gpu_memory_usage(world_rank);
     // std::cout << "created d_vec and cmalloc, starting init " << std::endl;
     // for(int k=0;k<1000;k++)
     //{   //std::cout << "k " << k << std::endl;
-    //    d_vec2[k] = 1.0f;
+    //    d_vec2[k] = 1.0;
     //}
     // for(int k=0;k<1000;k++)
     //{   //std::cout << "k " << k << std::endl;
-    //    //d_vec2[k] = 1.0f;
+    //    //d_vec2[k] = 1.0;
     // thrust::sort(thrust::device,d_vec.begin()+world_rank*nN/world_size,
     // d_vec.begin()+ (world_rank+1)*nN/world_size-1); // sort data on the device
     //}
@@ -4019,6 +4021,8 @@ print_gpu_memory_usage(world_rank);
     cudaDeviceSynchronize();
 #endif
     for (tt; tt < nT; tt++) {
+      if(tt%500==0) 
+        printf("timestep %d\n", tt);
       // dev_tt[0] = tt;
       //std::cout << " tt " << tt << std::endl;
 #if USE_SORT > 0
@@ -4527,7 +4531,7 @@ printf("add initial particle erosion to surface counting\n");
     int closestBoundaryIndex = 0;
     int surfIndex = 0;
     double minDistance = 0.0;
-    double thisE[3] = {0.0f};
+    double thisE[3] = {0.0};
     for (int j = 0; j < nP; j++) {
       minDistance =
           getE(px[j], py[j], pz[j], thisE, boundaries.data(), nLines,

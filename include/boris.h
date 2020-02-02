@@ -18,7 +18,7 @@ using namespace std;
 #include <algorithm>
 
 #ifndef COMPARE_GITR_PRINT
-#define COMPARE_GITR_PRINT 0
+#define COMPARE_GITR_PRINT 1
 #endif
 
 CUDA_CALLABLE_MEMBER
@@ -56,7 +56,7 @@ void vectorAssign(double a, double b,double c, double D[])
 CUDA_CALLABLE_MEMBER
 double vectorNorm(double A[])
 {
-    double norm = 0.0f;
+    double norm = 0.0;
     norm = sqrt(A[0]*A[0] + A[1]*A[1] + A[2]*A[2]);
 
         return norm;
@@ -64,7 +64,7 @@ double vectorNorm(double A[])
 CUDA_CALLABLE_MEMBER
 void vectorNormalize(double A[],double B[])
 {
-    double norm = 0.0f;
+    double norm = 0.0;
     norm = sqrt(A[0]*A[0] + A[1]*A[1] + A[2]*A[2]);
     B[0] = A[0]/norm;
     B[1] = A[1]/norm;
@@ -82,7 +82,7 @@ double vectorDotProduct(double A[], double B[])
 CUDA_CALLABLE_MEMBER
 void vectorCrossProduct(double A[], double B[], double C[])
 {
-    double tmp[3] = {0.0f,0.0f,0.0f};
+    double tmp[3] = {0.0,0.0,0.0};
     tmp[0] = A[1]*B[2] - A[2]*B[1];
     tmp[1] = A[2]*B[0] - A[0]*B[2];
     tmp[2] = A[0]*B[1] - A[1]*B[0];
@@ -198,13 +198,13 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
        double *closeGeomGridr,double *closeGeomGridy, double *closeGeomGridz, int *closeGeom, 
        int&  closestBoundaryIndex, int ptcl=-1, int* bdryMinInd=nullptr) {
 #if USE3DTETGEOM > 0
-    double Emag = 0.0f;
-    double Er = 0.0f;
-    double Et = 0.0f;
+    double Emag = 0.0;
+    double Er = 0.0;
+    double Et = 0.0;
       double p0[3] = {x0,y,z};
-    double angle = 0.0f;
-	double fd = 0.0f;
-	double pot = 0.0f;
+    double angle = 0.0;
+	double fd = 0.0;
+	double pot = 0.0;
       double a = 0.0;
       double b = 0.0;
       double c = 0.0;
@@ -232,57 +232,57 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
       double p0AB[3] = {0.0,0.0,0.0};
       double p0BC[3] = {0.0,0.0,0.0};
       double p0CA[3] = {0.0,0.0,0.0};
-      double p0Anorm = 0.0f;
-      double p0Bnorm = 0.0f;
-      double p0Cnorm = 0.0f;
+      double p0Anorm = 0.0;
+      double p0Bnorm = 0.0;
+      double p0Cnorm = 0.0;
       double normalVector[3] = {0.0,0.0,0.0};
       double crossABAp[3] = {0.0,0.0,0.0};
       double crossBCBp[3] = {0.0,0.0,0.0};
       double crossCACp[3] = {0.0,0.0,0.0};
-      double directionUnitVector[3] = {0.0f,0.0f,0.0f};
-      double dot0 = 0.0f;
-      double dot1 = 0.0f;
-      double dot2 = 0.0f;
+      double directionUnitVector[3] = {0.0,0.0,0.0};
+      double dot0 = 0.0;
+      double dot1 = 0.0;
+      double dot2 = 0.0;
 
-      double normAB = 0.0f;
-      double normBC = 0.0f;
-      double normCA = 0.0f;
-      double ABhat[3] = {0.0f,0.0f,0.0f};
-      double BChat[3] = {0.0f,0.0f,0.0f};
-      double CAhat[3] = {0.0f,0.0f,0.0f};
-      double tAB = 0.0f;
-      double tBC = 0.0f;
-      double tCA = 0.0f;
-      double projP0AB[3] = {0.0f,0.0f,0.0f};
-      double projP0BC[3] = {0.0f,0.0f,0.0f};
-      double projP0CA[3] = {0.0f,0.0f,0.0f};
-      double p0ABdist = 0.0f;
-      double p0BCdist = 0.0f;
-      double p0CAdist = 0.0f;
-      double perpDist = 0.0f;
+      double normAB = 0.0;
+      double normBC = 0.0;
+      double normCA = 0.0;
+      double ABhat[3] = {0.0,0.0,0.0};
+      double BChat[3] = {0.0,0.0,0.0};
+      double CAhat[3] = {0.0,0.0,0.0};
+      double tAB = 0.0;
+      double tBC = 0.0;
+      double tCA = 0.0;
+      double projP0AB[3] = {0.0,0.0,0.0};
+      double projP0BC[3] = {0.0,0.0,0.0};
+      double projP0CA[3] = {0.0,0.0,0.0};
+      double p0ABdist = 0.0;
+      double p0BCdist = 0.0;
+      double p0CAdist = 0.0;
+      double perpDist = 0.0;
       double signDot0 = 0.0;
       double signDot1 = 0.0;
       double signDot2 = 0.0;
       double totalSigns = 0.0;
-      double minDistance = 1e12f;
+      double minDistance = 1e12;
       int nBoundariesCrossed = 0;
       int boundariesCrossed[6] = {0,0,0,0,0,0};
         int minIndex=0;
-      double distances[7] = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
-      double normals[21] = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
-                           0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
-                           0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
-      double closestAll[21] =  {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
-                           0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
-                           0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+      double distances[7] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+      double normals[21] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+                           0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+                           0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+      double closestAll[21] =  {0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+                           0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+                           0.0,0.0,0.0,0.0,0.0,0.0,0.0};
 
 #if GEOM_HASH_SHEATH > 0
   double dr = closeGeomGridr[1] - closeGeomGridr[0];
   double dy = closeGeomGridy[1] - closeGeomGridy[0];
   double dz = closeGeomGridz[1] - closeGeomGridz[0];
-  int rInd = floor((x0 - closeGeomGridr[0])/dr + 0.5f);
-  int yInd = floor((y - closeGeomGridy[0])/dy + 0.5f);
-  int zInd = floor((z - closeGeomGridz[0])/dz + 0.5f);
+  int rInd = floor((x0 - closeGeomGridr[0])/dr + 0.5);
+  int yInd = floor((y - closeGeomGridy[0])/dy + 0.5);
+  int zInd = floor((z - closeGeomGridz[0])/dz + 0.5);
   int i;
   if(rInd < 0 || rInd >= nR_closeGeom)
     rInd =0;
@@ -402,7 +402,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
          }
          else
          {
-             p0ABdist = 1e12f;
+             p0ABdist = 1e12;
              distances[4] = p0ABdist;   
          } 
          
@@ -420,7 +420,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
          }
          else
          {
-             p0BCdist = 1e12f;
+             p0BCdist = 1e12;
              distances[5] = p0BCdist;   
 
          } 
@@ -440,7 +440,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
          }
          else
          {
-             p0CAdist = 1e12f;
+             p0CAdist = 1e12;
              distances[6] = p0CAdist;   
          } 
 
@@ -467,7 +467,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
          }
          else
          {
-             perpDist = 1e12f;
+             perpDist = 1e12;
              distances[0] = perpDist;   
 
          }
@@ -497,25 +497,25 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
       //cout << "min dist " << minDistance << endl;
 #else //2dGeom     
                 
-    double Emag = 0.0f;
-	double fd = 0.0f;
-	double pot = 0.0f;
+    double Emag = 0.0;
+	double fd = 0.0;
+	double pot = 0.0;
     int minIndex = 0;
-    double minDistance = 1e12f;
+    double minDistance = 1e12;
     int direction_type;
-    double tol = 1e12f;
+    double tol = 1e12;
     double point1_dist;
     double point2_dist;
     double perp_dist;
-    double directionUnitVector[3] = {0.0f,0.0f,0.0f};
+    double directionUnitVector[3] = {0.0,0.0,0.0};
     double vectorMagnitude;
-    double max = 0.0f;
-    double min = 0.0f;
-    double angle = 0.0f;
-    double Er = 0.0f;
-    double Et = 0.0f;
-    double Bfabsfperp = 0.0f;
-    double distanceToParticle = 0.0f;
+    double max = 0.0;
+    double min = 0.0;
+    double angle = 0.0;
+    double Er = 0.0;
+    double Et = 0.0;
+    double Bfabsfperp = 0.0;
+    double distanceToParticle = 0.0;
     int pointLine=0;
 //#if EFIELD_INTERP ==1
 #if USECYLSYMM > 0
@@ -527,8 +527,8 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
 #if GEOM_HASH_SHEATH > 0
   double dr = closeGeomGridr[1] - closeGeomGridr[0];
   double dz = closeGeomGridz[1] - closeGeomGridz[0];
-  int rInd = floor((x - closeGeomGridr[0])/dr + 0.5f);
-  int zInd = floor((z - closeGeomGridz[0])/dz + 0.5f);
+  int rInd = floor((x - closeGeomGridr[0])/dr + 0.5);
+  int zInd = floor((z - closeGeomGridz[0])/dz + 0.5);
   if(rInd >= nR_closeGeom) rInd = nR_closeGeom -1;
   if(zInd >= nZ_closeGeom) zInd = nZ_closeGeom -1;
   if(rInd < 0) rInd = 0;
@@ -555,10 +555,10 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
             point2_dist = sqrt((x - boundaryVector[j].x2)*(x - boundaryVector[j].x2) + 
                                         (z - boundaryVector[j].z2)*(z - boundaryVector[j].z2));
             perp_dist = (boundaryVector[j].slope_dzdx*x - z + boundaryVector[j].intercept_z)/
-                sqrt(boundaryVector[j].slope_dzdx*boundaryVector[j].slope_dzdx + 1.0f);   
+                sqrt(boundaryVector[j].slope_dzdx*boundaryVector[j].slope_dzdx + 1.0);   
 	
 	
-          if (abs(boundaryVector[j].slope_dzdx) >= tol*0.75f)
+          if (abs(boundaryVector[j].slope_dzdx) >= tol*0.75)
 	  {
 	   perp_dist = x0 - boundaryVector[j].x1;
 	  }
@@ -617,34 +617,34 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
     {
         if (boundaryVector[minIndex].slope_dzdx == 0)
         {
-            directionUnitVector[0] = 0.0f;
-            directionUnitVector[1] = 0.0f;
-            directionUnitVector[2] = 1.0f * copysign(1.0,boundaryVector[minIndex].z1 - z);
+            directionUnitVector[0] = 0.0;
+            directionUnitVector[1] = 0.0;
+            directionUnitVector[2] = 1.0 * copysign(1.0,boundaryVector[minIndex].z1 - z);
         }
-        else if (abs(boundaryVector[minIndex].slope_dzdx)>= 0.75f*tol)
+        else if (abs(boundaryVector[minIndex].slope_dzdx)>= 0.75*tol)
         {
             
             directionUnitVector[0] = boundaryVector[minIndex].x1 - x;
-            directionUnitVector[1] = 0.0f;
-            directionUnitVector[2] = 0.0f;
+            directionUnitVector[1] = 0.0;
+            directionUnitVector[2] = 0.0;
         }
         else
         {
-            directionUnitVector[0] = 1.0f * copysign(1.0,(z - boundaryVector[minIndex].intercept_z)/(boundaryVector[minIndex].slope_dzdx) - x0);
-            directionUnitVector[1] = 0.0f;
-            directionUnitVector[2] = 1.0f * copysign(1.0,perp_dist)/(boundaryVector[minIndex].slope_dzdx);
+            directionUnitVector[0] = 1.0 * copysign(1.0,(z - boundaryVector[minIndex].intercept_z)/(boundaryVector[minIndex].slope_dzdx) - x0);
+            directionUnitVector[1] = 0.0;
+            directionUnitVector[2] = 1.0 * copysign(1.0,perp_dist)/(boundaryVector[minIndex].slope_dzdx);
         }
     }
     else if (direction_type == 2)
     {
         directionUnitVector[0] = (boundaryVector[minIndex].x1 - x);
-        directionUnitVector[1] = 0.0f;
+        directionUnitVector[1] = 0.0;
         directionUnitVector[2] = (boundaryVector[minIndex].z1 - z);
     }
     else
     {
         directionUnitVector[0] = (boundaryVector[minIndex].x2 - x);
-        directionUnitVector[1] = 0.0f;
+        directionUnitVector[1] = 0.0;
         directionUnitVector[2] = (boundaryVector[minIndex].z2 - z);
     }
 
@@ -657,30 +657,30 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
 
 #if BIASED_SURFACE > 0
     pot = boundaryVector[minIndex].potential;
-    Emag = pot/(2.0f*boundaryVector[minIndex].ChildLangmuirDist)*expf(-minDistance/(2.0f*boundaryVector[minIndex].ChildLangmuirDist));
+    Emag = pot/(2.0*boundaryVector[minIndex].ChildLangmuirDist)*expf(-minDistance/(2.0*boundaryVector[minIndex].ChildLangmuirDist));
 #else 
     angle = boundaryVector[minIndex].angle;    
-    fd  =  0.98992f + 5.1220E-03f * angle  -
-           7.0040E-04f  * pow(angle,2.0f) +
-           3.3591E-05f  * pow(angle,3.0f) -
-           8.2917E-07f  * pow(angle,4.0f) +
-           9.5856E-09f  * pow(angle,5.0f) -
-           4.2682E-11f  * pow(angle,6.0f);
+    fd  =  0.98992 + 5.1220E-03 * angle  -
+           7.0040E-04  * pow(angle,2.0) +
+           3.3591E-05  * pow(angle,3.0) -
+           8.2917E-07  * pow(angle,4.0) +
+           9.5856E-09  * pow(angle,5.0) -
+           4.2682E-11  * pow(angle,6.0);
     pot = boundaryVector[minIndex].potential;
 
         double debyeLength = boundaryVector[minIndex].debyeLength;
         double larmorRadius = boundaryVector[minIndex].larmorRadius;
-        Emag = pot*(fd/(2.0f * boundaryVector[minIndex].debyeLength)*expf(-minDistance/(2.0f * boundaryVector[minIndex].debyeLength))+ (1.0f - fd)/(boundaryVector[minIndex].larmorRadius)*expf(-minDistance/boundaryVector[minIndex].larmorRadius) );
-        double part1 = pot*(fd/(2.0f * boundaryVector[minIndex].debyeLength)*expf(-minDistance/(2.0f * boundaryVector[minIndex].debyeLength)));
-        double part2 = pot*(1.0f - fd)/(boundaryVector[minIndex].larmorRadius)*expf(-minDistance/boundaryVector[minIndex].larmorRadius);
+        Emag = pot*(fd/(2.0 * boundaryVector[minIndex].debyeLength)*expf(-minDistance/(2.0 * boundaryVector[minIndex].debyeLength))+ (1.0 - fd)/(boundaryVector[minIndex].larmorRadius)*expf(-minDistance/boundaryVector[minIndex].larmorRadius) );
+        double part1 = pot*(fd/(2.0 * boundaryVector[minIndex].debyeLength)*expf(-minDistance/(2.0 * boundaryVector[minIndex].debyeLength)));
+        double part2 = pot*(1.0 - fd)/(boundaryVector[minIndex].larmorRadius)*expf(-minDistance/boundaryVector[minIndex].larmorRadius);
 
 #endif
-    if(minDistance == 0.0f || boundaryVector[minIndex].larmorRadius == 0.0f)
+    if(minDistance == 0.0 || boundaryVector[minIndex].larmorRadius == 0.0)
     {
-        Emag = 0.0f;
-        directionUnitVector[0] = 0.0f;
-        directionUnitVector[1] = 0.0f;
-        directionUnitVector[2] = 0.0f;
+        Emag = 0.0;
+        directionUnitVector[0] = 0.0;
+        directionUnitVector[1] = 0.0;
+        directionUnitVector[2] = 0.0;
 
     }
         Er = Emag*directionUnitVector[0];
@@ -734,8 +734,8 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
      }
 
     double pott = boundaryVector[minI].potential;
-    double Efmag = pott/(2.0f*boundaryVector[minI].ChildLangmuirDist)*
-           expf(-minD/(2.0f*boundaryVector[minI].ChildLangmuirDist));
+    double Efmag = pott/(2.0*boundaryVector[minI].ChildLangmuirDist)*
+           expf(-minD/(2.0*boundaryVector[minI].ChildLangmuirDist));
     double Ef[3]={0};
     double dirVec[3]={0}, diffV[3]={0}, vN[3]={0};
     vectorSubtract(pt, minq, diffV);
@@ -838,27 +838,27 @@ CUDA_CALLABLE_MEMBER
 void operator()(size_t indx) { 
 #ifdef __CUDACC__
 #else
-  double initTime = 0.0f;
-  double interpETime = 0.0f;
-  double interpBTime = 0.0f;
-  double operationsTime = 0.0f;
+  double initTime = 0.0;
+  double interpETime = 0.0;
+  double interpBTime = 0.0;
+  double operationsTime = 0.0;
 #endif
-  double v_minus[3]= {0.0f, 0.0f, 0.0f};
-  double v_prime[3]= {0.0f, 0.0f, 0.0f};
-  double position[3]= {0.0f, 0.0f, 0.0f};
-  double v[3]= {0.0f, 0.0f, 0.0f};
-  double E[3] = {0.0f, 0.0f, 0.0f};
+  double v_minus[3]= {0.0, 0.0, 0.0};
+  double v_prime[3]= {0.0, 0.0, 0.0};
+  double position[3]= {0.0, 0.0, 0.0};
+  double v[3]= {0.0, 0.0, 0.0};
+  double E[3] = {0.0, 0.0, 0.0};
 #if USEPRESHEATHEFIELD > 0
-  double PSE[3] = {0.0f, 0.0f, 0.0f};
+  double PSE[3] = {0.0, 0.0, 0.0};
 #endif
-  double B[3] = {0.0f,0.0f,0.0f};
+  double B[3] = {0.0,0.0,0.0};
   double dt = span;
-  double Bmag = 0.0f;
-  double q_prime = 0.0f;
-  double coeff = 0.0f;
-  int nSteps = floor( span / dt + 0.5f);
+  double Bmag = 0.0;
+  double q_prime = 0.0;
+  double coeff = 0.0;
+  int nSteps = floor( span / dt + 0.5);
 #if USESHEATHEFIELD > 0
-  double minDist = 0.0f;
+  double minDist = 0.0;
   int closestBoundaryIndex;
 #endif
 #if ODEINT ==	0 
@@ -869,11 +869,11 @@ void operator()(size_t indx) {
 	    particlesPointer->hasLeaked[indx] = 1;
 	  }
 	}
-  double qpE[3] = {0.0f,0.0f,0.0f};
-  double vmxB[3] = {0.0f,0.0f,0.0f};
-  double vpxB[3] = {0.0f,0.0f,0.0f};
-  double qp_vmxB[3] = {0.0f,0.0f,0.0f};
-  double c_vpxB[3] = {0.0f,0.0f,0.0f};
+  double qpE[3] = {0.0,0.0,0.0};
+  double vmxB[3] = {0.0,0.0,0.0};
+  double vpxB[3] = {0.0,0.0,0.0};
+  double qp_vmxB[3] = {0.0,0.0,0.0};
+  double c_vpxB[3] = {0.0,0.0,0.0};
   vectorAssign(particlesPointer->xprevious[indx], particlesPointer->yprevious[indx], 
     particlesPointer->zprevious[indx],position);
     
@@ -892,7 +892,7 @@ void operator()(size_t indx) {
 #if USEPRESHEATHEFIELD > 0
 #if LC_INTERP==3
               
-     //double PSE2[3] = {0.0f, 0.0f, 0.0f};
+     //double PSE2[3] = {0.0, 0.0, 0.0};
     interp3dVector(PSE,position[0], position[1], position[2],nR_Efield,nY_Efield,nZ_Efield,
              EfieldGridRDevicePointer,EfieldGridYDevicePointer,EfieldGridZDevicePointer,EfieldRDevicePointer,
              EfieldZDevicePointer,EfieldTDevicePointer);
@@ -936,8 +936,8 @@ void operator()(size_t indx) {
         BfieldGridRDevicePointer,BfieldGridZDevicePointer,BfieldRDevicePointer,
         BfieldZDevicePointer,BfieldTDevicePointer);        
     Bmag = vectorNorm(B);
-    q_prime = particlesPointer->charge[indx]*1.60217662e-19f/(particlesPointer->amu[indx]*1.6737236e-27f)*dt*0.5f;
-    coeff = 2.0f*q_prime/(1.0f+(q_prime*Bmag)*(q_prime*Bmag));
+    q_prime = particlesPointer->charge[indx]*1.60217662e-19/(particlesPointer->amu[indx]*1.6737236e-27)*dt*0.5;
+    coeff = 2.0*q_prime/(1.0+(q_prime*Bmag)*(q_prime*Bmag));
     vectorAssign(particlesPointer->vx[indx], particlesPointer->vy[indx], particlesPointer->vz[indx],v);
     double v0[] = {v[0],v[1],v[2]};
     vectorScalarMult(q_prime,E,qpE);

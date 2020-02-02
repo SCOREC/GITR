@@ -47,20 +47,20 @@ struct field_line_trace {
 
 CUDA_CALLABLE_MEMBER    
 void operator()(size_t indx) const { 
-    double B[3] = {0.0f,0.0f,0.0f};
-    double Bnorm[3] = {0.0f,0.0f,0.0f};
-    double Bmag = 0.0f;
-    double particleDistance = 0.0f;
+    double B[3] = {0.0,0.0,0.0};
+    double Bnorm[3] = {0.0,0.0,0.0};
+    double Bmag = 0.0;
+    double particleDistance = 0.0;
     double k1[3] = {0.0,0.0,0.0};
     double k2[3] = {0.0,0.0,0.0};
     double k3[3] = {0.0,0.0,0.0};
     double k4[3] = {0.0,0.0,0.0};
-    double x0 = 0.0f;
-    double y0 = 0.0f;
-    double z0 = 0.0f;
-    double x = 0.0f;
-    double y = 0.0f;
-    double z = 0.0f;
+    double x0 = 0.0;
+    double y0 = 0.0;
+    double z0 = 0.0;
+    double x = 0.0;
+    double y = 0.0;
+    double z = 0.0;
 
     double dr_fac = BfieldFactor*dr;
 

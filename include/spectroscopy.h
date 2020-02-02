@@ -70,9 +70,9 @@ struct spec_bin {
 void operator()(size_t indx) const { 
 //    int indx_X = 0;
 //    int indx_Z = 0;
-    double dx = 0.0f;
-    double dy = 0.0f;
-    double dz = 0.0f;
+    double dx = 0.0;
+    double dy = 0.0;
+    double dz = 0.0;
     double x = particlesPointer->xprevious[indx];
     double y = particlesPointer->yprevious[indx];
     double z = particlesPointer->zprevious[indx];

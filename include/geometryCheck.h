@@ -117,8 +117,8 @@ struct geometry_check {
       int AdistInd = 0;
       int EdistInd = 0;
 #endif
-      double vxy[3] = {0.0f};
-      double vtheta[3] = {0.0f};
+      double vxy[3] = {0.0};
+      double vtheta[3] = {0.0};
 #if USECYLSYMM > 0
       if (boundaryVector[nLines].periodic) // if periodic
       {
@@ -135,8 +135,8 @@ struct geometry_check {
                                particlesPointer->yprevious[indx]);
         double r = sqrt(particlesPointer->x[indx] * particlesPointer->x[indx] +
                        particlesPointer->y[indx] * particlesPointer->y[indx]);
-        double rHat[3] = {0.0f};
-        double vr[3] = {0.0f};
+        double rHat[3] = {0.0};
+        double vr[3] = {0.0};
         rHat[0] = particlesPointer->x[indx];
         rHat[1] = particlesPointer->y[indx];
 
@@ -307,14 +307,14 @@ struct geometry_check {
       double dr = closeGeomGridr[rHashInd + 1] - closeGeomGridr[rHashInd];
       double dz = closeGeomGridz[zHashInd + 1] - closeGeomGridz[zHashInd];
       double dy = closeGeomGridy[yHashInd + 1] - closeGeomGridy[yHashInd];
-      int rInd = floor((r_position - closeGeomGridr[rHashInd]) / dr + 0.5f);
+      int rInd = floor((r_position - closeGeomGridr[rHashInd]) / dr + 0.5);
       int zInd = floor(
           (particlesPointer->zprevious[indx] - closeGeomGridz[zHashInd]) / dz +
-          0.5f);
+          0.5);
       int i = 0;
       int yInd = floor(
           (particlesPointer->yprevious[indx] - closeGeomGridy[yHashInd]) / dy +
-          0.5f);
+          0.5);
       // cout << "rHashInd " << rHashInd << " " << yHashInd << " " <<
       // zHashInd << endl; cout << "dr dy dz " << dr << " " << dy << "
       // " << dz << endl; cout << "rind y z " << rInd << " " << yInd <<
@@ -455,9 +455,9 @@ struct geometry_check {
             // cout << "Energy of particle that hit surface " << E0 <<
             // endl;
 #if USE_CUDA > 0
-            // double surfNormal[3] = {0.0f};
-            // double partNormal[3] = {0.0f};
-            // double partDotNormal = 0.0f;
+            // double surfNormal[3] = {0.0};
+            // double partNormal[3] = {0.0};
+            // double partDotNormal = 0.0;
             // partNormal[0] = particlesPointer->vx[indx];
             // partNormal[1] = particlesPointer->vy[indx];
             // partNormal[2] = particlesPointer->vz[indx];
@@ -519,14 +519,14 @@ struct geometry_check {
       double distances[2] = {};
       // distances = new double[nPoints];
       int intersectionIndices[2] = {};
-      double tol_small = 1e-12f;
-      double tol = 1e12f;
+      double tol_small = 1e-12;
+      double tol = 1e12;
       int nIntersections = 0;
       double signPoint;
       double signPoint0;
       double signLine1;
       double signLine2;
-      double minDist = 1e12f;
+      double minDist = 1e12;
       int minDistInd = 0;
  //cout << "particle slope " << particle_slope << " " << particle_intercept
  //<< endl; cout << "r " << boundaryVector[0].x1 << " " <<
@@ -545,9 +545,9 @@ struct geometry_check {
 #endif
       double dr = closeGeomGridr[1] - closeGeomGridr[0];
       double dz = closeGeomGridz[1] - closeGeomGridz[0];
-      int rInd = floor((r_position - closeGeomGridr[0]) / dr + 0.5f);
+      int rInd = floor((r_position - closeGeomGridr[0]) / dr + 0.5);
       int zInd = floor(
-          (particlesPointer->zprevious[indx] - closeGeomGridz[0]) / dz + 0.5f);
+          (particlesPointer->zprevious[indx] - closeGeomGridz[0]) / dz + 0.5);
       if (rInd < 0 || rInd >= nR_closeGeom[0])
         rInd = 0;
       if (zInd < 0 || zInd >= nZ_closeGeom[0])
@@ -584,7 +584,7 @@ struct geometry_check {
 #endif
         // cout << "vert geom " << i << "  " <<
         // fabs(boundaryVector[i].slope_dzdx) << " " << tol << endl;
-        if (abs(boundaryVector[i].slope_dzdx) >= tol * 0.75f) 
+        if (abs(boundaryVector[i].slope_dzdx) >= tol * 0.75) 
         {
           signPoint = copysign(1.0, pdim1 - boundaryVector[i].x1);
           signPoint0 = copysign(1.0, pdim1previous - boundaryVector[i].x1);
@@ -607,12 +607,12 @@ struct geometry_check {
 
         if (signPoint != signPoint0) 
         {
-          if (abs(particle_slope) >= tol * 0.75f) 
+          if (abs(particle_slope) >= tol * 0.75) 
           {
             // cout << " isinf catch " << endl;
             particle_slope = tol;
           }
-          if (abs(particle_slope) >= tol * 0.75f) 
+          if (abs(particle_slope) >= tol * 0.75) 
           {
             signLine1 = copysign(1.0, boundaryVector[i].x1 - pdim1);
             signLine2 = copysign(1.0, boundaryVector[i].x2 - pdim1);
@@ -634,12 +634,12 @@ struct geometry_check {
 
           ////if (signPoint != signPoint0) 
           ////{
-          ////  if (abs(particle_slope) >= tol * 0.75f) 
+          ////  if (abs(particle_slope) >= tol * 0.75) 
           ////  {
           ////    // cout << " isinf catch " << endl;
           ////    particle_slope = tol;
           ////  }
-          ////  if (abs(particle_slope) >= tol * 0.75f) 
+          ////  if (abs(particle_slope) >= tol * 0.75) 
           ////  {
           ////    signLine1 = copysign(1.0, boundaryVector[i].x1 - pdim1);
           ////    signLine2 = copysign(1.0, boundaryVector[i].x2 - pdim1);
@@ -686,7 +686,7 @@ struct geometry_check {
                 // lines[i*nParam+4] << "  " <<tol << endl; cout <<
                 // "boundaryVector slope " << boundaryVector[i].slope_dzdx << " "
                 // << tol*0.75 <<endl;
-                if (abs(boundaryVector[i].slope_dzdx) >= tol * 0.75f) 
+                if (abs(boundaryVector[i].slope_dzdx) >= tol * 0.75) 
                 {
                   intersectionx[nIntersections - 1] = boundaryVector[i].x1;
                 } 
@@ -728,11 +728,11 @@ struct geometry_check {
         } 
         else if (nIntersections == 1) 
         {
-          particlesPointer->hitWall[indx] = 1.0f;
+          particlesPointer->hitWall[indx] = 1.0;
           particlesPointer->wallIndex[indx] = intersectionIndices[0];
           particlesPointer->wallHit[indx] = intersectionIndices[0];
           // particlesPointer->test0[indx] = -100.0;
-          if (particle_slope >= tol * 0.75f) 
+          if (particle_slope >= tol * 0.75) 
           {
 #if USECYLSYMM > 0
             double x0 = particlesPointer->xprevious[indx];
@@ -847,7 +847,7 @@ struct geometry_check {
 
           particlesPointer->wallIndex[indx] = intersectionIndices[minDistInd];
           particlesPointer->wallHit[indx] = intersectionIndices[minDistInd];
-          particlesPointer->hitWall[indx] = 1.0f;
+          particlesPointer->hitWall[indx] = 1.0;
 #if USECYLSYMM > 0
           thetaNew = theta0 + (intersectionx[minDistInd] - pdim1previous) /
                                   (pdim1 - pdim1previous) * (theta1 - theta0);
@@ -889,11 +889,11 @@ struct geometry_check {
         //{
         //    if (particlesPointer->y[indx] < boundaryVector[nLines].y1)
         //    {
-        //        particlesPointer->hitWall[indx] = 1.0f;
+        //        particlesPointer->hitWall[indx] = 1.0;
         //    }
         //    else if (particlesPointer->y[indx] > boundaryVector[nLines].y2)
         //    {
-        //        particlesPointer->hitWall[indx] = 1.0f;
+        //        particlesPointer->hitWall[indx] = 1.0;
         //    }
         //}
 #endif
@@ -902,8 +902,8 @@ struct geometry_check {
 #if (FLUX_EA > 0 && USESURFACEMODEL == 0)
         double E0 = 0.0;
         double thetaImpact = 0.0;
-        double particleTrackVector[3] = {0.0f};
-        double surfaceNormalVector[3] = {0.0f};
+        double particleTrackVector[3] = {0.0};
+        double surfaceNormalVector[3] = {0.0};
         double norm_part = 0.0;
         double partDotNormal = 0.0;
         particleTrackVector[0] = particlesPointer->vx[indx];

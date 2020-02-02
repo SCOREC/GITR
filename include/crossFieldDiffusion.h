@@ -133,7 +133,7 @@ void operator()( size_t indx) const {
 //     z_minus = z0-k1z;
     // cout << "pos plus " << x_plus << " " << y_plus << " " << z_plus <<  endl;
     // cout << "pos minus " << x_minus << " " << y_minus << " " << z_minus <<  endl;
-    double B_plus[3] = {0.0f};
+    double B_plus[3] = {0.0};
         interp2dVector(&B_plus[0],x_plus,y_plus,z_plus,nR_Bfield,nZ_Bfield,
                                BfieldGridRDevicePointer,BfieldGridZDevicePointer,BfieldRDevicePointer,BfieldZDevicePointer,BfieldTDevicePointer);
         double Bmag_plus =  sqrt(B_plus[0]*B_plus[0] + B_plus[1]*B_plus[1] + B_plus[2]*B_plus[2]);
@@ -144,7 +144,7 @@ void operator()( size_t indx) const {
 //   double yNew = y0+0.5*(k1y+k2y); 
 //   double zNew = z0+0.5*(k1z+k2z); 
 //    cout <<"pps new plus " << xNew << " " << yNew << " " << zNew <<  endl;
-//    double B_minus[3] = {0.0f};
+//    double B_minus[3] = {0.0};
 //        interp2dVector(&B_minus[0],x_minus,y_minus,z_minus,nR_Bfield,nZ_Bfield,
 //                               BfieldGridRDevicePointer,BfieldGridZDevicePointer,BfieldRDevicePointer,BfieldZDevicePointer,BfieldTDevicePointer);
 //        double Bmag_minus =  sqrt(B_minus[0]*B_minus[0] + B_minus[1]*B_minus[1] + B_minus[2]*B_minus[2]);
@@ -156,8 +156,8 @@ void operator()( size_t indx) const {
 //   double zNew_minus = z0+0.5*(k1z+k2z); 
 //    cout <<"pps new minus " << xNew_minus << " " << yNew_minus << " " << zNew_minus <<  endl;
     
-    double B_deriv1[3] = {0.0f};
-//    double B_deriv2[3] = {0.0f};
+    double B_deriv1[3] = {0.0};
+//    double B_deriv2[3] = {0.0};
     // cout << "B_plus " << B_plus[0] << " " <<  B_plus[1]<< " " <<  B_plus[2]<< " " << endl;
     // cout << "B_minus " << B_minus[0] << " " <<  B_minus[1]<< " " <<  B_minus[2]<< " " << endl;
     B_deriv1[0] = (B_plus[0] - B[0])/(h);
@@ -169,8 +169,8 @@ void operator()( size_t indx) const {
    // B_deriv1[2] = (B_plus[2] - B_minus[2])/(2*h);
     // cout << "B_deriv1 " << B_deriv1[0] << " " <<  B_deriv1[1]<< " " <<  B_deriv1[2]<< " " << endl;
     // cout << "Bderiv2 " << B_deriv2[0] << " " <<  B_deriv2[1]<< " " <<  B_deriv2[2]<< " " << endl;
-    //double pos_deriv1[3] = {0.0f};
-    //double pos_deriv2[3] = {0.0f};
+    //double pos_deriv1[3] = {0.0};
+    //double pos_deriv2[3] = {0.0};
     //pos_deriv1[0] = (xNew-x0)/(h);
     //pos_deriv1[1] = (yNew-y0)/(h);
     //pos_deriv1[2] = (zNew-z0)/(h);
@@ -248,9 +248,9 @@ perpVector[2] = B_deriv1[2];
     //double r_out = R-step;
     //double A_in = R*R-r_in*r_in;
     //double A_out = r_out*r_out-R*R;
-    //double theta[100] = {0.0f};
-    //double f_theta[100] = {0.0f};
-    //double cdf[100] = {0.0f};
+    //double theta[100] = {0.0};
+    //double f_theta[100] = {0.0};
+    //double cdf[100] = {0.0};
     //for(int ii=0;ii<100;ii++)
     //{ theta[ii] = 3.1415/100.0*ii;
     //  f_theta[ii] = 

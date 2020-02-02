@@ -32,24 +32,24 @@ void getBoundaryNormal(Boundary* boundaryVector,int wallIndex,double surfaceNorm
             surfaceNormalVector[2] = boundaryVector[wallIndex].c/norm_normal;
   #else
             double tol = 1e12;
-            double norm_normal = 0.0f;
+            double norm_normal = 0.0;
             if (boundaryVector[wallIndex].slope_dzdx == 0.0)
                 {
-                 surfaceNormalVector[0] = 0.0f;
-                 surfaceNormalVector[1] = 0.0f;
-                 surfaceNormalVector[2] = 1.0f;
+                 surfaceNormalVector[0] = 0.0;
+                 surfaceNormalVector[1] = 0.0;
+                 surfaceNormalVector[2] = 1.0;
                 }
-            else if (abs(boundaryVector[wallIndex].slope_dzdx)>= 0.75f*tol)
+            else if (abs(boundaryVector[wallIndex].slope_dzdx)>= 0.75*tol)
                 {
-                    surfaceNormalVector[0] = 1.0f;
-                    surfaceNormalVector[1] = 0.0f;
-                    surfaceNormalVector[2] = 0.0f;
+                    surfaceNormalVector[0] = 1.0;
+                    surfaceNormalVector[1] = 0.0;
+                    surfaceNormalVector[2] = 0.0;
                 }
             else
                 {
-                    surfaceNormalVector[0] = 1.0f;
-                    surfaceNormalVector[1] = 0.0f;
-                    surfaceNormalVector[2] = -1.0f / (boundaryVector[wallIndex].slope_dzdx);
+                    surfaceNormalVector[0] = 1.0;
+                    surfaceNormalVector[1] = 0.0;
+                    surfaceNormalVector[2] = -1.0 / (boundaryVector[wallIndex].slope_dzdx);
             norm_normal = sqrt(surfaceNormalVector[2]*surfaceNormalVector[2] + 1.0); 
             surfaceNormalVector[0] = surfaceNormalVector[0]/norm_normal;
             surfaceNormalVector[1] = surfaceNormalVector[1]/norm_normal;
@@ -57,7 +57,7 @@ void getBoundaryNormal(Boundary* boundaryVector,int wallIndex,double surfaceNorm
             surfaceNormalVector[2] = surfaceNormalVector[2]/norm_normal;
                 }
 #if USECYLSYMM > 0 
-            double theta = atan2f(y,x);
+            double theta = atan2(y,x);
             double Sr = surfaceNormalVector[0];
             surfaceNormalVector[0] = cos(theta)*Sr;
             surfaceNormalVector[1] = sin(theta)*Sr;
@@ -244,14 +244,14 @@ void operator()(size_t indx) const {
     if (particles->hitWall[indx] == 1.0) {
       double E0 = 0.0;
       double thetaImpact = 0.0;
-      double particleTrackVector[3] = {0.0f};
-      double surfaceNormalVector[3] = {0.0f};
-      double vSampled[3] = {0.0f};
+      double particleTrackVector[3] = {0.0};
+      double surfaceNormalVector[3] = {0.0};
+      double vSampled[3] = {0.0};
       double norm_part = 0.0;
       int signPartDotNormal = 0;
       double partDotNormal = 0.0;
-      double Enew = 0.0f;
-      double angleSample = 0.0f;
+      double Enew = 0.0;
+      double angleSample = 0.0;
       int wallIndex = 0;
       double tol = 1e12;
       double Sr = 0.0;
@@ -395,7 +395,7 @@ void operator()(size_t indx) const {
                            nE_sputtRefDistOutRef,nA_sputtRefDistIn,nE_sputtRefDistIn,
                                          energyDistGrid01Ref,A_sputtRefDistIn,
                                          E_sputtRefDistIn,EDist_CDF_R_regrid );
-                   //newWeight=(R0/(1.0f-sputtProb))*weight;
+                   //newWeight=(R0/(1.0-sputtProb))*weight;
 		   newWeight = weight*(totalYR);
     #if FLUX_EA > 0
               EdistInd = floor((eInterpVal-E0dist)/dEdist);

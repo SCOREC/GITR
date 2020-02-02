@@ -48,21 +48,21 @@ if(indN < 0 || indN > nD-2)
 {indN = 0;}
 if(charge > 74-1)
 {charge = 0;}
-        double aT = pow(10.0f,rateGrid_Tempp[indT+1]) - te;
-    double bT = te - pow(10.0f,rateGrid_Tempp[indT]);
+        double aT = pow(10.0,rateGrid_Tempp[indT+1]) - te;
+    double bT = te - pow(10.0,rateGrid_Tempp[indT]);
     double abT = aT+bT;
 
-    double aN = pow(10.0f,rateGrid_Densp[indN+1]) - ne;
-    double bN = ne - pow(10.0f, rateGrid_Densp[indN]);
+    double aN = pow(10.0,rateGrid_Densp[indN+1]) - ne;
+    double bN = ne - pow(10.0, rateGrid_Densp[indN]);
     double abN = aN + bN;
 
     //double interp_value = Rates[charge*rateGrid_Temp.size()*rateGrid_Dens.size()            + indT*rateGrid_Dens.size() + indN];
 
-    double fx_z1 = (aN*pow(10.0f,Ratesp[charge*nT*nD + indT*nD + indN]) 
-            + bN*pow(10.0f,Ratesp[charge*nT*nD            + indT*nD + indN + 1]))/abN;
+    double fx_z1 = (aN*pow(10.0,Ratesp[charge*nT*nD + indT*nD + indN]) 
+            + bN*pow(10.0,Ratesp[charge*nT*nD            + indT*nD + indN + 1]))/abN;
     
-    double fx_z2 = (aN*pow(10.0f,Ratesp[charge*nT*nD            + (indT+1)*nD + indN]) 
-            + bN*pow(10.0f,Ratesp[charge*nT*nD            + (indT+1)*nD + indN+1]))/abN;
+    double fx_z2 = (aN*pow(10.0,Ratesp[charge*nT*nD            + (indT+1)*nD + indN]) 
+            + bN*pow(10.0,Ratesp[charge*nT*nD            + (indT+1)*nD + indN+1]))/abN;
     double fxz = (aT*fx_z1+bT*fx_z2)/abT;
     //cout << "fxz1 and 2 " << fx_z1 << " " << fx_z2<< " "<< fxz << endl;
 if(false)
@@ -75,7 +75,7 @@ CUDA_CALLABLE_MEMBER
 double interpRateCoeff2d ( int charge, double x, double y, double z,int nx, int nz, double* tempGridxp,
        double* tempGridzp, double* Tempp,
        double* densGridxp,double* densGridzp,double* Densp,int nT_Rates, int nD_Rates,
-       double* rateGrid_Temp,double* rateGrid_Dens,double* Rates ) {
+       double* rateGrid_Temp,double* rateGrid_Dens,double* Rates, double* t_at = nullptr, double* n_at = nullptr ) {
 //    cout << "rate test " << Tempp[0] << endl;
     /*vector<double>& Tdata = *Tempp;
     vector<double>& Tgridx = *tempGridxp;
@@ -95,9 +95,11 @@ double interpRateCoeff2d ( int charge, double x, double y, double z,int nx, int 
     double RClocal = rateCoeffInterp(charge,tlocal,nlocal,nT_Rates,nD_Rates,rateGrid_Temp, rateGrid_Dens, Rates);
     double tion = 1/(RClocal*nlocal);
     if(tlocal == 0.0 || nlocal == 0.0) tion=1.0e12;
-   if(false && COMPARE_GITR_PRINT==1)
+   if(COMPARE_GITR_PRINT==1)
       printf("interpRateCoeff2d:tlocal %g nlocal %g RClocal %g charge %d \n", tlocal, nlocal, RClocal, charge);
     //cout << "Returning " << endl;
+    if(t_at !=nullptr && n_at!=nullptr) { *t_at = tlocal; *n_at=nlocal;}
+
     return tion;
 }
 
