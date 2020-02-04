@@ -4,7 +4,7 @@ struct ionize {
   void operator()(std::size_t indx) const { 
     double ionTemperature = getIonTemperature()
     double ionDensity = getIonDensity()
-    double P = expf(-dt/ionTemperature);
+    double P = exp(-dt/ionTemperature);
     double P1 = 1.0-P;
     double r1 = rand()
     double chargeAdd = 0.0;

@@ -23,7 +23,7 @@ using namespace std;
 #include "interpRateCoeff.hpp"
 
 #ifndef COMPARE_GITR_PRINT
-#define COMPARE_GITR_PRINT 1
+#define COMPARE_GITR_PRINT 0
 #endif
 
 struct recombine { 
@@ -100,7 +100,7 @@ struct recombine {
     {
        tion = interpRateCoeff2d ( particlesPointer->charge[indx], particlesPointer->x[indx], particlesPointer->y[indx], particlesPointer->z[indx],nR_Temp,nZ_Temp, TempGridr,TempGridz,te,DensGridr,DensGridz, ne,nTemperaturesRecomb,nDensitiesRecomb,gridTemperature_Recombination,gridDensity_Recombination,rateCoeff_Recombination, &t_at, &n_at);
        //double PrP = particlesPointer->PrecombinationPrevious[indx];
-       double P = expf(-dt/tion);
+       double P = exp(-dt/tion);
        //particlesPointer->PrecombinationPrevious[indx] = PrP*P;
        P1 = 1.0-P;
     }
@@ -135,8 +135,8 @@ struct recombine {
           auto xx=particlesPointer->x[indx];
           auto yy=particlesPointer->y[indx];
           auto zz=particlesPointer->z[indx];
-          printf("recomb: ptcl %d timestep %d rate %g temp %g dens %g recrand %g "
-              " pos %g %g %g r1 %g r1@ %d\n",
+          printf("recomb: ptcl %d timestep %d rate %.15e temp %.15e dens %.15e recrand %.15e "
+              " pos %.15e %.15e %.15e r1 %.15e r1@ %d\n",
               pindex, nthStep-1, tion, t_at, n_at, r1, xx, yy, zz, r1, beg+idof);
         }
 	if(r1 <= P1)

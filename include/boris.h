@@ -18,7 +18,7 @@ using namespace std;
 #include <algorithm>
 
 #ifndef COMPARE_GITR_PRINT
-#define COMPARE_GITR_PRINT 1
+#define COMPARE_GITR_PRINT 0
 #endif
 
 CUDA_CALLABLE_MEMBER
@@ -657,7 +657,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
 
 #if BIASED_SURFACE > 0
     pot = boundaryVector[minIndex].potential;
-    Emag = pot/(2.0*boundaryVector[minIndex].ChildLangmuirDist)*expf(-minDistance/(2.0*boundaryVector[minIndex].ChildLangmuirDist));
+    Emag = pot/(2.0*boundaryVector[minIndex].ChildLangmuirDist)*exp(-minDistance/(2.0*boundaryVector[minIndex].ChildLangmuirDist));
 #else 
     angle = boundaryVector[minIndex].angle;    
     fd  =  0.98992 + 5.1220E-03 * angle  -
@@ -670,9 +670,9 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
 
         double debyeLength = boundaryVector[minIndex].debyeLength;
         double larmorRadius = boundaryVector[minIndex].larmorRadius;
-        Emag = pot*(fd/(2.0 * boundaryVector[minIndex].debyeLength)*expf(-minDistance/(2.0 * boundaryVector[minIndex].debyeLength))+ (1.0 - fd)/(boundaryVector[minIndex].larmorRadius)*expf(-minDistance/boundaryVector[minIndex].larmorRadius) );
-        double part1 = pot*(fd/(2.0 * boundaryVector[minIndex].debyeLength)*expf(-minDistance/(2.0 * boundaryVector[minIndex].debyeLength)));
-        double part2 = pot*(1.0 - fd)/(boundaryVector[minIndex].larmorRadius)*expf(-minDistance/boundaryVector[minIndex].larmorRadius);
+        Emag = pot*(fd/(2.0 * boundaryVector[minIndex].debyeLength)*exp(-minDistance/(2.0 * boundaryVector[minIndex].debyeLength))+ (1.0 - fd)/(boundaryVector[minIndex].larmorRadius)*exp(-minDistance/boundaryVector[minIndex].larmorRadius) );
+        double part1 = pot*(fd/(2.0 * boundaryVector[minIndex].debyeLength)*exp(-minDistance/(2.0 * boundaryVector[minIndex].debyeLength)));
+        double part2 = pot*(1.0 - fd)/(boundaryVector[minIndex].larmorRadius)*exp(-minDistance/boundaryVector[minIndex].larmorRadius);
 
 #endif
     if(minDistance == 0.0 || boundaryVector[minIndex].larmorRadius == 0.0)
@@ -735,16 +735,16 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
 
     double pott = boundaryVector[minI].potential;
     double Efmag = pott/(2.0*boundaryVector[minI].ChildLangmuirDist)*
-           expf(-minD/(2.0*boundaryVector[minI].ChildLangmuirDist));
+           exp(-minD/(2.0*boundaryVector[minI].ChildLangmuirDist));
     double Ef[3]={0};
     double dirVec[3]={0}, diffV[3]={0}, vN[3]={0};
     vectorSubtract(pt, minq, diffV);
     vectorNormalize(diffV, vN);
     vectorScalarMult(Efmag, vN, Ef);
 
-     printf("calcE: ptcl %d pot %g CLD %g mindist %g minIndex %d Emag %g dirV %g %g %g" 
-          " pos %g %g %g closest_test %g %g %g : mindist_test %g minInd_test %d " 
-          "testFace: %g %g %g : %g %g %g : %g %g %g Efmag %g Ef: %g %g %g\n",
+     printf("calcE: ptcl %d pot %.15e CLD %.15e mindist %.15e minIndex %d Emag %.15e dirV %.15e %.15e %.15e" 
+          " pos %.15e %.15e %.15e closest_test %.15e %.15e %.15e : mindist_test %.15e minInd_test %d " 
+          "testFace: %.15e %.15e %.15e : %.15e %.15e %.15e : %.15e %.15e %.15e Efmag %.15e Ef: %.15e %.15e %.15e\n",
           ptcl, pot, boundaryVector[minIndex].ChildLangmuirDist, minDistance, minIndex,
           Emag, directionUnitVector[0], directionUnitVector[1] , directionUnitVector[2], 
           pt[0], pt[1], pt[2], minq[0], minq[1], minq[2], minD, minI, minA[0],minA[1],minA[2],minB[0],minB[1],minB[2],
@@ -910,7 +910,7 @@ void operator()(size_t indx) {
     if(COMPARE_GITR_PRINT==1) {
       auto pindex = particlesPointer->index[indx];
       auto nthStep = particlesPointer->tt[indx];
-      int qc = particlesPointer->charge[indx];
+      float qc = particlesPointer->charge[indx];
       auto minIndex = bdryMinIndex; 
       auto CLD = boundaryVector[minIndex].ChildLangmuirDist;
       auto midx = boundaryVector[minIndex].midx;
@@ -927,8 +927,9 @@ void operator()(size_t indx) {
       auto x3 = boundaryVector[minIndex].x3;
       auto y3 = boundaryVector[minIndex].y3;
       auto z3 = boundaryVector[minIndex].z3;
-      printf("\nboris ptcl %d timestep %d charge %d E-boris %g %g %g minDist %g CLD %g ne %g te %g "
-            " pos %g %g %g minIndex %d  midx %g midy %g midz %g vert: %g %g %g : %g %g %g : %g %g %g \n", 
+      printf("\nboris ptcl %d timestep %d charge %f E-boris %.15e %.15e %.15e minDist %.15e CLD %.15e "
+          " ne %.15e te %.15e  pos %.15e %.15e %.15e minIndex %d  midx %.15e midy %.15e midz %.15e "
+          " vert: %.15e %.15e %.15e : %.15e %.15e %.15e : %.15e %.15e %.15e \n", 
            pindex, nthStep-1, qc, E[0],E[1],E[2], minDist, CLD, ne, te, position[0], position[1], position[2],
            minIndex, midx, midy, midz, x1,y1,z1, x2,y2,z2,x3,y3,z3);
     }              
@@ -972,11 +973,12 @@ void operator()(size_t indx) {
       particlesPointer->vy[indx] = v[1];
       particlesPointer->vz[indx] = v[2];    
       
-      if(false) {
-        printf("boris  ptcl %d pos %g %g %g => %g %g %g vel %g %g %g => %g %g %g \n", 
+      if(COMPARE_GITR_PRINT==1) {
+        printf("boris  ptcl %d pos %.15e %.15e %.15e => %.15e %.15e %.15e " 
+            "vel %.15e %.15e %.15e => %.15e %.15e %.15e B %.15e %.15e %.15e\n", 
             particlesPointer->index[indx],position[0], position[1], position[2],
             particlesPointer->x[indx], particlesPointer->y[indx], 
-            particlesPointer->z[indx], v0[0], v0[1], v0[2], v[0],v[1], v[2]);              
+            particlesPointer->z[indx], v0[0], v0[1], v0[2], v[0],v[1], v[2], B[0], B[1], B[2]);              
         }
     }
   }

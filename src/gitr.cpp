@@ -785,11 +785,11 @@ print_gpu_memory_usage(world_rank);
 #endif
       geomHashDim.push_back(hashNZ);
       geomHashDim.push_back(hashN);
-      NcVar hash_gridR = ncFile_hash.addVar("gridR", ncFloat, hashNR);
+      NcVar hash_gridR = ncFile_hash.addVar("gridR", ncDouble, hashNR);
 #if USE3DTETGEOM > 0
-      NcVar hash_gridY = ncFile_hash.addVar("gridY", ncFloat, hashNY);
+      NcVar hash_gridY = ncFile_hash.addVar("gridY", ncDouble, hashNY);
 #endif
-      NcVar hash_gridZ = ncFile_hash.addVar("gridZ", ncFloat, hashNZ);
+      NcVar hash_gridZ = ncFile_hash.addVar("gridZ", ncDouble, hashNZ);
       NcVar hash = ncFile_hash.addVar("hash", ncInt, geomHashDim);
       int ncIndex = 0;
       if (i > 0)
@@ -1023,11 +1023,11 @@ print_gpu_memory_usage(world_rank);
     geomHashDim_sheath.push_back(hashNZ_sheath);
     geomHashDim_sheath.push_back(hashN_sheath);
     NcVar hash_gridR_sheath =
-        ncFile_hash_sheath.addVar("gridR", ncFloat, hashNR_sheath);
+        ncFile_hash_sheath.addVar("gridR", ncDouble, hashNR_sheath);
     NcVar hash_gridY_sheath =
-        ncFile_hash_sheath.addVar("gridY", ncFloat, hashNY_sheath);
+        ncFile_hash_sheath.addVar("gridY", ncDouble, hashNY_sheath);
     NcVar hash_gridZ_sheath =
-        ncFile_hash_sheath.addVar("gridZ", ncFloat, hashNZ_sheath);
+        ncFile_hash_sheath.addVar("gridZ", ncDouble, hashNZ_sheath);
     NcVar hash_sheath =
         ncFile_hash_sheath.addVar("hash", ncInt, geomHashDim_sheath);
     hash_gridR_sheath.putVar(&closeGeomGridr_sheath[0]);
@@ -1371,20 +1371,20 @@ print_gpu_memory_usage(world_rank);
     NcDim nc_nZLc = ncFileLC.addDim("nZ", nZ_Lc);
     dims_lc.push_back(nc_nZLc);
 
-    NcVar nc_Lc = ncFileLC.addVar("Lc", ncFloat, dims_lc);
-    NcVar nc_s = ncFileLC.addVar("s", ncFloat, dims_lc);
-    NcVar nc_ftx = ncFileLC.addVar("fx", ncFloat, dims_lc);
-    NcVar nc_fty = ncFileLC.addVar("fy", ncFloat, dims_lc);
-    NcVar nc_ftz = ncFileLC.addVar("fz", ncFloat, dims_lc);
-    NcVar nc_btx = ncFileLC.addVar("bx", ncFloat, dims_lc);
-    NcVar nc_bty = ncFileLC.addVar("by", ncFloat, dims_lc);
-    NcVar nc_btz = ncFileLC.addVar("bz", ncFloat, dims_lc);
-    NcVar nc_nI = ncFileLC.addVar("noIntersection", ncFloat, dims_lc);
-    NcVar nc_gridRLc = ncFileLC.addVar("gridR", ncFloat, nc_nRLc);
+    NcVar nc_Lc = ncFileLC.addVar("Lc", ncDouble, dims_lc);
+    NcVar nc_s = ncFileLC.addVar("s", ncDouble, dims_lc);
+    NcVar nc_ftx = ncFileLC.addVar("fx", ncDouble, dims_lc);
+    NcVar nc_fty = ncFileLC.addVar("fy", ncDouble, dims_lc);
+    NcVar nc_ftz = ncFileLC.addVar("fz", ncDouble, dims_lc);
+    NcVar nc_btx = ncFileLC.addVar("bx", ncDouble, dims_lc);
+    NcVar nc_bty = ncFileLC.addVar("by", ncDouble, dims_lc);
+    NcVar nc_btz = ncFileLC.addVar("bz", ncDouble, dims_lc);
+    NcVar nc_nI = ncFileLC.addVar("noIntersection", ncDouble, dims_lc);
+    NcVar nc_gridRLc = ncFileLC.addVar("gridR", ncDouble, nc_nRLc);
 #if USE3DTETGEOM
-    NcVar nc_gridYLc = ncFileLC.addVar("gridY", ncFloat, nc_nYLc);
+    NcVar nc_gridYLc = ncFileLC.addVar("gridY", ncDouble, nc_nYLc);
 #endif
-    NcVar nc_gridZLc = ncFileLC.addVar("gridZ", ncFloat, nc_nZLc);
+    NcVar nc_gridZLc = ncFileLC.addVar("gridZ", ncDouble, nc_nZLc);
 
     nc_Lc.putVar(&Lc[0]);
     nc_s.putVar(&s[0]);
@@ -1801,9 +1801,9 @@ print_gpu_memory_usage(world_rank);
   dimsFlowV.push_back(nc_nZflow);
   dimsFlowV.push_back(nc_nYflow);
   dimsFlowV.push_back(nc_nRflow);
-  NcVar nc_flowVr = ncFileFlow.addVar("flowVr", ncFloat, dimsFlowV);
-  NcVar nc_flowVt = ncFileFlow.addVar("flowVt", ncFloat, dimsFlowV);
-  NcVar nc_flowVz = ncFileFlow.addVar("flowVz", ncFloat, dimsFlowV);
+  NcVar nc_flowVr = ncFileFlow.addVar("flowVr", ncDouble, dimsFlowV);
+  NcVar nc_flowVt = ncFileFlow.addVar("flowVt", ncDouble, dimsFlowV);
+  NcVar nc_flowVz = ncFileFlow.addVar("flowVz", ncDouble, dimsFlowV);
   nc_flowVr.putVar(&flowVr[0]);
   nc_flowVt.putVar(&flowVt[0]);
   nc_flowVz.putVar(&flowVz[0]);
@@ -2261,9 +2261,9 @@ print_gpu_memory_usage(world_rank);
       PSEz[i] = PSEzSub[i];
     }
   }
-  NcVar nc_PSEr = ncFileLC.addVar("PSEr", ncFloat, nc_nTracers);
-  NcVar nc_PSEt = ncFileLC.addVar("PSEt", ncFloat, nc_nTracers);
-  NcVar nc_PSEz = ncFileLC.addVar("PSEz", ncFloat, nc_nTracers);
+  NcVar nc_PSEr = ncFileLC.addVar("PSEr", ncDouble, nc_nTracers);
+  NcVar nc_PSEt = ncFileLC.addVar("PSEt", ncDouble, nc_nTracers);
+  NcVar nc_PSEz = ncFileLC.addVar("PSEz", ncDouble, nc_nTracers);
   nc_PSEr.putVar(&PSEr[0]);
   nc_PSEt.putVar(&PSEt[0]);
   nc_PSEz.putVar(&PSEz[0]);
@@ -3499,15 +3499,15 @@ print_gpu_memory_usage(world_rank);
     std::cout << "writing particles out file" << std::endl;
     NcFile ncFile_particles("output/particleSource.nc", NcFile::replace);
     NcDim pNP = ncFile_particles.addDim("nP", nP);
-    NcVar p_surfNormx = ncFile_particles.addVar("surfNormX", ncFloat, pNP);
-    NcVar p_surfNormy = ncFile_particles.addVar("surfNormY", ncFloat, pNP);
-    NcVar p_surfNormz = ncFile_particles.addVar("surfNormZ", ncFloat, pNP);
-    NcVar p_vx = ncFile_particles.addVar("vx", ncFloat, pNP);
-    NcVar p_vy = ncFile_particles.addVar("vy", ncFloat, pNP);
-    NcVar p_vz = ncFile_particles.addVar("vz", ncFloat, pNP);
-    NcVar p_x = ncFile_particles.addVar("x", ncFloat, pNP);
-    NcVar p_y = ncFile_particles.addVar("y", ncFloat, pNP);
-    NcVar p_z = ncFile_particles.addVar("z", ncFloat, pNP);
+    NcVar p_surfNormx = ncFile_particles.addVar("surfNormX", ncDouble, pNP);
+    NcVar p_surfNormy = ncFile_particles.addVar("surfNormY", ncDouble, pNP);
+    NcVar p_surfNormz = ncFile_particles.addVar("surfNormZ", ncDouble, pNP);
+    NcVar p_vx = ncFile_particles.addVar("vx", ncDouble, pNP);
+    NcVar p_vy = ncFile_particles.addVar("vy", ncDouble, pNP);
+    NcVar p_vz = ncFile_particles.addVar("vz", ncDouble, pNP);
+    NcVar p_x = ncFile_particles.addVar("x", ncDouble, pNP);
+    NcVar p_y = ncFile_particles.addVar("y", ncDouble, pNP);
+    NcVar p_z = ncFile_particles.addVar("z", ncDouble, pNP);
     p_surfNormx.putVar(&pSurfNormX[0]);
     p_surfNormy.putVar(&pSurfNormY[0]);
     p_surfNormz.putVar(&pSurfNormZ[0]);
@@ -3905,25 +3905,25 @@ print_gpu_memory_usage(world_rank);
     vector<NcDim> forceDims;
     forceDims.push_back(nc_nZf);
     forceDims.push_back(nc_nRf);
-    NcVar forceRf = ncFile_force.addVar("r", ncFloat, nc_nRf);
-    NcVar forceZf = ncFile_force.addVar("z", ncFloat, nc_nZf);
-    NcVar nction = ncFile_force.addVar("tIon", ncFloat, forceDims);
-    NcVar nctrec = ncFile_force.addVar("tRec", ncFloat, forceDims);
-    NcVar dvErf = ncFile_force.addVar("dvEr", ncFloat, forceDims);
-    NcVar dvEzf = ncFile_force.addVar("dvEz", ncFloat, forceDims);
-    NcVar dvEtf = ncFile_force.addVar("dvEt", ncFloat, forceDims);
-    NcVar dvBrf = ncFile_force.addVar("dvBr", ncFloat, forceDims);
-    NcVar dvBzf = ncFile_force.addVar("dvBz", ncFloat, forceDims);
-    NcVar dvBtf = ncFile_force.addVar("dvBt", ncFloat, forceDims);
-    NcVar dvCollrf = ncFile_force.addVar("dvCollr", ncFloat, forceDims);
-    NcVar dvCollzf = ncFile_force.addVar("dvCollz", ncFloat, forceDims);
-    NcVar dvColltf = ncFile_force.addVar("dvCollt", ncFloat, forceDims);
-    NcVar dvITGrf = ncFile_force.addVar("dvITGr", ncFloat, forceDims);
-    NcVar dvITGzf = ncFile_force.addVar("dvITGz", ncFloat, forceDims);
-    NcVar dvITGtf = ncFile_force.addVar("dvITGt", ncFloat, forceDims);
-    NcVar dvETGrf = ncFile_force.addVar("dvETGr", ncFloat, forceDims);
-    NcVar dvETGzf = ncFile_force.addVar("dvETGz", ncFloat, forceDims);
-    NcVar dvETGtf = ncFile_force.addVar("dvETGt", ncFloat, forceDims);
+    NcVar forceRf = ncFile_force.addVar("r", ncDouble, nc_nRf);
+    NcVar forceZf = ncFile_force.addVar("z", ncDouble, nc_nZf);
+    NcVar nction = ncFile_force.addVar("tIon", ncDouble, forceDims);
+    NcVar nctrec = ncFile_force.addVar("tRec", ncDouble, forceDims);
+    NcVar dvErf = ncFile_force.addVar("dvEr", ncDouble, forceDims);
+    NcVar dvEzf = ncFile_force.addVar("dvEz", ncDouble, forceDims);
+    NcVar dvEtf = ncFile_force.addVar("dvEt", ncDouble, forceDims);
+    NcVar dvBrf = ncFile_force.addVar("dvBr", ncDouble, forceDims);
+    NcVar dvBzf = ncFile_force.addVar("dvBz", ncDouble, forceDims);
+    NcVar dvBtf = ncFile_force.addVar("dvBt", ncDouble, forceDims);
+    NcVar dvCollrf = ncFile_force.addVar("dvCollr", ncDouble, forceDims);
+    NcVar dvCollzf = ncFile_force.addVar("dvCollz", ncDouble, forceDims);
+    NcVar dvColltf = ncFile_force.addVar("dvCollt", ncDouble, forceDims);
+    NcVar dvITGrf = ncFile_force.addVar("dvITGr", ncDouble, forceDims);
+    NcVar dvITGzf = ncFile_force.addVar("dvITGz", ncDouble, forceDims);
+    NcVar dvITGtf = ncFile_force.addVar("dvITGt", ncDouble, forceDims);
+    NcVar dvETGrf = ncFile_force.addVar("dvETGr", ncDouble, forceDims);
+    NcVar dvETGzf = ncFile_force.addVar("dvETGz", ncDouble, forceDims);
+    NcVar dvETGtf = ncFile_force.addVar("dvETGt", ncDouble, forceDims);
     forceRf.putVar(&forceR[0]);
     forceZf.putVar(&forceZ[0]);
     nction.putVar(&tIon[0]);
@@ -4495,9 +4495,9 @@ for(int i=0; i<nP ; i++)
       vector<NcDim> dims_ncMeshFile;
       dims_ncMeshFile.push_back(nc_xnums);
 
-      NcVar nc_meshx = ncMeshFile.addVar("x", ncFloat, dims_ncMeshFile);
-      NcVar nc_meshy = ncMeshFile.addVar("y", ncFloat, dims_ncMeshFile);
-      NcVar nc_meshz = ncMeshFile.addVar("z", ncFloat, dims_ncMeshFile);
+      NcVar nc_meshx = ncMeshFile.addVar("x", ncDouble, dims_ncMeshFile);
+      NcVar nc_meshy = ncMeshFile.addVar("y", ncDouble, dims_ncMeshFile);
+      NcVar nc_meshz = ncMeshFile.addVar("z", ncDouble, dims_ncMeshFile);
       nc_meshx.putVar(&bdryx[0]);
       nc_meshy.putVar(&bdryy[0]);
       nc_meshz.putVar(&bdryz[0]);
@@ -4598,16 +4598,16 @@ printf("writing positions file \n");
     vector<NcDim> dims0;
     dims0.push_back(nc_nP0);
 
-    NcVar nc_x0 = ncFile0.addVar("x", ncFloat, dims0);
-    NcVar nc_y0 = ncFile0.addVar("y", ncFloat, dims0);
-    NcVar nc_z0 = ncFile0.addVar("z", ncFloat, dims0);
-    NcVar nc_vx0 = ncFile0.addVar("vx", ncFloat, dims0);
-    NcVar nc_vy0 = ncFile0.addVar("vy", ncFloat, dims0);
-    NcVar nc_vz0 = ncFile0.addVar("vz", ncFloat, dims0);
-    NcVar nc_trans0 = ncFile0.addVar("transitTime", ncFloat, dims0);
-    NcVar nc_impact0 = ncFile0.addVar("hitWall", ncFloat, dims0);
-    NcVar nc_weight0 = ncFile0.addVar("weight", ncFloat, dims0);
-    NcVar nc_charge0 = ncFile0.addVar("charge", ncFloat, dims0);
+    NcVar nc_x0 = ncFile0.addVar("x", ncDouble, dims0);
+    NcVar nc_y0 = ncFile0.addVar("y", ncDouble, dims0);
+    NcVar nc_z0 = ncFile0.addVar("z", ncDouble, dims0);
+    NcVar nc_vx0 = ncFile0.addVar("vx", ncDouble, dims0);
+    NcVar nc_vy0 = ncFile0.addVar("vy", ncDouble, dims0);
+    NcVar nc_vz0 = ncFile0.addVar("vz", ncDouble, dims0);
+    NcVar nc_trans0 = ncFile0.addVar("transitTime", ncDouble, dims0);
+    NcVar nc_impact0 = ncFile0.addVar("hitWall", ncDouble, dims0);
+    NcVar nc_weight0 = ncFile0.addVar("weight", ncDouble, dims0);
+    NcVar nc_charge0 = ncFile0.addVar("charge", ncDouble, dims0);
     NcVar nc_leak0 = ncFile0.addVar("hasLeaked", ncInt, dims0);
 #if USE_MPI > 0
     nc_x0.putVar(&xGather[0]);
@@ -4716,15 +4716,15 @@ printf("done writing positions file\n");
     NcDim nc_nAngles = ncFile1.addDim("nAngles", nAdist);
     dimsSurfE.push_back(nc_nAngles);
     dimsSurfE.push_back(nc_nEnergies);
-    NcVar nc_grossDep = ncFile1.addVar("grossDeposition", ncFloat, nc_nLines);
-    NcVar nc_grossEro = ncFile1.addVar("grossErosion", ncFloat, nc_nLines);
-    NcVar nc_aveSpyl = ncFile1.addVar("aveSpyl", ncFloat, nc_nLines);
+    NcVar nc_grossDep = ncFile1.addVar("grossDeposition", ncDouble, nc_nLines);
+    NcVar nc_grossEro = ncFile1.addVar("grossErosion", ncDouble, nc_nLines);
+    NcVar nc_aveSpyl = ncFile1.addVar("aveSpyl", ncDouble, nc_nLines);
     NcVar nc_spylCounts = ncFile1.addVar("spylCounts", ncInt, nc_nLines);
     NcVar nc_surfNum = ncFile1.addVar("surfaceNumber", ncInt, nc_nLines);
     NcVar nc_sumParticlesStrike =
         ncFile1.addVar("sumParticlesStrike", ncInt, nc_nLines);
     NcVar nc_sumWeightStrike =
-        ncFile1.addVar("sumWeightStrike", ncFloat, nc_nLines);
+        ncFile1.addVar("sumWeightStrike", ncDouble, nc_nLines);
     nc_grossDep.putVar(&grossDeposition[0]);
     nc_surfNum.putVar(&surfaceNumbers[0]);
     nc_grossEro.putVar(&grossErosion[0]);
@@ -4732,15 +4732,15 @@ printf("done writing positions file\n");
     nc_spylCounts.putVar(&sputtYldCount[0]);
     nc_sumParticlesStrike.putVar(&sumParticlesStrike[0]);
     nc_sumWeightStrike.putVar(&sumWeightStrike[0]);
-    // NcVar nc_surfImpacts = ncFile1.addVar("impacts",ncFloat,dims1);
-    // NcVar nc_surfRedeposit = ncFile1.addVar("redeposit",ncFloat,dims1);
+    // NcVar nc_surfImpacts = ncFile1.addVar("impacts",ncDouble,dims1);
+    // NcVar nc_surfRedeposit = ncFile1.addVar("redeposit",ncDouble,dims1);
     // NcVar nc_surfStartingParticles =
-    // ncFile1.addVar("startingParticles",ncFloat,dims1); NcVar nc_surfZ =
-    // ncFile1.addVar("Z",ncFloat,dims1);
-    NcVar nc_surfEDist = ncFile1.addVar("surfEDist", ncFloat, dimsSurfE);
-    NcVar nc_surfReflDist = ncFile1.addVar("surfReflDist", ncFloat, dimsSurfE);
+    // ncFile1.addVar("startingParticles",ncDouble,dims1); NcVar nc_surfZ =
+    // ncFile1.addVar("Z",ncDouble,dims1);
+    NcVar nc_surfEDist = ncFile1.addVar("surfEDist", ncDouble, dimsSurfE);
+    NcVar nc_surfReflDist = ncFile1.addVar("surfReflDist", ncDouble, dimsSurfE);
     NcVar nc_surfSputtDist =
-        ncFile1.addVar("surfSputtDist", ncFloat, dimsSurfE);
+        ncFile1.addVar("surfSputtDist", ncDouble, dimsSurfE);
     // nc_surfImpacts.putVar(impacts);
     //#if USE3DTETGEOM > 0
     // nc_surfRedeposit.putVar(redeposit);
@@ -4828,13 +4828,13 @@ printf("done writing positions file\n");
 #endif
     dims.push_back(nc_nR);
 
-    NcVar nc_n = ncFile.addVar("n", ncFloat, dims);
-    NcVar nc_gridR = ncFile.addVar("gridR", ncFloat, nc_nR);
-    NcVar nc_gridZ = ncFile.addVar("gridZ", ncFloat, nc_nZ);
+    NcVar nc_n = ncFile.addVar("n", ncDouble, dims);
+    NcVar nc_gridR = ncFile.addVar("gridR", ncDouble, nc_nR);
+    NcVar nc_gridZ = ncFile.addVar("gridZ", ncDouble, nc_nZ);
     nc_gridR.putVar(&gridX_bins[0]);
     nc_gridZ.putVar(&gridZ_bins[0]);
 #if SPECTROSCOPY > 2
-    NcVar nc_gridY = ncFile.addVar("gridY", ncFloat, nc_nY);
+    NcVar nc_gridY = ncFile.addVar("gridY", ncDouble, nc_nY);
     nc_gridY.putVar(&gridY_bins[0]);
 #endif
     nc_n.putVar(&net_BinsTotal[0]);

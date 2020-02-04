@@ -18,8 +18,8 @@
 using namespace std;
 #endif
 
-#ifndef PRINT_DEBUG
-#define PRINT_DEBUG 1
+#ifndef COMPARE_GITR_PRINT
+#define COMPARE_GITR_PRINT 0
 #endif
 
 CUDA_CALLABLE_MEMBER
@@ -123,7 +123,7 @@ void getSlowDownFrequencies ( double& nu_friction, double& nu_deflection, double
                 	a_electron = ME/(2*te_eV*Q);// %q is just to convert units - no z needed
                 
                 	xx = pow(velocityNorm,2)*a_ion;
-                	//psi_prime = 2*sqrtf(xx/pi)*expf(-xx);
+                	//psi_prime = 2*sqrtf(xx/pi)*exp(-xx);
                 	//psi_psiprime = erf(1.0*sqrtf(xx));
                 	//psi = psi_psiprime - psi_prime;
                         //if(psi < 0.0) psi = 0.0;
@@ -133,13 +133,13 @@ void getSlowDownFrequencies ( double& nu_friction, double& nu_deflection, double
                             psi_prime = 1.128379*sqrt(xx);
                             psi = 0.75225278*pow(xx,1.5);
                             psi_psiprime = psi+psi_prime;
-                            psi_psiprime_psi2x = 1.128379*sqrt(xx)*expf(-xx);
+                            psi_psiprime_psi2x = 1.128379*sqrt(xx)*exp(-xx);
 		        //}
                     //if(psi_prime/psi > 1.0e7) psi = psi_psiprime/1.0e7;
                     //if(psi_prime < 0.0) psi_prime = 0.0;
                     //if(psi_psiprime < 0.0) psi_psiprime = 0.0;
                 	xx_e = pow(velocityNorm,2)*a_electron;
-                	//psi_prime_e = 2*sqrtf(xx_e/pi)*expf(-xx_e);
+                	//psi_prime_e = 2*sqrtf(xx_e/pi)*exp(-xx_e);
                 	//psi_psiprime_e = erf(1.0*sqrtf(xx_e));
                 	//psi_e = psi_psiprime_e - psi_prime_e;
                         //if(psi_e < 0.0) psi_e = 0.0;
@@ -149,7 +149,7 @@ void getSlowDownFrequencies ( double& nu_friction, double& nu_deflection, double
                             psi_prime_e = 1.128379*sqrt(xx_e);
                             psi_e = 0.75225278*pow(xx_e,1.5);
                             psi_psiprime_e = psi_e+psi_prime_e;
-                            psi_psiprime_psi2x_e = 1.128379*sqrt(xx_e)*expf(-xx_e);
+                            psi_psiprime_psi2x_e = 1.128379*sqrt(xx_e)*exp(-xx_e);
 		        //}
                     //if(psi_prime_e/psi_e > 1.0e7) psi_e = psi_psiprime_e/1.0e7;
                     //if(psi_prime_e < 0.0) psi_prime_e = 0.0;
@@ -182,8 +182,8 @@ void getSlowDownFrequencies ( double& nu_friction, double& nu_deflection, double
                     //cout << "nu friction, parallel perp energy ELECTRONs" << nu_friction_e << " " << nu_parallel_e << " " <<nu_deflection_e << " " << nu_energy_e << endl;
 	//	}
     nu_friction = nu_friction_i + nu_friction_e;
-    if(PRINT_DEBUG ==1) 
-      printf("timestep %d ptcl %d Nufriction  %g  \n", timestep, ptcl, nu_friction);    
+    if(COMPARE_GITR_PRINT ==1) 
+      printf("timestep %d ptcl %d Nufriction  %.15e  \n", timestep, ptcl, nu_friction);    
     nu_deflection = nu_deflection_i + nu_deflection_e;
     nu_parallel = nu_parallel_i + nu_parallel_e;
     nu_energy = nu_energy_i + nu_energy_e;
@@ -472,7 +472,15 @@ void operator()(size_t indx)  {
         double velx1 = vx;
         double vely1 = vy;
         double velz1 = vz;
-
+        
+        double xn = particlesPointer->x[indx];
+        double yn = particlesPointer->y[indx];
+        double zn = particlesPointer->z[indx];
+      if(COMPARE_GITR_PRINT ==1)
+        printf("GITRCollision-In: ptcl %d timestep %d charge %.15e VelIn %.15e %.15e %.15e "
+            " => Vel %.15e %.15e %.15e pos %.15e %.15e %.15e next_pos  %.15e %.15e %.15e \n", 
+         particlesPointer->index[indx],  particlesPointer->tt[indx]-1,
+         particlesPointer->charge[indx], velx1, vely1, velz1, vx, vy, vz, x,y, z, xn, yn, zn);
 #if FLOWV_INTERP == 3 
         interp3dVector (&flowVelocity[0], particlesPointer->xprevious[indx],particlesPointer->yprevious[indx],particlesPointer->zprevious[indx],nR_flowV,nY_flowV,nZ_flowV,
                 flowVGridr,flowVGridy,flowVGridz,flowVr,flowVz,flowVt);
@@ -558,8 +566,8 @@ void operator()(size_t indx)  {
         intermediate[beg+idof] = n1;
         intermediate[beg+idof+1] = n2;
         intermediate[beg+idof+2] = xsi;
-        if(PRINT_DEBUG ==1)
-          printf("Collision: beg %d @ %d n1 %g n2 %g xsi %g \n", beg, beg+idof, n1, n2, xsi );
+        if(COMPARE_GITR_PRINT ==1)
+          printf("Collision: beg %d @ %d n1 %.15e n2 %.15e xsi %.15e \n", beg, beg+idof, n1, n2, xsi );
       }
       
       int ptcl =  particlesPointer->index[indx];
@@ -721,9 +729,9 @@ void operator()(size_t indx)  {
       vx = particlesPointer->vx[indx];
       vy = particlesPointer->vy[indx];
       vz = particlesPointer->vz[indx];
-      if(PRINT_DEBUG ==1)
-        printf("GITRCollision: ptcl %d timestep %d charge %g VelIn %.10f %.10f %.10f "
-            " => Vel %.10f %.10f %.10f pos %.10f %.10f %.10f \n", 
+      if(COMPARE_GITR_PRINT ==1)
+        printf("GITRCollision: ptcl %d timestep %d charge %.15e VelIn %.15e %.15e %.15e "
+            " => Vel %.15e %.15e %.15e pos %.15e %.15e %.15e \n", 
          ptcl, nthStep-1, particlesPointer->charge[indx], velx1, vely1, velz1, vx, vy, vz, x,y, z);
       //if(vNew > 1.0e5){
       //cout << "vpartnorm ecoeff coeffpar vel coll " << vPartNorm << " " << (1.0-0.5*nu_energy*dt) << " " << (1+coeff_par) << " "

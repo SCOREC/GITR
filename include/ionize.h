@@ -23,7 +23,7 @@ using namespace std;
 #include "interpRateCoeff.hpp"
 
 #ifndef COMPARE_GITR_PRINT
-#define COMPARE_GITR_PRINT 1
+#define COMPARE_GITR_PRINT 0
 #endif
 
 struct ionize { 
@@ -97,7 +97,7 @@ struct ionize {
         double t_at=0, n_at=0;
        tion = interpRateCoeff2d ( particlesPointer->charge[indx], particlesPointer->x[indx], particlesPointer->y[indx], particlesPointer->z[indx],nR_Temp,nZ_Temp, TempGridr,TempGridz,te,DensGridr,DensGridz, ne,nTemperaturesIonize,nDensitiesIonize,gridTemperature_Ionization,gridDensity_Ionization,rateCoeff_Ionization, &t_at, &n_at );	
     //double PiP = particlesPointer->PionizationPrevious[indx];
-    double P = expf(-dt/tion);
+    double P = exp(-dt/tion);
     //particlesPointer->PionizationPrevious[indx] = PiP*P;
     double P1 = 1.0-P;
     //cout << "tion P P1 " << tion << " " << P << " " << P1 << " " << PiP<< endl;
@@ -147,8 +147,8 @@ struct ionize {
         auto xx=particlesPointer->x[indx];
         auto yy=particlesPointer->y[indx];
         auto zz=particlesPointer->z[indx];
-          printf("ioni: ptcl %d timestep %d rate %g temp %g den %g ionirand %g P1 %g " 
-              "pos %g %g %g r1 %g r1@ %d \n", 
+          printf("ioni: ptcl %d timestep %d rate %.15e temp %.15e den %.15e ionirand %.15e P1 %.15e " 
+              "pos %.15e %.15e %.15e r1 %.15e r1@ %d \n", 
               pindex, nthStep-1, tion, t_at, n_at, r1, P1, xx, yy, zz, r1, beg+idof);
       }
 
