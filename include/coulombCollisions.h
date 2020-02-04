@@ -712,7 +712,6 @@ void operator()(size_t indx)  {
       double nuEdt = nu_energy * dt;
       if (nuEdt < -1.0)
         nuEdt = -1.0;
-	nuEdt =0.0;// added by me for testing remov later 
       particlesPointer->vx[indx] = vPartNorm * (1.0 - 0.5 * nuEdt) * ((1 + coeff_par) * parallel_direction[0] + abs(n2) * (coeff_perp1 * perp_direction1[0] + coeff_perp2 * perp_direction2[0])) + velocityCollisions[0];
       particlesPointer->vy[indx] = vPartNorm * (1.0 - 0.5 * nuEdt) * ((1 + coeff_par) * parallel_direction[1] + abs(n2) * (coeff_perp1 * perp_direction1[1] + coeff_perp2 * perp_direction2[1])) + velocityCollisions[1];
       particlesPointer->vz[indx] = vPartNorm * (1.0 - 0.5 * nuEdt) * ((1 + coeff_par) * parallel_direction[2] + abs(n2) * (coeff_perp1 * perp_direction1[2] + coeff_perp2 * perp_direction2[2])) + velocityCollisions[2];
