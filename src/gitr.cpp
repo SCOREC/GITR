@@ -1944,7 +1944,6 @@ print_gpu_memory_usage(world_rank);
     }
   }
 
-
   // Initialization of ionization and recombination coefficients
   int nCS_Ionize = 1, nCS_Recombine = 1;
   const char *ionizeNcs, *ionizeNDens, *ionizeNTemp, *ionizeDensGrid,
@@ -4147,6 +4146,27 @@ print_gpu_memory_usage(world_rank);
       netCDF::NcDim ncdim_rnd_coll3_at = ncFile_hist.addDim("RndCollision_xsi_at", 6);
       netCDF::NcDim ncdim_rnd_refl = ncFile_hist.addDim("RndReflection", 4);
       netCDF::NcDim ncdim_rnd_refl_at = ncFile_hist.addDim("RndReflection_at", 7);
+     
+      int optir=0, optdiff=0, optcoll=0, optsurf=0;
+      #if USEIONIZATION > 0
+        #if USERECOMBINATION > 0
+          optir = 1;
+        #endif
+      #endif
+      #if USECOULOMBCOLLISIONS > 0
+        optcoll = 1;
+      #endif
+      #if USEPERPDIFFUSION > 0
+        optdiff = 1;
+      #endif
+      #if USESURFACEMODEL > 0
+        optsurf = 1;
+      #endif
+
+      netCDF::NcDim ncdim_opt_ir = ncFile_hist.addDim("Opt_IoniRecomb", optir);
+      netCDF::NcDim ncdim_opt_diff = ncFile_hist.addDim("Opt_Diffusion", optdiff); 
+      netCDF::NcDim ncdim_opt_coll = ncFile_hist.addDim("Opt_Collision", optcoll);
+      netCDF::NcDim ncdim_opt_surf = ncFile_hist.addDim("Opt_SurfaceModel", optsurf);
       
       vector<NcDim>dims_intermediate;
       dims_intermediate.push_back(ncdim_np);

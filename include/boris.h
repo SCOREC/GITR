@@ -932,10 +932,13 @@ void operator()(size_t indx) {
           " vert: %.15e %.15e %.15e : %.15e %.15e %.15e : %.15e %.15e %.15e \n", 
            pindex, nthStep-1, qc, E[0],E[1],E[2], minDist, CLD, ne, te, position[0], position[1], position[2],
            minIndex, midx, midy, midz, x1,y1,z1, x2,y2,z2,x3,y3,z3);
-    }              
+    }             
+    int ptcl = particlesPointer->index[indx];
+
+
     interp2dVector(&B[0],position[0], position[1], position[2],nR_Bfield,nZ_Bfield,
         BfieldGridRDevicePointer,BfieldGridZDevicePointer,BfieldRDevicePointer,
-        BfieldZDevicePointer,BfieldTDevicePointer);        
+        BfieldZDevicePointer,BfieldTDevicePointer); 
     Bmag = vectorNorm(B);
     q_prime = particlesPointer->charge[indx]*1.60217662e-19/(particlesPointer->amu[indx]*1.6737236e-27)*dt*0.5;
     coeff = 2.0*q_prime/(1.0+(q_prime*Bmag)*(q_prime*Bmag));
@@ -959,9 +962,23 @@ void operator()(size_t indx) {
     vectorCrossProduct(v_prime, B, vpxB);
     vectorScalarMult(coeff,vpxB,c_vpxB);
     vectorAdd(v_minus, c_vpxB, v);
-
+auto v1_ = v[0];
+auto v2_ = v[1];
+auto v3_ = v[2];
     //v = v + q_prime*E
     vectorAdd(v,qpE,v);
+
+    if(COMPARE_GITR_PRINT==1) {
+      printf("Boris0 ptcl %d timestep %d eField %.15e %.15e %.15e bField %.15e %.15e %.15e "
+        " qPrime %.15e coeff %.15e qpE %.15e %.15e %.15e vmxB %.15e %.15e %.15e " 
+        "qp_vmxB %.15e %.15e %.15e  v_prime %.15e %.15e %.15e vpxB %.15e %.15e %.15e "
+        " c_vpxB %.15e %.15e %.15e  v_ %.15e %.15e %.15e \n", 
+        particlesPointer->index[indx],  particlesPointer->tt[indx]-1, E[0],E[1],E[2], B[0],B[1],B[2],   
+        q_prime, coeff, qpE[0], qpE[1], qpE[2],vmxB[0], vmxB[1],vmxB[2], qp_vmxB[0], qp_vmxB[1],  qp_vmxB[2],
+         v_prime[0], v_prime[1], v_prime[2] , vpxB[0], vpxB[1], vpxB[2], c_vpxB[0],c_vpxB[1],c_vpxB[2],
+         v1_, v2_, v3_);
+    }
+
 
     if(particlesPointer->hitWall[indx] == 0.0)
     {
