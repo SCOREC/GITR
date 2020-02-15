@@ -439,7 +439,7 @@ struct geometry_check {
             particlesPointer->wallHit[indx] = i;
             //#if USESURFACEMODEL == 0
             //  #if USE_CUDA > 0
-            //    atomicAdd1(&boundaryVector[i].impacts,
+            //    atomicAdd(&boundaryVector[i].impacts,
             //    particlesPointer->weight[indx]);
             //  #else
             //    boundaryVector[i].impacts = boundaryVector[i].impacts +
@@ -472,7 +472,7 @@ struct geometry_check {
             //    {
             //        int aTally =
             //        floor((thetaImpact-surfaces->A0)/surfaces->dA);
-            //        atomicAdd1(&surfaces->energyDistribution[i*surfaces->nE*surfaces->nA+
+            //        atomicAdd(&surfaces->energyDistribution[i*surfaces->nE*surfaces->nA+
             //        aTally*surfaces->nE + tally_index],
             //        particlesPointer->weight[indx]);
             //    }
@@ -948,15 +948,15 @@ struct geometry_check {
           if ((EdistInd >= 0) && (EdistInd < nEdist) && (AdistInd >= 0) &&
               (AdistInd < nAdist)) {
 #if USE_CUDA > 0
-            atomicAdd1(
+            atomicAdd(
                 &surfaces->energyDistribution[surfaceHit * nEdist * nAdist +
                                               EdistInd * nAdist + AdistInd],
                 particlesPointer->weight[indx]);
-            atomicAdd1(&surfaces->grossDeposition[surfaceHit],
+            atomicAdd(&surfaces->grossDeposition[surfaceHit],
                       particlesPointer->weight[indx]);
-            atomicAdd1(&surfaces->sumWeightStrike[surfaceHit],
+            atomicAdd(&surfaces->sumWeightStrike[surfaceHit],
                       particlesPointer->weight[indx]);
-            atomicAdd1(&surfaces->sumParticlesStrike[surfaceHit], 1);
+            atomicAdd(&surfaces->sumParticlesStrike[surfaceHit], 1);
 #else
 
             surfaces->energyDistribution[surfaceHit * nEdist * nAdist +

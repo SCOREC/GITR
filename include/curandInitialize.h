@@ -42,7 +42,6 @@ struct curandInitialize{
        ////    seedTotal = thread_id*2;
        ////}
        ////else{ seedTotal = thread_id;}
-
         curand_init(indx, 0, 0, &s[indx]);
 #else
         random_device randDevice;

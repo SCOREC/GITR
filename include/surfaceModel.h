@@ -19,7 +19,11 @@
 #include <thrust/random.h>
 #else
 #include <random>
-using namespace std:
+using namespace std;
+#endif
+
+#ifndef SURF_DEBUG_PRINT
+#define SURF_DEBUG_PRINT 1
 #endif
 
 CUDA_CALLABLE_MEMBER
@@ -263,18 +267,20 @@ void operator()(size_t indx) const {
       int wallHit = particles->wallHit[indx];
       int surfaceHit = boundaryVector[wallHit].surfaceNumber;
       int surface = boundaryVector[wallHit].surface;
-      if (wallHit > 260)
-        wallHit = 260;
+
+int tstep = particles->tt[indx]-1;
+int ptcl = particles->index[indx];
+//FIXME TODO  uncomment this
+ //     if (wallHit > 260)
+ //       wallHit = 260;
       if (wallHit < 0)
         wallHit = 0;
-      if (surfaceHit > 260)
-        surfaceHit = 260;
+//      if (surfaceHit > 260)
+//        surfaceHit = 260;
       if (surfaceHit < 0)
         surfaceHit = 0;
-      if (surface > 260)
-        surface = 260;
-      if (surface < 0)
-        surface = 0;
+//      if (surface > 260)
+//        surface = 260;
       double eInterpVal = 0.0;
       double aInterpVal = 0.0;
       double weight = particles->weight[indx];
@@ -282,8 +288,8 @@ void operator()(size_t indx) const {
       double vy = particles->vy[indx];
       double vz = particles->vz[indx];
 #if FLUX_EA > 0
-      double dEdist = (Edist - E0dist) / static_cast<double>(nEdist);
-      double dAdist = (Adist - A0dist) / static_cast<double>(nAdist);
+      double dEdist = (Edist - E0dist) / nEdist; //cast ?
+      double dAdist = (Adist - A0dist) / nAdist;
       int AdistInd = 0;
       int EdistInd = 0;
 #endif
@@ -293,6 +299,18 @@ void operator()(size_t indx) const {
       particleTrackVector[2] = vz;
       norm_part = sqrt(particleTrackVector[0] * particleTrackVector[0] + particleTrackVector[1] * particleTrackVector[1] + particleTrackVector[2] * particleTrackVector[2]);
       E0 = 0.5 * particles->amu[indx] * 1.6737236e-27 * (norm_part * norm_part) / 1.60217662e-19;
+
+      if(SURF_DEBUG_PRINT==1) {
+        auto xx = particles->x[indx]; 
+        auto yy = particles->y[indx];
+        auto zz = particles->z[indx];
+        auto amu = particles->amu[indx];
+        printf("SURF1 ptcl %d timestep %d pos %g %g %g vel %g %g %g : wallHit %d " 
+            "surfaceHit %d surface %d wallIndex %d  \n   norm %g weight %g amu %g  E0 %g \n", 
+            ptcl, tstep,  xx,yy,zz,vx, vy,vz, wallHit, surfaceHit, surface, 
+            particles->wallIndex[indx], norm_part, weight, amu, E0);
+      }
+
       if (E0 > 1000.0)
         E0 = 990.0;
       //cout << "Particle hit wall with energy " << E0 << endl;
@@ -305,6 +323,7 @@ void operator()(size_t indx) const {
       particleTrackVector[2] = particleTrackVector[2] / norm_part;
 
       partDotNormal = vectorDotProduct(particleTrackVector, surfaceNormalVector);
+ 
       thetaImpact = acos(partDotNormal);
       if (thetaImpact > 3.14159265359 * 0.5) {
         thetaImpact = abs(thetaImpact - (3.14159265359));
@@ -330,6 +349,19 @@ void operator()(size_t indx) const {
       //cout << "Particle " << indx << " struck surface with energy and angle " << E0 << " " << thetaImpact << endl;
       //cout << " resulting in Y0 and R0 of " << Y0 << " " << R0 << endl;
       totalYR = Y0 + R0;
+
+      if(SURF_DEBUG_PRINT==1)
+        printf("SURF4 ptcl %d timestep %d surfaceNormal %g %g %g ptclTrackV %g %g %g partDotNormal %g "
+          " thetaImpact %g totalYR %g sputtProb %g \n bdrxyz %g %g %g : %g %g %g : %g %g %g \n"
+          " bdry:abcd %g %g %g %g plane_norm %g \n",
+          ptcl, tstep, surfaceNormalVector[0], surfaceNormalVector[1],surfaceNormalVector[2],
+          particleTrackVector[0], particleTrackVector[1], particleTrackVector[2], partDotNormal,
+          thetaImpact,  totalYR, Y0/totalYR, boundaryVector[wallHit].x1, boundaryVector[wallHit].y1, 
+          boundaryVector[wallHit].z1, boundaryVector[wallHit].x2, boundaryVector[wallHit].y2,
+          boundaryVector[wallHit].z2, boundaryVector[wallHit].x3, boundaryVector[wallHit].y3,
+          boundaryVector[wallHit].z3,   boundaryVector[wallHit].a,  boundaryVector[wallHit].b,
+           boundaryVector[wallHit].c,  boundaryVector[wallHit].d,  boundaryVector[wallHit].plane_norm);
+ 
 //if(particles->test[indx] == 0.0)
 //{
 //    particles->test[indx] = 1.0;
@@ -378,8 +410,8 @@ void operator()(size_t indx) const {
         intermediate[beg+idof+2] = r9;
         intermediate[beg+idof+3] = r10;
       }
-    
-                //particle either reflects or deposits
+
+            //particle either reflects or deposits
             double sputtProb = Y0/totalYR;
 	    int didReflect = 0;
             if(totalYR > 0.0)
@@ -397,6 +429,9 @@ void operator()(size_t indx) const {
                                          E_sputtRefDistIn,EDist_CDF_R_regrid );
                    //newWeight=(R0/(1.0-sputtProb))*weight;
 		   newWeight = weight*(totalYR);
+                  if(SURF_DEBUG_PRINT==1)
+                    printf("SURF5 reflects ptcl %d  timestep %d weight %g newWeight %g \n",
+                      ptcl, tstep, weight, newWeight);
     #if FLUX_EA > 0
               EdistInd = floor((eInterpVal-E0dist)/dEdist);
               AdistInd = floor((aInterpVal-A0dist)/dAdist);
@@ -404,21 +439,31 @@ void operator()(size_t indx) const {
                  (AdistInd >= 0) && (AdistInd < nAdist))
               {
             #if USE_CUDA > 0
-                  atomicAdd1(&surfaces->reflDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd],newWeight);
+                  atomicAdd(&(surfaces->reflDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd]),newWeight);
             #else      
                   surfaces->reflDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] = 
                     surfaces->reflDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] +  newWeight;
             #endif
-               }
+
+                 if(SURF_DEBUG_PRINT==1)
+                   printf("SURF6 reflDist ptcl %d  timestep %d newWeight %g aInterpVal %g " 
+                       "eInterpVal %g reflIndx %d \n", 
+                     ptcl, tstep, newWeight, aInterpVal, eInterpVal, 
+                     surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd);
+              }
 	       #endif
                   if(surface > 0)
                 {
 
             #if USE_CUDA > 0
-                    atomicAdd1(&surfaces->grossDeposition[surfaceHit],weight*(1.0-R0));
+                    atomicAdd(&(surfaces->grossDeposition[surfaceHit]),weight*(1.0-R0));
             #else
                     surfaces->grossDeposition[surfaceHit] = surfaces->grossDeposition[surfaceHit]+weight*(1.0-R0);
             #endif
+
+                 if(SURF_DEBUG_PRINT==1)
+                   printf("SURF7 grossDep ptcl %d timestep %d GrossDep+ %g surfaceHit %d \n", 
+                       ptcl, tstep, weight*(1.0-R0),  surfaceHit);
                 }
             }
             else //sputters
@@ -441,6 +486,11 @@ void operator()(size_t indx) const {
                 //cout << " particle sputters with " << eInterpVal << aInterpVal <<  endl;
                   //newWeight=(Y0/sputtProb)*weight;
 		  newWeight=weight*totalYR;
+
+              if(SURF_DEBUG_PRINT==1)
+                   printf("SURF8 sputtDist ptcl %d timestep %d  weight %g newWeight %g surface %d "
+                    " aInterpVal %g eInterpVal %g \n", 
+                       ptcl,  tstep, weight, newWeight, surface, aInterpVal, eInterpVal);
     #if FLUX_EA > 0
               EdistInd = floor((eInterpVal-E0dist)/dEdist);
               AdistInd = floor((aInterpVal-A0dist)/dAdist);
@@ -449,11 +499,16 @@ void operator()(size_t indx) const {
               {
                 //cout << " particle sputters with " << EdistInd << AdistInd <<  endl;
             #if USE_CUDA > 0
-                  atomicAdd1(&surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd],newWeight);
+                  atomicAdd(&(surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd]),newWeight);
             #else      
                   surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] = 
                     surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] +  newWeight;
               #endif 
+                  if(SURF_DEBUG_PRINT==1)
+                    printf("SURF9 sputters FLUX_EA  ptcl %d timestep %d  sputtDist indx %d "
+                      " tot sputtDist %g \n",ptcl, tstep, 
+                      surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd, 
+                      surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd]);
               }
 	       #endif
                   if(sputtProb == 0.0) newWeight = 0.0;
@@ -462,12 +517,12 @@ void operator()(size_t indx) const {
                 {
 
             #if USE_CUDA > 0
-                    atomicAdd1(&surfaces->grossDeposition[surfaceHit],weight*(1.0-R0));
-                    atomicAdd1(&surfaces->grossErosion[surfaceHit],newWeight);
-                    atomicAdd1(&surfaces->aveSputtYld[surfaceHit],Y0);
+                    atomicAdd(&(surfaces->grossDeposition[surfaceHit]),weight*(1.0-R0));
+                    atomicAdd(&(surfaces->grossErosion[surfaceHit]),newWeight);
+                    atomicAdd(&(surfaces->aveSputtYld[surfaceHit]),Y0);
                     if(weight > 0.0)
                     {
-                        atomicAdd1(&surfaces->sputtYldCount[surfaceHit],1);
+                        atomicAdd(&(surfaces->sputtYldCount[surfaceHit]),1);
                     }
             #else
                     surfaces->grossDeposition[surfaceHit] = surfaces->grossDeposition[surfaceHit]+weight*(1.0-R0);
@@ -475,38 +530,59 @@ void operator()(size_t indx) const {
                     surfaces->aveSputtYld[surfaceHit] = surfaces->aveSputtYld[surfaceHit] + Y0;
                     surfaces->sputtYldCount[surfaceHit] = surfaces->sputtYldCount[surfaceHit] + 1;
             #endif
+
+                 if(SURF_DEBUG_PRINT==1)
+                   printf("SURF10 DepErosSput ptcl %d timestep %d surfaceHit %d newWeight  %g GrossDep+ %g "
+                    " GrossEros+ %g AveSput+ %g SpYCount +1\n", 
+                      ptcl, tstep, surfaceHit, newWeight, weight*(1.0-R0), newWeight, Y0);
                 }
             }
             //cout << "eInterpValYR " << eInterpVal << endl; 
             }
-            else
-            {       newWeight = 0.0;
+            else // totalYR
+            { 
+              if(SURF_DEBUG_PRINT==1) printf("SURF10_ ptcl %d timestep %d weight %g  surface %d \n",
+                ptcl, tstep, weight, surface);
+                    newWeight = 0.0;
                     particles->hitWall[indx] = 2.0;
                   if(surface > 0)
                 {
             #if USE_CUDA > 0
-                    atomicAdd1(&surfaces->grossDeposition[surfaceHit],weight);
+                    atomicAdd(&(surfaces->grossDeposition[surfaceHit]),weight);
             #else
                     surfaces->grossDeposition[surfaceHit] = surfaces->grossDeposition[surfaceHit]+weight;
             #endif
-	        }
+
+                  if(SURF_DEBUG_PRINT==1) printf("SURF11 ptcl %d timestep %d totalYR=0 newWeight => 0 "
+                    "GrossDep+ %g grossDep %g\n", 
+                    ptcl, tstep, weight, surfaces->grossDeposition[surfaceHit]);
+                }
             //cout << "eInterpValYR_not " << eInterpVal << endl; 
             }
             //cout << "eInterpVal " << eInterpVal << endl; 
 	    if(eInterpVal <= 0.0)
-            {       newWeight = 0.0;
+            {
+                if(SURF_DEBUG_PRINT==1)
+                  printf("SURF12 eInterpVal <= 0.0  newWeight = 0.0 surface %d didReflect %d\n",surface,didReflect);
+
+                    newWeight = 0.0;
                     particles->hitWall[indx] = 2.0;
-                  if(surface > 0)
-                {
-		    if(didReflect)
-		    {
+
+              if(surface > 0)
+              {
+        		    if(didReflect)
+        		    {
             #if USE_CUDA > 0
-                    atomicAdd1(&surfaces->grossDeposition[surfaceHit],weight);
+                    atomicAdd(&(surfaces->grossDeposition[surfaceHit]),weight);
             #else
                     surfaces->grossDeposition[surfaceHit] = surfaces->grossDeposition[surfaceHit]+weight;
             #endif
-	            }
-		}
+	        
+                    if(SURF_DEBUG_PRINT==1)
+                      printf("SURF12b reflect ptcl %d timestep %d  surfaceHit %d GrossDep+ %g \n", 
+                        ptcl, tstep, surfaceHit, weight);
+                    }
+                }
             }
             //if(particles->test[indx] == 1.0)
             //{
@@ -516,9 +592,10 @@ void operator()(size_t indx) const {
                 //deposit on surface
             if(surface)
             {
+
             #if USE_CUDA > 0
-                atomicAdd1(&surfaces->sumWeightStrike[surfaceHit],weight);
-                atomicAdd1(&surfaces->sumParticlesStrike[surfaceHit],1);
+                atomicAdd(&(surfaces->sumWeightStrike[surfaceHit]),weight);
+                atomicAdd(&(surfaces->sumParticlesStrike[surfaceHit]),1);
             #else
                 surfaces->sumWeightStrike[surfaceHit] =surfaces->sumWeightStrike[surfaceHit] +weight;
                 surfaces->sumParticlesStrike[surfaceHit] = surfaces->sumParticlesStrike[surfaceHit]+1;
@@ -527,21 +604,33 @@ void operator()(size_t indx) const {
             #if FLUX_EA > 0
                 EdistInd = floor((E0-E0dist)/dEdist);
                 AdistInd = floor((thetaImpact-A0dist)/dAdist);
-              
+
+            if(SURF_DEBUG_PRINT==1)
+                printf("SURF13 surface WeightStrike+ %g PtclStrike+1 n", weight );
+
 	        if((EdistInd >= 0) && (EdistInd < nEdist) && 
                   (AdistInd >= 0) && (AdistInd < nAdist))
                 {
 #if USE_CUDA > 0
-                    atomicAdd1(&surfaces->energyDistribution[surfaceHit*nEdist*nAdist + 
-                                               EdistInd*nAdist + AdistInd], weight);
+                    atomicAdd(&(surfaces->energyDistribution[surfaceHit*nEdist*nAdist + 
+                                               EdistInd*nAdist + AdistInd]), weight);
 #else
 
                     surfaces->energyDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] = 
                     surfaces->energyDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] +  weight;
 #endif
-        }
+
+                    if(SURF_DEBUG_PRINT==1)
+                      printf("SURF14 enDistr ptcl %d timestep %d indx %d weight %g surfaceHit %d nEdist %d nAdist %d \n",
+                          ptcl, tstep, surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd, weight, 
+                          surfaceHit, nEdist, nAdist);
+                }
 #endif
       }
+
+      if(SURF_DEBUG_PRINT==1)
+        printf("SURF16  ptcl %d timestep %d newweight %g bdryZ %g \n",
+            ptcl, tstep, newWeight, boundaryVector[wallHit].Z);
       //reflect with weight and new initial conditions
       //cout << "particle wall hit Z and nwweight " << boundaryVector[wallHit].Z << " " << newWeight << endl;
       if (boundaryVector[wallHit].Z > 0.0 && newWeight > 0.0)
@@ -555,49 +644,34 @@ void operator()(size_t indx) const {
         vSampled[0] = V0 * sin(aInterpVal * 3.1415 / 180) * cos(2.0 * 3.1415 * r10);
         vSampled[1] = V0 * sin(aInterpVal * 3.1415 / 180) * sin(2.0 * 3.1415 * r10);
         vSampled[2] = V0 * cos(aInterpVal * 3.1415 / 180);
+        if(SURF_DEBUG_PRINT==1) {
+          printf("SURF17 ptcl %d timestep %d V0 %g rand10 %g vsampled0 %g %g %g surfaceNormal %g %g %g \n", 
+            ptcl, tstep, V0, r10, vSampled[0], vSampled[1], vSampled[2], surfaceNormalVector[0],
+            surfaceNormalVector[1], surfaceNormalVector[2]);
+
+        }
         boundaryVector[wallHit].transformToSurface(vSampled, particles->y[indx], particles->x[indx]);
-        //double rr = sqrt(particles->x[indx]*particles->x[indx] + particles->y[indx]*particles->y[indx]);
-        //if (particles->z[indx] < -4.1 && -signPartDotNormal*vSampled[0] > 0.0)
-        //{
-        //  cout << "particle index " << indx  << endl;
-        //  cout << "aInterpVal" << aInterpVal  << endl;
-        //  cout << "Surface Normal" << surfaceNormalVector[0] << " " << surfaceNormalVector[1] << " " << surfaceNormalVector[2] << endl;
-        //  cout << "signPartDotNormal " << signPartDotNormal << endl;
-        //  cout << "Particle hit wall with v " << vx << " " << vy << " " << vz<< endl;
-        //  cout << "vSampled " << vSampled[0] << " " << vSampled[1] << " " << vSampled[2] << endl;
-        //  cout << "Final transform" << -signPartDotNormal*vSampled[0] << " " << -signPartDotNormal*vSampled[1] << " " << -signPartDotNormal*vSampled[2] << endl;
-        //  cout << "Position of particle0 " << particles->xprevious[indx] << " " << particles->yprevious[indx] << " " << particles->zprevious[indx] << endl;
-        //  cout << "Position of particle " << particles->x[indx] << " " << particles->y[indx] << " " << particles->z[indx] << endl;
-        //  }
+
         particles->vx[indx] = -static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[0] * vSampled[0];
         particles->vy[indx] = -static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[1] * vSampled[1];
         particles->vz[indx] = -static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[2] * vSampled[2];
-        //        //if(particles->test[indx] == 0.0)
-        //        //{
-        //        //    particles->test[indx] = 1.0;
-        //        //    particles->test0[indx] = aInterpVal;
-        //        //    particles->test1[indx] = eInterpVal;
-        //        //    particles->test2[indx] = V0;
-        //        //    particles->test3[indx] = vSampled[2];
-        //        //}
+
 
         particles->xprevious[indx] = particles->x[indx] - static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[0] * 1e-4;
         particles->yprevious[indx] = particles->y[indx] - static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[1] * 1e-4;
       particles->zprevious[indx] = particles->z[indx] - static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[2] * 1e-4;
-        //cout << "New vel " << particles->vx[indx] << " " << particles->vy[indx] << " " << particles->vz[indx] << endl;
-        //cout << "New pos " << particles->xprevious[indx] << " " << particles->yprevious[indx] << " " << particles->zprevious[indx] << endl;
-        //if(particles->test[indx] == 0.0)
-        //{
-        //    particles->test[indx] = 1.0;
-        //    particles->test0[indx] = particles->x[indx];
-        //    particles->test1[indx] = particles->y[indx];
-        //    particles->test2[indx] = particles->z[indx];
-        //    particles->test3[indx] = signPartDotNormal;
-        //}
-        //else
-        //{
-        //    particles->test[indx] = particles->test[indx] + 1.0;
-        //}
+
+        if(SURF_DEBUG_PRINT==1) {
+          auto xp =  particles->xprevious[indx];
+          auto yp =  particles->yprevious[indx];
+          auto zp =  particles->zprevious[indx];
+          auto vx =  particles->vx[indx];
+          auto vy = particles->vy[indx];
+          auto vz = particles->vz[indx];
+          printf("SURF18 ptcl %d timestep %d newpos %.15e %.15e %.15e newvel %.15e %.15e %.15e vsampled %g %g %g\n", 
+              ptcl, tstep, xp, yp, zp, vx, vy, vz, vSampled[0], vSampled[1], vSampled[2]);
+        }
+
       } else {
         particles->hitWall[indx] = 2.0;
       }

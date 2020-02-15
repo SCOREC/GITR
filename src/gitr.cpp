@@ -1916,7 +1916,7 @@ print_gpu_memory_usage(world_rank);
   std::cout << "thermal gradient interpolation gradTi " << gradTi[0] << " "
             << gradTi[1] << " " << gradTi[2] << " " << std::endl;
 
-  bool interp2dVectorTest = true;
+  bool interp2dVectorTest = false;
   if(interp2dVectorTest) {
     constexpr int np = 16;
     double positions[np*3] ={
@@ -4174,12 +4174,6 @@ print_gpu_memory_usage(world_rank);
       dims_intermediate.push_back(ncdim_nthist);
       netCDF::NcVar ncvar_data = ncFile_hist.addVar("intermediate", ncDouble, dims_intermediate);
       ncvar_data.putVar(&intermediate[0]);
-      if(debugRnd) {
-        printf("dataCollision: \n");
-        for(int i=0; i< 100; ++i)
-          printf(" %g ",intermediate[i]);
-        printf("\n");
-      }
     }
 
   // for(int i=0; i<nP;i++)

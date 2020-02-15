@@ -22,8 +22,9 @@ using namespace std;
 #include <random>
 
 #if USE_CUDA >0
-//#if __CUDA_ARCH__ < 600
-__device__ double atomicAdd1(double* address, double val)
+#if __CUDA_ARCH__ < 600
+template<typename T>
+__device__ double atomicAdd1(double* address, T val)
 {
     unsigned long long int* address_as_ull =
                         (unsigned long long int*)address;
@@ -38,23 +39,13 @@ __device__ double atomicAdd1(double* address, double val)
                  
                           return __longlong_as_double(old);
                           }
+#else
+ __device__ double atomicAdd1(double* address, double val)
+ {
+   return atomicAdd(address,val);
+ }
 
-__device__ double atomicAdd1(int* address, int val)
-{
-    unsigned long long int* address_as_ull =
-                        (unsigned long long int*)address;
-    unsigned long long int old = *address_as_ull, assumed;
-      do {
-             assumed = old;
-             old = atomicCAS(address_as_ull, assumed,
-                            __double_as_longlong(val + 
-                                __longlong_as_double(assumed)));
-                 // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
-                      } while (assumed != old);
-                 
-                          return __longlong_as_double(old);
-                          }
-
+#endif
 #endif
 // CUDA_CALLABLE_MEMBER
 

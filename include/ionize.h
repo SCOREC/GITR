@@ -22,8 +22,8 @@ using namespace std;
 #endif
 #include "interpRateCoeff.hpp"
 
-#ifndef COMPARE_GITR_PRINT
-#define COMPARE_GITR_PRINT 0
+#ifndef IONI_DEBUG_PRINT
+#define IONI_DEBUG_PRINT 0
 #endif
 
 struct ionize { 
@@ -101,7 +101,7 @@ struct ionize {
     //particlesPointer->PionizationPrevious[indx] = PiP*P;
     double P1 = 1.0-P;
     //cout << "tion P P1 " << tion << " " << P << " " << P1 << " " << PiP<< endl;
-    if(COMPARE_GITR_PRINT==1 && particlesPointer->hitWall[indx] !=0) {
+    if(IONI_DEBUG_PRINT==1 && particlesPointer->hitWall[indx] !=0) {
       printf("Not ionizing %d in timestep %d\n", particlesPointer->index[indx], particlesPointer->tt[indx]);
     }
     if(particlesPointer->hitWall[indx] == 0.0)
@@ -143,7 +143,7 @@ struct ionize {
         beg = pindex*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
         intermediate[beg+idof] = r1;
       }
-      if(COMPARE_GITR_PRINT==1) {
+      if(IONI_DEBUG_PRINT==1) {
         auto xx=particlesPointer->x[indx];
         auto yy=particlesPointer->y[indx];
         auto zz=particlesPointer->z[indx];

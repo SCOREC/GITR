@@ -18,8 +18,8 @@
 using namespace std;
 #endif
 
-#ifndef COMPARE_GITR_PRINT
-#define COMPARE_GITR_PRINT 0
+#ifndef COULOMB_DEBUG_PRINT
+#define COULOMB_DEBUG_PRINT 0
 #endif
 
 CUDA_CALLABLE_MEMBER
@@ -182,7 +182,7 @@ void getSlowDownFrequencies ( double& nu_friction, double& nu_deflection, double
                     //cout << "nu friction, parallel perp energy ELECTRONs" << nu_friction_e << " " << nu_parallel_e << " " <<nu_deflection_e << " " << nu_energy_e << endl;
 	//	}
     nu_friction = nu_friction_i + nu_friction_e;
-    if(COMPARE_GITR_PRINT ==1) 
+    if(COULOMB_DEBUG_PRINT ==1) 
       printf("timestep %d ptcl %d Nufriction  %.15e  \n", timestep, ptcl, nu_friction);    
     nu_deflection = nu_deflection_i + nu_deflection_e;
     nu_parallel = nu_parallel_i + nu_parallel_e;
@@ -476,7 +476,7 @@ void operator()(size_t indx)  {
         double xn = particlesPointer->x[indx];
         double yn = particlesPointer->y[indx];
         double zn = particlesPointer->z[indx];
-      if(COMPARE_GITR_PRINT ==1)
+      if(COULOMB_DEBUG_PRINT ==1)
         printf("GITRCollision-In: ptcl %d timestep %d charge %.15e VelIn %.15e %.15e %.15e "
             " => Vel %.15e %.15e %.15e pos %.15e %.15e %.15e next_pos  %.15e %.15e %.15e \n", 
          particlesPointer->index[indx],  particlesPointer->tt[indx]-1,
@@ -566,7 +566,7 @@ void operator()(size_t indx)  {
         intermediate[beg+idof] = n1;
         intermediate[beg+idof+1] = n2;
         intermediate[beg+idof+2] = xsi;
-        if(COMPARE_GITR_PRINT ==1)
+        if(COULOMB_DEBUG_PRINT ==1)
           printf("Collision: beg %d @ %d n1 %.15e n2 %.15e xsi %.15e \n", beg, beg+idof, n1, n2, xsi );
       }
       
@@ -728,7 +728,7 @@ void operator()(size_t indx)  {
       vx = particlesPointer->vx[indx];
       vy = particlesPointer->vy[indx];
       vz = particlesPointer->vz[indx];
-      if(COMPARE_GITR_PRINT ==1)
+      if(COULOMB_DEBUG_PRINT ==1)
         printf("GITRCollision: ptcl %d timestep %d charge %.15e VelIn %.15e %.15e %.15e "
             " => Vel %.15e %.15e %.15e pos %.15e %.15e %.15e \n", 
          ptcl, nthStep-1, particlesPointer->charge[indx], velx1, vely1, velz1, vx, vy, vz, x,y, z);

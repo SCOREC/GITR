@@ -12,8 +12,8 @@
 #endif
 
 #include <cmath>
-#ifndef COMPARE_GITR
-#define COMPARE_GITR 0
+#ifndef INTERP_DEBUG_PRINT
+#define INTERP_DEBUG_PRINT 0
 #endif
 
 CUDA_CALLABLE_MEMBER
@@ -113,7 +113,7 @@ double interp2dCombined ( double x, double y, double z,int nx, int nz,
       fx_z2 = ((gridx[i+1]-dim1)*data[i+(j+1)*nx] + (dim1 - gridx[i])*data[i+1+(j+1)*nx])/d_dim1; 
       fxz = ((gridz[j+1]-z)*fx_z1+(z - gridz[j])*fx_z2)/dz;
     }
-  if(COMPARE_GITR)
+  if(INTERP_DEBUG_PRINT ==1)
     printf(" interp2dCombined: x %g y %g z %g dim1 %g nx %d, nz %d grid0 %g gridz0 %g i %d j %d d_dim1 %g dz %g inter2d-fxz %g \n", 
       x,y,z, dim1, nx, nz, gridx[0], gridz[0], i, j, d_dim1, dz, fxz);    
     }
@@ -138,6 +138,10 @@ double interp3d ( double x, double y, double z,int nx,int ny, int nz,
     int k = std::floor((z - gridz[0])/dz);
     //std::cout << "dxyz ijk " << dx << " "<<dy << " " << dz<< " " << i
       //  << " " << j << " " << k << std::endl;
+    if(INTERP_DEBUG_PRINT==1)
+      printf("x %g y %g z %g i %d j %d k %d dx %g dy %g dz %g \n", 
+        x, y, z, i, j, k, dx, dy, dz);
+
     if(i <0 ) i=0;
     else if(i >=nx-1) i=nx-2;
     if(j <0 ) j=0;
@@ -150,6 +154,12 @@ double interp3d ( double x, double y, double z,int nx,int ny, int nz,
       //  << " " << j << " " << k << std::endl;
     //if(j <0 || j>ny-1) j=0;
     //if(k <0 || k>nz-1) k=0;
+    if(INTERP_DEBUG_PRINT==1) {
+      printf("   i %d j %d k %d \n", i, j, k);
+      for(int i=0; i<10; ++i) 
+        printf(" %d %g \n", i, gridz[i]);
+    }
+    
     double fx_z0 = (data[i + j*nx + k*nx*ny]*(gridx[i+1]-x) + data[i +1 + j*nx + k*nx*ny]*(x-gridx[i]))/dx;
     double fx_z1 = (data[i + j*nx + (k+1)*nx*ny]*(gridx[i+1]-x) + data[i +1 + j*nx + (k+1)*nx*ny]*(x-gridx[i]))/dx;
     //std::cout << "dataInd 1 2 3 4 " << i + j*nx + k*nx*ny << " "<<i+1 + j*nx + k*nx*ny << " " << i + j*nx + (k+1)*nx*ny<< " " << i +1 + j*nx + (k+1)*nx*ny
@@ -168,6 +178,9 @@ double interp3d ( double x, double y, double z,int nx,int ny, int nz,
     //std::cout << "fxz0 fxz1 " << fxz0 << " "<<fxz1 << std::endl;
 
     fxyz = (fxz0*(gridy[j+1] - y) + fxz1*(y-gridy[j]))/dy;
+    if(INTERP_DEBUG_PRINT==1)
+      printf("fx_z0 %g fx_z1 %g fxy_z0 %g fxy_z1 %g fxz0 %g fxz1 %g fxyz %g\n",
+          fx_z0,fx_z1,fxy_z0,fxy_z1,fxz0,fxz1, fxyz);
     if(ny <=1) fxyz=fxz0;
     if(nz <=1) fxyz=fx_z0;
     //std::cout <<"fxyz " << fxyz << std::endl;

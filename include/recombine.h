@@ -22,8 +22,8 @@ using namespace std;
 #endif
 #include "interpRateCoeff.hpp"
 
-#ifndef COMPARE_GITR_PRINT
-#define COMPARE_GITR_PRINT 0
+#ifndef RECOMB_DEBUG_PRINT
+#define RECOMB_DEBUG_PRINT 0
 #endif
 
 struct recombine { 
@@ -131,19 +131,21 @@ struct recombine {
           intermediate[beg+idof] = r1;
         }
 
-        if(COMPARE_GITR_PRINT==1) {
+	if(r1 <= P1)
+	{
+          particlesPointer->charge[indx] = particlesPointer->charge[indx]-1;
+          particlesPointer->PrecombinationPrevious[indx] = 1.0;
+	} 
+
+        if(RECOMB_DEBUG_PRINT==1) {
           auto xx=particlesPointer->x[indx];
           auto yy=particlesPointer->y[indx];
           auto zz=particlesPointer->z[indx];
-          printf("recomb: ptcl %d timestep %d rate %.15e temp %.15e dens %.15e recrand %.15e "
-              " pos %.15e %.15e %.15e r1 %.15e r1@ %d\n",
-              pindex, nthStep-1, tion, t_at, n_at, r1, xx, yy, zz, r1, beg+idof);
+          printf("recomb: ptcl %d timestep %d charge %f rate %.15e temp %.15e "
+              " dens %.15e recrand %.15e pos %.15e %.15e %.15e r1 %.15e r1@ %d\n",
+              pindex, nthStep-1, particlesPointer->charge[indx], tion, t_at, n_at, 
+              r1, xx, yy, zz, r1, beg+idof);
         }
-	if(r1 <= P1)
-	{
-        particlesPointer->charge[indx] = particlesPointer->charge[indx]-1;
-        particlesPointer->PrecombinationPrevious[indx] = 1.0;
-	}         
    }	
 
   } 
