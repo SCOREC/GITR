@@ -1,15 +1,14 @@
 #!/bin/bash
 
 src=$1
-source ./env_gitr_blockade.sh
-
 export  NETCDFLIB=netcdf 
 export  NETCDFLIB_CPP=libnetcdf-cxx4.so
 NETCDF_CXX4_ROOT=$NetCDF_PREFIX
 libconfig=/lore/gopan/install/libconfig-1.7.2/install
-# -DCUDA_NVCC_FLAGS="-arch=sm_70" \
+#-DCUDA_NVCC_FLAGS="-arch=sm_70" \
 
 cmake \
+   -DCUDA_NVCC_FLAGS="-arch=sm_75" \
    -DLIBCONFIGPP_INCLUDE_DIR=$libconfig/include \
    -DLIBCONFIGPP_LIBRARY=$libconfig/lib/libconfig++.so \
    -DLIBCONFIGPP_LIBRARIES=$libconfig/lib/libconfig++.so \
@@ -24,12 +23,12 @@ cmake \
     -DUSE_BOOST=0 \
     -DUSEIONIZATION=1 \
     -DUSERECOMBINATION=1 \
-    -DUSEPERPDIFFUSION=1 \
+    -DUSEPERPDIFFUSION=0 \
     -DUSEPARDIFFUSION=0 \
-    -DUSECOULOMBCOLLISIONS=1 \
-    -DUSEFRICTION=1 \
-    -DUSEANGLESCATTERING=1 \
-    -DUSEHEATING=1 \
+    -DUSECOULOMBCOLLISIONS=0 \
+    -DUSEFRICTION=0 \
+    -DUSEANGLESCATTERING=0 \
+    -DUSEHEATING=0 \
     -DUSETHERMALFORCE=0 \
     -DUSESURFACEMODEL=1 \
     -DUSESHEATHEFIELD=1 \
@@ -43,19 +42,19 @@ cmake \
     -DDENSITY_INTERP=2 \
     -DTEMP_INTERP=2 \
     -DFLOWV_INTERP=0 \
-    -DGRADT_INTERP=0 \
+    -DGRADT_INTERP=2 \
     -DODEINT=0 \
     -DFIXEDSEEDS=0 \
     -DPARTICLESEEDS=1 \
     -DGEOM_TRACE=0 \
-    -DGEOM_HASH=2 \
-    -DGEOM_HASH_SHEATH=2 \
+    -DGEOM_HASH=0 \
+    -DGEOM_HASH_SHEATH=0 \
     -DPARTICLE_TRACKS=1 \
     -DPARTICLE_SOURCE_SPACE=0 \
     -DPARTICLE_SOURCE_ENERGY=0 \
     -DPARTICLE_SOURCE_ANGLE=0 \
     -DPARTICLE_SOURCE_FILE=1 \
-    -DSPECTROSCOPY=3 \
+    -DSPECTROSCOPY=0 \
     -DUSE3DTETGEOM=1 \
     -DFLUX_EA=1 \
     -DUSECYLSYMM=1 \
