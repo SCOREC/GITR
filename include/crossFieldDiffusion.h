@@ -88,6 +88,7 @@ void operator()( size_t indx) const {
 #if PARTICLESEEDS > 0
 #ifdef __CUDACC__
         	double r3 = curand_uniform(&state[indx]);
+                double r4 = curand_uniform(&state[indx]);
 #else
         	 uniform_real_distribution<double> dist(0.0, 1.0);
         	double r3=dist(state[indx]);

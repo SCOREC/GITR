@@ -126,7 +126,7 @@ double interp3d ( double x, double y, double z,int nx,int ny, int nz,
     double* gridx,double* gridy, double* gridz,double* data ) {
     //std::cout << "xyz " << x << " "<<y << " " << z<< std::endl;
     //std::cout << "nxyz " << nx << " "<<ny << " " << nz<< std::endl;
-    
+    bool debug = false;
     double fxyz = 0.0;
 
     double dx = gridx[1] - gridx[0];
@@ -138,8 +138,8 @@ double interp3d ( double x, double y, double z,int nx,int ny, int nz,
     int k = std::floor((z - gridz[0])/dz);
     //std::cout << "dxyz ijk " << dx << " "<<dy << " " << dz<< " " << i
       //  << " " << j << " " << k << std::endl;
-    if(INTERP_DEBUG_PRINT==1)
-      printf("x %g y %g z %g i %d j %d k %d dx %g dy %g dz %g \n", 
+    if(debug || INTERP_DEBUG_PRINT==1)
+      printf("x %.15e y %.15e z %.15e i %d j %d k %d dx %.15e dy %.15e dz %.15e \n", 
         x, y, z, i, j, k, dx, dy, dz);
 
     if(i <0 ) i=0;
@@ -154,10 +154,10 @@ double interp3d ( double x, double y, double z,int nx,int ny, int nz,
       //  << " " << j << " " << k << std::endl;
     //if(j <0 || j>ny-1) j=0;
     //if(k <0 || k>nz-1) k=0;
-    if(INTERP_DEBUG_PRINT==1) {
+    if(debug || INTERP_DEBUG_PRINT==1) {
       printf("   i %d j %d k %d \n", i, j, k);
       for(int i=0; i<10; ++i) 
-        printf(" %d %g \n", i, gridz[i]);
+        printf(" %d %.15e \n", i, gridz[i]);
     }
     
     double fx_z0 = (data[i + j*nx + k*nx*ny]*(gridx[i+1]-x) + data[i +1 + j*nx + k*nx*ny]*(x-gridx[i]))/dx;
@@ -178,8 +178,8 @@ double interp3d ( double x, double y, double z,int nx,int ny, int nz,
     //std::cout << "fxz0 fxz1 " << fxz0 << " "<<fxz1 << std::endl;
 
     fxyz = (fxz0*(gridy[j+1] - y) + fxz1*(y-gridy[j]))/dy;
-    if(INTERP_DEBUG_PRINT==1)
-      printf("fx_z0 %g fx_z1 %g fxy_z0 %g fxy_z1 %g fxz0 %g fxz1 %g fxyz %g\n",
+    if(debug || INTERP_DEBUG_PRINT==1)
+      printf("fx_z0 %.15e fx_z1 %.15e fxy_z0 %.15e fxy_z1 %.15e fxz0 %.15e fxz1 %.15e fxyz %.15e\n",
           fx_z0,fx_z1,fxy_z0,fxy_z1,fxz0,fxz1, fxyz);
     if(ny <=1) fxyz=fxz0;
     if(nz <=1) fxyz=fx_z0;

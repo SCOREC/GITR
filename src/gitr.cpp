@@ -2594,8 +2594,8 @@ print_gpu_memory_usage(world_rank);
     //}
     for (int i = 0; i < nE_sputtRefCoeff; i++) {
       Elog_sputtRefCoeff[i] = log10(E_sputtRefCoeff[i]);
-      std::cout << " EsputtRefCoeff and Elog " << E_sputtRefCoeff[i] << " "
-                << Elog_sputtRefCoeff[i] << std::endl;
+      //std::cout << " EsputtRefCoeff and Elog " << E_sputtRefCoeff[i] << " "
+      //          << Elog_sputtRefCoeff[i] << std::endl;
     }
     for (int i = 0; i < nE_sputtRefDistIn; i++) {
       Elog_sputtRefDistIn[i] = std::log10(E_sputtRefDistIn[i]);
@@ -3799,6 +3799,18 @@ print_gpu_memory_usage(world_rank);
       EDist_CDF_R_regrid.data(), AphiDist_CDF_R_regrid.data(), nEdist, E0dist,
       Edist, nAdist, A0dist, Adist,
       &intermediate.front(), nT, idof, dof_intermediate);
+
+      bool testInterp = true;
+      if(testInterp) {
+        auto e0 = 45.8007;
+        auto thetaThis = 31.8205;
+        auto y0 = interp2d(thetaThis, log10(e0), nA_sputtRefCoeff,nE_sputtRefCoeff, A_sputtRefCoeff.data(),
+            Elog_sputtRefCoeff.data(), spyl_surfaceModel.data());
+        auto r0 = interp2d(thetaThis, log10(e0), nA_sputtRefCoeff,nE_sputtRefCoeff, A_sputtRefCoeff.data(),
+            Elog_sputtRefCoeff.data(), rfyl_surfaceModel.data());
+        auto total_yr = y0+r0;  
+        printf("surfTest y0 %g r0 %g total_yr %g\n", y0, r0,total_yr);
+      }
 #endif
 
 #if PARTICLE_TRACKS > 0
