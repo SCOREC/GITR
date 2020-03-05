@@ -4139,6 +4139,10 @@ print_gpu_memory_usage(world_rank);
   printf("Time taken          is %6.3f (secs) \n", fs.count());
   printf("Time taken per step is %6.3f (secs) \n", fs.count() / (double)nT);
 
+#if PARTICLE_TRACKS ==0
+ int nHistoriesPerParticle = 0;
+#endif
+
     bool debugRnd = true;
     if(world_rank == 0 && writeIntermediate) {
       netCDF::NcFile ncFile_hist("output/intermediate.nc", NcFile::replace);
