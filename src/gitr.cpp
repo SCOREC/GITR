@@ -4145,23 +4145,23 @@ print_gpu_memory_usage(world_rank);
 
     bool debugRnd = true;
     if(world_rank == 0 && writeIntermediate) {
-      netCDF::NcFile ncFile_hist("output/intermediate.nc", NcFile::replace);
-      netCDF::NcDim ncdim_np = ncFile_hist.addDim("nP", nP);
-      netCDF::NcDim ncdim_nthist = ncFile_hist.addDim("nTHist", nHistoriesPerParticle);
-      netCDF::NcDim ncdim_ntrun = ncFile_hist.addDim("nTRun", nT);
-      netCDF::NcDim ncdim_dof = ncFile_hist.addDim("dof", dof_intermediate);
-      netCDF::NcDim ncdim_rndioni = ncFile_hist.addDim("RndIoni", 1);
-      netCDF::NcDim ncdim_rndioni_at = ncFile_hist.addDim("RndIoni_at", 0);
-      netCDF::NcDim ncdim_rndrecomb = ncFile_hist.addDim("RndRecomb", 1);
-      netCDF::NcDim ncdim_rndrecomb_at = ncFile_hist.addDim("RndRecomb_at", 1);
-      netCDF::NcDim ncdim_rnd_field = ncFile_hist.addDim("RndCrossField", 2);
-      netCDF::NcDim ncdim_rnd_field_at = ncFile_hist.addDim("RndCrossField_at", 2);
-      netCDF::NcDim ncdim_rnd_coll = ncFile_hist.addDim("RndCollision", 3);
-      netCDF::NcDim ncdim_rnd_coll1_at = ncFile_hist.addDim("RndCollision_n1_at", 4);
-      netCDF::NcDim ncdim_rnd_coll2_at = ncFile_hist.addDim("RndCollision_n2_at", 5);
-      netCDF::NcDim ncdim_rnd_coll3_at = ncFile_hist.addDim("RndCollision_xsi_at", 6);
-      netCDF::NcDim ncdim_rnd_refl = ncFile_hist.addDim("RndReflection", 4);
-      netCDF::NcDim ncdim_rnd_refl_at = ncFile_hist.addDim("RndReflection_at", 7);
+      netCDF::NcFile ncFile_rnd("output/intermediate.nc", NcFile::replace);
+      netCDF::NcDim ncdim_np = ncFile_rnd.addDim("nP", nP);
+      netCDF::NcDim ncdim_nthist = ncFile_rnd.addDim("nTHist", nHistoriesPerParticle);
+      netCDF::NcDim ncdim_ntrun = ncFile_rnd.addDim("nTRun", nT);
+      netCDF::NcDim ncdim_dof = ncFile_rnd.addDim("dof", dof_intermediate);
+      netCDF::NcDim ncdim_rndioni = ncFile_rnd.addDim("RndIoni", 1);
+      netCDF::NcDim ncdim_rndioni_at = ncFile_rnd.addDim("RndIoni_at", 0);
+      netCDF::NcDim ncdim_rndrecomb = ncFile_rnd.addDim("RndRecomb", 1);
+      netCDF::NcDim ncdim_rndrecomb_at = ncFile_rnd.addDim("RndRecomb_at", 1);
+      netCDF::NcDim ncdim_rnd_field = ncFile_rnd.addDim("RndCrossField", 2);
+      netCDF::NcDim ncdim_rnd_field_at = ncFile_rnd.addDim("RndCrossField_at", 2);
+      netCDF::NcDim ncdim_rnd_coll = ncFile_rnd.addDim("RndCollision", 3);
+      netCDF::NcDim ncdim_rnd_coll1_at = ncFile_rnd.addDim("RndCollision_n1_at", 4);
+      netCDF::NcDim ncdim_rnd_coll2_at = ncFile_rnd.addDim("RndCollision_n2_at", 5);
+      netCDF::NcDim ncdim_rnd_coll3_at = ncFile_rnd.addDim("RndCollision_xsi_at", 6);
+      netCDF::NcDim ncdim_rnd_refl = ncFile_rnd.addDim("RndReflection", 4);
+      netCDF::NcDim ncdim_rnd_refl_at = ncFile_rnd.addDim("RndReflection_at", 7);
      
       int optir=0, optdiff=0, optcoll=0, optsurf=0;
       #if USEIONIZATION > 0
@@ -4179,16 +4179,16 @@ print_gpu_memory_usage(world_rank);
         optsurf = 1;
       #endif
 
-      netCDF::NcDim ncdim_opt_ir = ncFile_hist.addDim("Opt_IoniRecomb", optir);
-      netCDF::NcDim ncdim_opt_diff = ncFile_hist.addDim("Opt_Diffusion", optdiff); 
-      netCDF::NcDim ncdim_opt_coll = ncFile_hist.addDim("Opt_Collision", optcoll);
-      netCDF::NcDim ncdim_opt_surf = ncFile_hist.addDim("Opt_SurfaceModel", optsurf);
+      netCDF::NcDim ncdim_opt_ir = ncFile_rnd.addDim("Opt_IoniRecomb", optir);
+      netCDF::NcDim ncdim_opt_diff = ncFile_rnd.addDim("Opt_Diffusion", optdiff); 
+      netCDF::NcDim ncdim_opt_coll = ncFile_rnd.addDim("Opt_Collision", optcoll);
+      netCDF::NcDim ncdim_opt_surf = ncFile_rnd.addDim("Opt_SurfaceModel", optsurf);
       
       vector<NcDim>dims_intermediate;
       dims_intermediate.push_back(ncdim_np);
       dims_intermediate.push_back(ncdim_dof);
       dims_intermediate.push_back(ncdim_nthist);
-      netCDF::NcVar ncvar_data = ncFile_hist.addVar("intermediate", ncDouble, dims_intermediate);
+      netCDF::NcVar ncvar_data = ncFile_rnd.addVar("intermediate", ncDouble, dims_intermediate);
       ncvar_data.putVar(&intermediate[0]);
     }
 
