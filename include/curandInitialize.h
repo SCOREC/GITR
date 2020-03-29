@@ -20,14 +20,15 @@ struct curandInitialize{
    mt19937 *s;
 #endif
   int seed;
-  
  curandInitialize(
 #if __CUDACC__
          curandState *_s,
 #else
          mt19937 *_s,
 #endif
-         int _seed) : s(_s), seed(_seed) {} 
+         int _seed) : s(_s), seed(_seed) {
+   printf("\n\n curand_init seed in indx+seed %d \n\n", seed);
+ } 
 //void curandInitialize(curandState *_s, int _seed) : s(_s),seed(_seed) {}
     CUDA_CALLABLE_MEMBER_DEVICE
     void operator()(size_t indx) {
@@ -42,7 +43,7 @@ struct curandInitialize{
        ////    seedTotal = thread_id*2;
        ////}
        ////else{ seedTotal = thread_id;}
-        curand_init(indx, 0, 0, &s[indx]);
+      curand_init(indx+seed, 0, 0, &s[indx]);
 #else
         random_device randDevice;
         mt19937 s0(randDevice());

@@ -561,8 +561,11 @@ void operator()(size_t indx)  {
       int nthStep = particlesPointer->tt[indx];
       auto pindex = particlesPointer->index[indx];
       int beg = -1;
-      if(dof_intermediate > 0) { 
-        beg = pindex*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
+      if(dof_intermediate > 0 && particlesPointer->storeRnd[indx]) {
+        auto pind = pindex;
+        int rid = particlesPointer->storeRndSeqId[indx]; 
+        pind = (rid >= 0) ? rid : pind;
+        beg = pind*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
         intermediate[beg+idof] = n1;
         intermediate[beg+idof+1] = n2;
         intermediate[beg+idof+2] = xsi;

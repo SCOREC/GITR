@@ -116,6 +116,14 @@ public:
   //  yMax, double zMin, double zMax);
 
   //  void Ionization(double dt);
+  sim::Array<int> storeRndSeqId;
+  sim::Array<int> storeRnd;
+  CUDA_CALLABLE_MEMBER
+  void setStoreRnd(int indx, int rid, int store) {
+    this->storeRnd[indx] = store;
+    this->storeRndSeqId[indx] = rid;
+  }
+
   CUDA_CALLABLE_MEMBER
   void setParticle(int indx, double x, double y, double z, double Ex, double Ey,
                    double Ez, double Z, double amu, double charge) {
@@ -260,7 +268,7 @@ public:
         test1{nP, 0.0}, test2{nP, 0.0}, test3{nP, 0.0}, test4{nP, 0.0},
         distanceTraveled{nP}, weight{nP, 1.0}, PionizationPrevious{nP, 1.0},
         PrecombinationPrevious{nP, 1.0}, firstIonizationZ{nP, 0.0},
-        firstIonizationT{nP, 0.0} {};
+        firstIonizationT{nP, 0.0}, storeRnd{nP,1}, storeRndSeqId{nP,-1} {};
 };
 
 #endif

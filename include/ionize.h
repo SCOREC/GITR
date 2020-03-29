@@ -139,8 +139,11 @@ struct ionize {
       int nthStep = particlesPointer->tt[indx];
       auto pindex = particlesPointer->index[indx];
       int beg = -1;
-      if(dof_intermediate > 0) { 
-        beg = pindex*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
+      if(dof_intermediate > 0 && particlesPointer->storeRnd[indx]) {
+        auto pind = pindex;
+        int rid = particlesPointer->storeRndSeqId[indx]; 
+        pind = (rid >= 0) ? rid : pind;
+        beg = pind*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
         intermediate[beg+idof] = r1;
       }
       if(IONI_DEBUG_PRINT==1) {
@@ -151,8 +154,7 @@ struct ionize {
               "pos %.15e %.15e %.15e r1 %.15e r1@ %d \n", 
               pindex, nthStep-1, tion, t_at, n_at, r1, P1, xx, yy, zz, r1, beg+idof);
       }
-
-
+      
       if(r1 <= P1)
       {
 		  particlesPointer->charge[indx] = particlesPointer->charge[indx]+1;}

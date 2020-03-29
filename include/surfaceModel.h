@@ -25,6 +25,7 @@ using namespace std;
 #ifndef SURF_DEBUG_PRINT
 #define SURF_DEBUG_PRINT 0
 #endif
+const int debug = 0;
 
 CUDA_CALLABLE_MEMBER
 void getBoundaryNormal(Boundary* boundaryVector,int wallIndex,double surfaceNormalVector[],double x,double y){
@@ -244,7 +245,9 @@ particles(_particles),
 
 CUDA_CALLABLE_MEMBER_DEVICE
 void operator()(size_t indx) const {
-    
+   
+particles->tt[indx] = particles->tt[indx]+1; 
+   
     if (particles->hitWall[indx] == 1.0) {
       double E0 = 0.0;
       double thetaImpact = 0.0;
@@ -393,10 +396,13 @@ int ptcl = particles->index[indx];
 
     
       int nthStep = particles->tt[indx];
-      auto pindex = particles->index[indx];
+      int pindex = particles->index[indx];
       int beg = -1;
-      if(dof_intermediate > 0) { 
-        beg = pindex*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
+      if(dof_intermediate > 0 && particles->storeRnd[indx]) {
+        auto pind = pindex;
+        int rid = particles->storeRndSeqId[indx]; 
+        pind = (rid >= 0) ? rid : pind;  
+        beg = pind*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
         intermediate[beg+idof] = r7;
         intermediate[beg+idof+1] = r8;
         intermediate[beg+idof+2] = r9;
@@ -432,7 +438,11 @@ int ptcl = particles->index[indx];
                  (AdistInd >= 0) && (AdistInd < nAdist))
               {
             #if USE_CUDA > 0
-                  atomicAdd(&(surfaces->reflDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd]),newWeight);
+                  auto old = atomicAdd(&(surfaces->reflDistribution[
+                        surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd]),newWeight);
+                  if(debug)
+                    printf("REFL  %g tot %g ind %d Ei %d Ai %d ptcl %d  t %d\n", newWeight, old+newWeight,
+                      surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd, EdistInd, AdistInd, ptcl, tstep);
             #else      
                   surfaces->reflDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] = 
                     surfaces->reflDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] +  newWeight;
@@ -447,7 +457,8 @@ int ptcl = particles->index[indx];
                 {
 
             #if USE_CUDA > 0
-                    atomicAdd(&(surfaces->grossDeposition[surfaceHit]),weight*(1.0-R0));
+                    auto old = atomicAdd(&(surfaces->grossDeposition[surfaceHit]),weight*(1.0-R0));
+            
             #else
                     surfaces->grossDeposition[surfaceHit] = surfaces->grossDeposition[surfaceHit]+weight*(1.0-R0);
             #endif
@@ -490,7 +501,11 @@ int ptcl = particles->index[indx];
               {
                 //cout << " particle sputters with " << EdistInd << AdistInd <<  endl;
             #if USE_CUDA > 0
-                  atomicAdd(&(surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd]),newWeight);
+                  auto old = atomicAdd(&(surfaces->sputtDistribution[
+                        surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd]),newWeight);
+                  if(debug)
+                    printf("SPUTT  %g tot %g ind %d Ei %d Ai %d ptcl %d  t %d\n", newWeight, old+newWeight,
+                      surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd, EdistInd, AdistInd, ptcl, tstep);
             #else      
                   surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] = 
                     surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] +  newWeight;
@@ -603,8 +618,12 @@ int ptcl = particles->index[indx];
                   (AdistInd >= 0) && (AdistInd < nAdist))
                 {
 #if USE_CUDA > 0
-                    atomicAdd(&(surfaces->energyDistribution[surfaceHit*nEdist*nAdist + 
+                    auto old = atomicAdd(&(surfaces->energyDistribution[surfaceHit*nEdist*nAdist + 
                                                EdistInd*nAdist + AdistInd]), weight);
+
+                    if(debug)
+                      printf("EDIST %g tot %g ind %d Ei %d Ai %d ptcl %d t %d\n", weight, old+weight, 
+                          surfaceHit*nEdist*nAdist +EdistInd*nAdist + AdistInd, EdistInd, AdistInd, ptcl, tstep);
 #else
 
                     surfaces->energyDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] = 
