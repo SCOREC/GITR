@@ -5,7 +5,6 @@
 #define CUDA_CALLABLE_MEMBER_DEVICE __device__
 #else
 #define CUDA_CALLABLE_MEMBER_DEVICE
-using namespace std;
 #endif
 #include <cstdlib>
 #include <iostream>
@@ -17,17 +16,17 @@ struct curandInitialize{
 #if __CUDACC__
    curandState *s;
 #else
-   mt19937 *s;
+   std::mt19937 *s;
 #endif
   int seed;
  curandInitialize(
 #if __CUDACC__
          curandState *_s,
 #else
-         mt19937 *_s,
+         std::mt19937 *_s,
 #endif
          int _seed) : s(_s), seed(_seed) {
-   printf("\n\n curand_init seed in indx+seed %d \n\n", seed);
+   printf("\n ** curand_init seed in indx+seed %d \n", seed);
  } 
 //void curandInitialize(curandState *_s, int _seed) : s(_s),seed(_seed) {}
     CUDA_CALLABLE_MEMBER_DEVICE
@@ -43,10 +42,10 @@ struct curandInitialize{
        ////    seedTotal = thread_id*2;
        ////}
        ////else{ seedTotal = thread_id;}
-      curand_init(indx+seed, 0, 0, &s[indx]);
+      curand_init(indx, 0, 0, &s[indx]);
 #else
-        random_device randDevice;
-        mt19937 s0(randDevice());
+        std::random_device randDevice;
+        std::mt19937 s0(randDevice());
         s[indx] = s0;
 #endif
     }

@@ -64,10 +64,14 @@
 #include <thrust/transform.h>
 
 #include <sstream>
-#define HISTORY_REGION 0
-#if HISTORY_REGION > 0
- #include "history_region.h"
+#define USE_PID_LIST 1
+#define HISTORY_SELECT 1
+#if HISTORY_SELECT > 0
+ #include "history_select.h"
 #endif
+
+int subFactor = 10;
+
 const int seedplus = 0;
 
 int main(int argc, char **argv, char **envp) {
@@ -3662,7 +3666,7 @@ print_gpu_memory_usage(world_rank);
                    // world_rank*nP/world_size,particleBegin +
                    // (world_rank+1)*nP/world_size-10,
                    // curandInitialize(&state1[0],randDeviceInit,0));
-                   curandInitialize(&state1.front(), seedplus));
+                   curandInitialize(&state1.front(), 0));//seedplus));
   std::cout << " finished curandInit" << std::endl;
   // curandInitialize cuIn(0);
   // cuIn(0);
@@ -3702,8 +3706,8 @@ print_gpu_memory_usage(world_rank);
   *dev_tt = 0;
 #endif
   int tt = 0;
- 
 
+#if USE_PID_LIST > 0 
   int nPRnd = nP;
   if(usePidList) {
    #if USE_CUDA > 0
@@ -3732,10 +3736,8 @@ print_gpu_memory_usage(world_rank);
     nPRnd = 0;
     for(int i=0; i<nPtclsList; ++i) {
       auto id = ptclList[i];
-      printf("LIST id %d seq %d\n", id, nPRnd);
       if(id >= nP) 
         continue;
-      printf("writing: id %d seq %d\n", id, nPRnd);
       particleArray->setStoreRnd(id, nPRnd, 1);
       ++nPRnd;
     }
@@ -3746,6 +3748,41 @@ print_gpu_memory_usage(world_rank);
     cudaDeviceSynchronize();
 #endif
   }
+#endif //USE_PID_LIST
+
+#if HISTORY_SELECT > 0
+  int plus = 0; //TODO
+  int histSelectLimit = 0; //0 ineffective
+ #if PARTICLE_TRACKS > 0
+  plus = 0;
+  //subFactor = subSampleFac;
+ #endif
+  int nPHistSelect = nPRnd;
+  if(histSelectLimit)
+    nPHistSelect = histSelectLimit;
+  int nHistSelect = 1000000;  //1M -> 64 MB x 3 = ~200MB
+  if(usePidList)
+    nHistSelect = nPHistSelect * nT / subFactor;
+  printf("\n NOTE  REGION history is turned ON with alloc %d\n", nHistSelect); 
+ #if USE_CUDA > 0
+  sim::Array<double> histRegX(nHistSelect, 0);
+  sim::Array<double> histRegY(nHistSelect, 0);
+  sim::Array<double> histRegZ(nHistSelect, 0);
+  sim::Array<int>filled(1,0);
+  sim::Array<double> histPind(nHistSelect, 0);
+  sim::Array<double> histTstep(nHistSelect, 0);
+ #else
+  std::vector<double> histRegX(nHistSelect, 0);
+  std::vector<double> histRegY(nHistSelect, 0);
+  std::vector<double> histRegZ(nHistSelect, 0);
+  std::vector<int>filled(1,0);
+  std::vector<double> histPind(nHistSelect, 0);
+  std::vector<double> histTstep(nHistSelect, 0);
+ #endif
+  history_select history_select0(particleArray, nT, subFactor, &histRegX.front(),
+   &histRegY.front(), &histRegZ.front(), &histPind.front(), &histTstep.front(),
+   &filled.front(), plus, nHistSelect);
+#endif
 
   int dof_intermediate = 0;
   int idof = 0;
@@ -3872,34 +3909,6 @@ print_gpu_memory_usage(world_rank);
                    &velocityHistoryX.front(), &velocityHistoryY.front(),
                    &velocityHistoryZ.front(), &chargeHistory.front(),
                    &weightHistory.front());
-#endif
-
-#if HISTORY_REGION > 0
-  int plus = 1;
- #if PARTICLE_TRACKS > 0
-  plus = 0;
- #endif
-  int subFactor = 5;
-  int nHistRegionSize = 1000000;  //1M -> 64 MB x 3 = ~200MB
-  printf("\n NOTE  REGION history is turned ON with alloc %d\n", nHistRegionSize); 
-#if USE_CUDA > 0
-  sim::Array<double> histRegX(nHistRegionSize, 0);
-  sim::Array<double> histRegY(nHistRegionSize, 0);
-  sim::Array<double> histRegZ(nHistRegionSize, 0);
-  sim::Array<int>filled(1,0);
-  sim::Array<double> histPind(nHistRegionSize, 0);
-  sim::Array<double> histTstep(nHistRegionSize, 0);
- #else
-  std::vector<double> histRegX(nHistRegionSize, 0);
-  std::vector<double> histRegY(nHistRegionSize, 0);
-  std::vector<double> histRegZ(nHistRegionSize, 0);
-  std::vector<int>filled(1,0);
-  std::vector<double> histPind(nHistRegionSize, 0);
-  std::vector<double> histTstep(nHistRegionSize, 0);
- #endif
-  history_region history_region0(particleArray, subFactor, &histRegX.front(),
-   &histRegY.front(), &histRegZ.front(), &histPind.front(), &histTstep.front(),
-   &filled.front(), plus, nHistRegionSize);
 #endif
 
 #if FORCE_EVAL > 0
@@ -4112,6 +4121,8 @@ print_gpu_memory_usage(world_rank);
 #ifdef __CUDACC__
     cudaDeviceSynchronize();
 #endif
+    sim::Array<int> hist(1,1);
+
     for (tt; tt < nT; tt++) {
       if(tt%500==0) 
         printf("\ttimestep %d\n", tt);
@@ -4126,13 +4137,14 @@ print_gpu_memory_usage(world_rank);
 
 #if PARTICLE_TRACKS > 0
       thrust::for_each(thrust::device, particleBegin, particleEnd, history0);
-#ifdef __CUDACC__
-      // cudaThreadSynchronize();
-#endif
+
+  #elif ( USE_PID_LIST >0 || HISTORY_SELECT >0 )
+      thrust::for_each(thrust::device, particleBegin,particleEnd, [=]__device__(size_t i) {
+       particleArray->tt[i] = particleArray->tt[i]+1; });
 #endif
 
-#if HISTORY_REGION > 0
-      thrust::for_each(thrust::device, particleBegin, particleEnd, history_region0);
+#if HISTORY_SELECT > 0
+      thrust::for_each(thrust::device, particleBegin, particleEnd, history_select0);
 #endif
 
       // std::cout << " world rank pstart nactive " << world_rank << " " <<
@@ -4225,23 +4237,23 @@ print_gpu_memory_usage(world_rank);
   printf("Time taken          is %6.3f (secs) \n", fs.count());
   printf("Time taken per step is %6.3f (secs) \n", fs.count() / (double)nT);
 
-#if HISTORY_REGION
-  printf("History_region  warning Not handlin MPI \n");
+#if HISTORY_SELECT
+  printf("History_select warning : Not handling MPI \n");
   if(world_rank == 0) {
     int *nFilled= (int*)malloc(sizeof(int));
     cudaMemcpy(nFilled, &filled.front(), sizeof(int), cudaMemcpyDeviceToHost);
-    printf("nFilled selected history %d \n", nFilled[0]);
+    printf("nFilled selected history %d nHistSelect %d\n", nFilled[0], nHistSelect);
     netCDF::NcFile ncFile_hs("output/hist_selected.nc", NcFile::replace);
     netCDF::NcDim ncdim_n = ncFile_hs.addDim("size", nFilled[0]);
     netCDF::NcDim ncdim_filled = ncFile_hs.addDim("allocSize", histRegX.size());
     netCDF::NcDim ncdim_sub = ncFile_hs.addDim("subSample", subFactor);
     vector<NcDim>dims_hs;
     dims_hs.push_back(ncdim_n);
-    netCDF::NcVar ncvar_hsx = ncFile_hs.addVar("positionX", ncDouble, dims_hs);
-    netCDF::NcVar ncvar_hsy = ncFile_hs.addVar("positionY", ncDouble, dims_hs);
-    netCDF::NcVar ncvar_hsz = ncFile_hs.addVar("positionZ", ncDouble, dims_hs);
-    netCDF::NcVar ncvar_hsid = ncFile_hs.addVar("pid", ncDouble, dims_hs);
-    netCDF::NcVar ncvar_hst = ncFile_hs.addVar("step", ncDouble, dims_hs);
+    netCDF::NcVar ncvar_hsx = ncFile_hs.addVar("positionsX", ncDouble, dims_hs);
+    netCDF::NcVar ncvar_hsy = ncFile_hs.addVar("positionsY", ncDouble, dims_hs);
+    netCDF::NcVar ncvar_hsz = ncFile_hs.addVar("positionsZ", ncDouble, dims_hs);
+    netCDF::NcVar ncvar_hsid = ncFile_hs.addVar("pids", ncDouble, dims_hs);
+    netCDF::NcVar ncvar_hst = ncFile_hs.addVar("steps", ncDouble, dims_hs);
     ncvar_hsx.putVar(&histRegX[0]);
     ncvar_hsy.putVar(&histRegY[0]);
     ncvar_hsz.putVar(&histRegZ[0]);

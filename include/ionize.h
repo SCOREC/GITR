@@ -137,13 +137,15 @@ struct ionize {
        //particlesPointer->test2[indx] = r1; 
 
       int nthStep = particlesPointer->tt[indx];
-      auto pindex = particlesPointer->index[indx];
+      int pindex = particlesPointer->index[indx];
       int beg = -1;
-      if(dof_intermediate > 0 && particlesPointer->storeRnd[indx]) {
-        auto pind = pindex;
+      if(dof_intermediate > 0 && particlesPointer->storeRnd[indx] > 0) {
         int rid = particlesPointer->storeRndSeqId[indx]; 
-        pind = (rid >= 0) ? rid : pind;
+        int pind = (rid >= 0) ? rid : pindex;
         beg = pind*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
+        if(!((pind >= 0) && (beg >= 0) && (nthStep>=0)))
+          printf("ionize :  t %d at %d pind %d rid %d\n", nthStep, beg+idof, pind, rid);
+        assert((pind >= 0) && (beg >= 0) && (nthStep>=0));
         intermediate[beg+idof] = r1;
       }
       if(IONI_DEBUG_PRINT==1) {

@@ -398,11 +398,15 @@ int ptcl = particles->index[indx];
       int nthStep = particles->tt[indx];
       int pindex = particles->index[indx];
       int beg = -1;
+
       if(dof_intermediate > 0 && particles->storeRnd[indx]) {
         auto pind = pindex;
         int rid = particles->storeRndSeqId[indx]; 
         pind = (rid >= 0) ? rid : pind;  
         beg = pind*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
+        if(!((pind >= 0) && (beg >= 0) && (nthStep>=0)))
+          printf("surf t %d at %d pind %d rind %d\n", nthStep, beg+idof, pind, rid);
+        assert((pind >= 0) && (beg >= 0) && (nthStep>=0));
         intermediate[beg+idof] = r7;
         intermediate[beg+idof+1] = r8;
         intermediate[beg+idof+2] = r9;

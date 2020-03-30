@@ -126,11 +126,15 @@ struct recombine {
         int nthStep = particlesPointer->tt[indx];
         auto pindex = particlesPointer->index[indx];
         int beg = -1;
+
         if(dof_intermediate > 0 && particlesPointer->storeRnd[indx]) {
           auto pind = pindex;
           int rid = particlesPointer->storeRndSeqId[indx]; 
           pind = (rid >= 0) ? rid : pind;
           beg = pind*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
+          if(!((pind >= 0) && (beg >= 0) && (nthStep>=0)))
+            printf("recomb : t %d at %d pind %d rid %d\n", nthStep, beg+idof, pind, rid);
+          assert((pind >= 0) && (beg >= 0) && (nthStep>=0));
           intermediate[beg+idof] = r1;
         }
 
