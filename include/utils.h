@@ -23,7 +23,7 @@ using namespace netCDF;
 using namespace exceptions;
 using namespace netCDF::exceptions;
 void  read_comand_line_args(const int argc,char** argv,int& ppn,std::string& inputFile,
-    bool & inter, bool& list);
+    bool & inter, bool& list, int& logSurfHit);
 void checkFlags(libconfig::Config &cfg);
 void print_gpu_memory_usage(const int world_rank);
 

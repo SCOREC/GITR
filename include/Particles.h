@@ -116,6 +116,7 @@ public:
   //  yMax, double zMin, double zMax);
 
   //  void Ionization(double dt);
+  sim::Array<int> logSurfHit;
   sim::Array<int> storeRndSeqId;
   sim::Array<int> storeRnd;
   CUDA_CALLABLE_MEMBER
@@ -268,7 +269,7 @@ public:
         test1{nP, 0.0}, test2{nP, 0.0}, test3{nP, 0.0}, test4{nP, 0.0},
         distanceTraveled{nP}, weight{nP, 1.0}, PionizationPrevious{nP, 1.0},
         PrecombinationPrevious{nP, 1.0}, firstIonizationZ{nP, 0.0},
-        firstIonizationT{nP, 0.0}, storeRnd{nP,1}, storeRndSeqId{nP,-1} {};
+        firstIonizationT{nP, 0.0}, storeRnd{nP,1}, storeRndSeqId{nP,-1},logSurfHit(nP,0) {};
 };
 
 #endif

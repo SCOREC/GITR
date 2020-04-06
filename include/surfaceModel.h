@@ -163,6 +163,8 @@ struct reflection {
     int idof = -1;
     int nT = -1;
     double* intermediate;
+    int select = 0;
+    int logSurfHit = 0;
 #if __CUDACC__
         curandState *state;
 #else
@@ -204,7 +206,9 @@ struct reflection {
     double _Edist,
     int _nAdist,
     double _A0dist,
-    double _Adist, double* intermediate, int nT, int idof, int dof_intermediate) :
+    double _Adist, 
+    double* intermediate=nullptr, int nT=0, int idof=0, 
+    int dof_intermediate=0, int select=0, int logSurfHit=0) :
 particles(_particles),
                              dt(_dt),
                              nLines(_nLines),
@@ -240,14 +244,12 @@ particles(_particles),
                              A0dist(_A0dist),
                              Adist(_Adist),
                              state(_state),intermediate(intermediate),nT(nT),
-                             idof(idof), dof_intermediate(dof_intermediate) {
+                             idof(idof), dof_intermediate(dof_intermediate), 
+                             select(select),logSurfHit(logSurfHit)  {
   }
 
 CUDA_CALLABLE_MEMBER_DEVICE
 void operator()(size_t indx) const {
-   
-particles->tt[indx] = particles->tt[indx]+1; 
-   
     if (particles->hitWall[indx] == 1.0) {
       double E0 = 0.0;
       double thetaImpact = 0.0;
@@ -271,8 +273,14 @@ particles->tt[indx] = particles->tt[indx]+1;
       int surfaceHit = boundaryVector[wallHit].surfaceNumber;
       int surface = boundaryVector[wallHit].surface;
 
-int tstep = particles->tt[indx]-1;
-int ptcl = particles->index[indx];
+      int tstep = particles->tt[indx]-1;
+      int ptcl = particles->index[indx];
+      int selectThis = 1;
+      if(select > 0) 
+        selectThis = particles->storeRnd[indx];
+      if(logSurfHit > 0)
+        particles->logSurfHit[indx] = 1;
+
       if (wallHit < 0)
         wallHit = 0;
       if (surfaceHit < 0)
@@ -296,7 +304,8 @@ int ptcl = particles->index[indx];
       norm_part = sqrt(particleTrackVector[0] * particleTrackVector[0] + particleTrackVector[1] * particleTrackVector[1] + particleTrackVector[2] * particleTrackVector[2]);
       E0 = 0.5 * particles->amu[indx] * 1.6737236e-27 * (norm_part * norm_part) / 1.60217662e-19;
 
-      if(SURF_DEBUG_PRINT==1) {
+      #if SURF_DEBUG_PRINT > 0
+      if(selectThis) {
         auto xx = particles->x[indx]; 
         auto yy = particles->y[indx];
         auto zz = particles->z[indx];
@@ -306,6 +315,7 @@ int ptcl = particles->index[indx];
             ptcl, tstep,  xx,yy,zz,vx, vy,vz, wallHit, surfaceHit, surface, 
             particles->wallIndex[indx], norm_part, weight, amu, E0);
       }
+      #endif
 
       if (E0 > 1000.0)
         E0 = 990.0;
@@ -344,7 +354,8 @@ int ptcl = particles->index[indx];
       //cout << " resulting in Y0 and R0 of " << Y0 << " " << R0 << endl;
       totalYR = Y0 + R0;
 
-      if(SURF_DEBUG_PRINT==1)
+      #if SURF_DEBUG_PRINT > 0
+       if(selectThis) 
         printf("SURF4 ptcl %d timestep %d surfaceNormal %.15e %.15e %.15e ptclTrackV %.15e %.15e %.15e partDotNormal %.15e "
           " materialZ %g thetaImpact %.15e totalYR %.15e sputtProb %.15e Y0 %.15e R0 %.15e totalYR %.15e "
           " bdrxyz %g %g %g : %g %g %g : %g %g %g  bdry:abcd %g %g %g %g plane_norm %g \n",
@@ -356,7 +367,7 @@ int ptcl = particles->index[indx];
           boundaryVector[wallHit].z2, boundaryVector[wallHit].x3, boundaryVector[wallHit].y3,
           boundaryVector[wallHit].z3,   boundaryVector[wallHit].a,  boundaryVector[wallHit].b,
            boundaryVector[wallHit].c,  boundaryVector[wallHit].d,  boundaryVector[wallHit].plane_norm);
- 
+       #endif 
 //if(particles->test[indx] == 0.0)
 //{
 //    particles->test[indx] = 1.0;
@@ -395,15 +406,15 @@ int ptcl = particles->index[indx];
             #endif
 
     
-      int nthStep = particles->tt[indx];
+      int nthStep = particles->tt[indx] - 1;
       int pindex = particles->index[indx];
       int beg = -1;
 
       if(dof_intermediate > 0 && particles->storeRnd[indx]) {
-        auto pind = pindex;
+        int pind = pindex;
         int rid = particles->storeRndSeqId[indx]; 
         pind = (rid >= 0) ? rid : pind;  
-        beg = pind*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
+        beg = pind*nT*dof_intermediate + nthStep*dof_intermediate;
         if(!((pind >= 0) && (beg >= 0) && (nthStep>=0)))
           printf("surf t %d at %d pind %d rind %d\n", nthStep, beg+idof, pind, rid);
         assert((pind >= 0) && (beg >= 0) && (nthStep>=0));
@@ -431,10 +442,12 @@ int ptcl = particles->index[indx];
                                          E_sputtRefDistIn,EDist_CDF_R_regrid );
                    //newWeight=(R0/(1.0-sputtProb))*weight;
 		   newWeight = weight*(totalYR);
-                  if(SURF_DEBUG_PRINT==1)
+                  #if SURF_DEBUG_PRINT > 0
+                   if(selectThis)
                     printf("SURF5 reflects ptcl %d  timestep %d weight %.15e newWeight %.15e rand8 %.15e "
                         " thetaImpact %.15e log10(E0) %.15e aInterpVal %.15e  eInterpVal %.15e \n",
                       ptcl, tstep, weight, newWeight, r8, thetaImpact,log10(E0), aInterpVal, eInterpVal);
+                  #endif
     #if FLUX_EA > 0
               EdistInd = floor((eInterpVal-E0dist)/dEdist);
               AdistInd = floor((aInterpVal-A0dist)/dAdist);
@@ -452,9 +465,11 @@ int ptcl = particles->index[indx];
                     surfaces->reflDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] +  newWeight;
             #endif
 
-                 if(SURF_DEBUG_PRINT==1)
+                 #if SURF_DEBUG_PRINT > 0
+                 if(selectThis)
                    printf("SURF6 reflDist ptcl %d  timestep %d reflIndx %d \n", 
                      ptcl, tstep, surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd);
+                 #endif
               }
 	       #endif
                   if(surface > 0)
@@ -467,9 +482,11 @@ int ptcl = particles->index[indx];
                     surfaces->grossDeposition[surfaceHit] = surfaces->grossDeposition[surfaceHit]+weight*(1.0-R0);
             #endif
 
-                 if(SURF_DEBUG_PRINT==1)
+                 #if SURF_DEBUG_PRINT > 0
+                 if(selectThis)
                    printf("SURF7 grossDep ptcl %d timestep %d GrossDep+ %.15e surfaceHit %d \n", 
                        ptcl, tstep, weight*(1.0-R0),  surfaceHit);
+                 #endif
                 }
             }
             else //sputters
@@ -493,10 +510,12 @@ int ptcl = particles->index[indx];
                   //newWeight=(Y0/sputtProb)*weight;
 		  newWeight=weight*totalYR;
 
-              if(SURF_DEBUG_PRINT==1)
-                   printf("SURF8 sputtDist ptcl %d timestep %d  weight %.15e newWeight %.15e surface %d "
+              #if SURF_DEBUG_PRINT > 0
+              if(selectThis)
+                 printf("SURF8 sputtDist ptcl %d timestep %d  weight %.15e newWeight %.15e surface %d "
                     " aInterpVal %.15e eInterpVal %.15e \n", 
                        ptcl,  tstep, weight, newWeight, surface, aInterpVal, eInterpVal);
+              #endif
     #if FLUX_EA > 0
               EdistInd = floor((eInterpVal-E0dist)/dEdist);
               AdistInd = floor((aInterpVal-A0dist)/dAdist);
@@ -514,11 +533,13 @@ int ptcl = particles->index[indx];
                   surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] = 
                     surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] +  newWeight;
               #endif 
-                  if(SURF_DEBUG_PRINT==1)
+                #if SURF_DEBUG_PRINT > 0
+                  if(selectThis)
                     printf("SURF9 sputters FLUX_EA  ptcl %d timestep %d  sputtDist indx %d "
                       " tot sputtDist %.15e \n",ptcl, tstep, 
                       surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd, 
                       surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd]);
+                   #endif  
               }
 	       #endif
                   if(sputtProb == 0.0) newWeight = 0.0;
@@ -541,18 +562,23 @@ int ptcl = particles->index[indx];
                     surfaces->sputtYldCount[surfaceHit] = surfaces->sputtYldCount[surfaceHit] + 1;
             #endif
 
-                 if(SURF_DEBUG_PRINT==1)
+                 #if SURF_DEBUG_PRINT > 0
+                 if(selectThis)
                    printf("SURF10 DepErosSput ptcl %d timestep %d surfaceHit %d newWeight  %.15e GrossDep+ %.15e "
                     " GrossEros+ %.15e AveSput+ %.15e SpYCount +1\n", 
                       ptcl, tstep, surfaceHit, newWeight, weight*(1.0-R0), newWeight, Y0);
+                 #endif
                 }
             }
             //cout << "eInterpValYR " << eInterpVal << endl; 
             }
             else // totalYR
             { 
-              if(SURF_DEBUG_PRINT==1) printf("SURF10_ ptcl %d timestep %d weight %.15e  surface %d \n",
+              #if SURF_DEBUG_PRINT > 0
+              if(selectThis)
+                printf("SURF10_ ptcl %d timestep %d weight %.15e  surface %d \n",
                 ptcl, tstep, weight, surface);
+              #endif
                     newWeight = 0.0;
                     particles->hitWall[indx] = 2.0;
                   if(surface > 0)
@@ -563,36 +589,42 @@ int ptcl = particles->index[indx];
                     surfaces->grossDeposition[surfaceHit] = surfaces->grossDeposition[surfaceHit]+weight;
             #endif
 
-                  if(SURF_DEBUG_PRINT==1) printf("SURF11 ptcl %d timestep %d totalYR=0 newWeight => 0 "
+                  #if SURF_DEBUG_PRINT > 0
+                  if(selectThis)
+                    printf("SURF11 ptcl %d timestep %d totalYR=0 newWeight => 0 "
                     "GrossDep+ %.15e grossDep %.15e\n", 
                     ptcl, tstep, weight, surfaces->grossDeposition[surfaceHit]);
+                  #endif
                 }
             //cout << "eInterpValYR_not " << eInterpVal << endl; 
             }
             //cout << "eInterpVal " << eInterpVal << endl; 
 	    if(eInterpVal <= 0.0)
             {
-                if(SURF_DEBUG_PRINT==1)
+                #if SURF_DEBUG_PRINT > 0
+                if(selectThis)
                   printf("SURF12 eInterpVal <= 0.0  newWeight = 0.0 surface %d didReflect %d\n",surface,didReflect);
-
+                #endif
                     newWeight = 0.0;
                     particles->hitWall[indx] = 2.0;
 
               if(surface > 0)
               {
-        		    if(didReflect)
-        		    {
+        	  if(didReflect)
+        	  {
             #if USE_CUDA > 0
                     atomicAdd(&(surfaces->grossDeposition[surfaceHit]),weight);
             #else
                     surfaces->grossDeposition[surfaceHit] = surfaces->grossDeposition[surfaceHit]+weight;
             #endif
 	        
-                    if(SURF_DEBUG_PRINT==1)
+                    #if SURF_DEBUG_PRINT > 0
+                    if(selectThis)
                       printf("SURF12b reflect ptcl %d timestep %d  surfaceHit %d GrossDep+ %.15e \n", 
                         ptcl, tstep, surfaceHit, weight);
-                    }
-                }
+                    #endif
+                  }
+              }
             }
             //if(particles->test[indx] == 1.0)
             //{
@@ -615,9 +647,10 @@ int ptcl = particles->index[indx];
                 EdistInd = floor((E0-E0dist)/dEdist);
                 AdistInd = floor((thetaImpact-A0dist)/dAdist);
 
-            if(SURF_DEBUG_PRINT==1)
+           #if SURF_DEBUG_PRINT > 0
+             if(selectThis)
                 printf("SURF13 surface WeightStrike+ %.15e PtclStrike+1 n", weight );
-
+           #endif
 	        if((EdistInd >= 0) && (EdistInd < nEdist) && 
                   (AdistInd >= 0) && (AdistInd < nAdist))
                 {
@@ -633,18 +666,21 @@ int ptcl = particles->index[indx];
                     surfaces->energyDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] = 
                     surfaces->energyDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] +  weight;
 #endif
-
-                    if(SURF_DEBUG_PRINT==1)
+                    #if SURF_DEBUG_PRINT > 0
+                    if(selectThis)
                       printf("SURF14 enDistr ptcl %d timestep %d indx %d weight %.15e surfaceHit %d nEdist %d nAdist %d \n",
                           ptcl, tstep, surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd, weight, 
                           surfaceHit, nEdist, nAdist);
+                    #endif
                 }
 #endif
       }
 
-      if(SURF_DEBUG_PRINT==1)
+      #if SURF_DEBUG_PRINT > 0
+      if(selectThis)
         printf("SURF16  ptcl %d timestep %d newweight %.15e bdryZ %g \n",
             ptcl, tstep, newWeight, boundaryVector[wallHit].Z);
+      #endif
       //reflect with weight and new initial conditions
       //cout << "particle wall hit Z and nwweight " << boundaryVector[wallHit].Z << " " << newWeight << endl;
       if (boundaryVector[wallHit].Z > 0.0 && newWeight > 0.0)
@@ -658,12 +694,13 @@ int ptcl = particles->index[indx];
         vSampled[0] = V0 * sin(aInterpVal * 3.1415 / 180) * cos(2.0 * 3.1415 * r10);
         vSampled[1] = V0 * sin(aInterpVal * 3.1415 / 180) * sin(2.0 * 3.1415 * r10);
         vSampled[2] = V0 * cos(aInterpVal * 3.1415 / 180);
-        if(SURF_DEBUG_PRINT==1) {
+        #if SURF_DEBUG_PRINT > 0
+        if(selectThis)
           printf("SURF17 ptcl %d timestep %d V0 %.15e rand10 %g vsampled0 %.15e %.15e %.15e surfaceNormal %.15e %.15e %.15e \n", 
             ptcl, tstep, V0, r10, vSampled[0], vSampled[1], vSampled[2], surfaceNormalVector[0],
             surfaceNormalVector[1], surfaceNormalVector[2]);
-
-        }
+        #endif
+        
         boundaryVector[wallHit].transformToSurface(vSampled, particles->y[indx], particles->x[indx]);
 
         particles->vx[indx] = -static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[0] * vSampled[0];
@@ -673,9 +710,10 @@ int ptcl = particles->index[indx];
 
         particles->xprevious[indx] = particles->x[indx] - static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[0] * 1e-4;
         particles->yprevious[indx] = particles->y[indx] - static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[1] * 1e-4;
-      particles->zprevious[indx] = particles->z[indx] - static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[2] * 1e-4;
+        particles->zprevious[indx] = particles->z[indx] - static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[2] * 1e-4;
 
-        if(SURF_DEBUG_PRINT==1) {
+       #if SURF_DEBUG_PRINT > 0
+        if(selectThis) {
           auto xp =  particles->xprevious[indx];
           auto yp =  particles->yprevious[indx];
           auto zp =  particles->zprevious[indx];
@@ -685,6 +723,7 @@ int ptcl = particles->index[indx];
           printf("SURF18 ptcl %d timestep %d newpos %.15e %.15e %.15e newvel %.15e %.15e %.15e vsampled %.15e %.15e %.15e\n", 
               ptcl, tstep, xp, yp, zp, vx, vy, vz, vSampled[0], vSampled[1], vSampled[2]);
         }
+        #endif
 
       } else {
         particles->hitWall[indx] = 2.0;

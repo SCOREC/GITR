@@ -64,8 +64,8 @@
 #include <thrust/transform.h>
 
 #include <sstream>
-#define USE_PID_LIST 1
-#define HISTORY_SELECT 1
+#define USE_PID_LIST 0
+#define HISTORY_SELECT 0
 #if HISTORY_SELECT > 0
  #include "history_select.h"
 #endif
@@ -94,7 +94,14 @@ int main(int argc, char **argv, char **envp) {
   // -nGPUPerNode and -i respectively
   bool writeIntermediate = false;
   bool usePidList = false;
-  read_comand_line_args(argc,argv,ppn,inputFile, writeIntermediate, usePidList);
+  int logSurfHit = 0;
+  read_comand_line_args(argc,argv,ppn,inputFile, writeIntermediate, usePidList, logSurfHit);
+#if USE_PID_LIST > 0
+  if(usePidList <= 0) {
+    printf("USE_PID_LIST turned on without using list \n");
+    exit(EXIT_FAILURE);
+  }
+#endif
 
 #if USE_MPI > 0
   // Get the number of processes
@@ -3707,10 +3714,12 @@ print_gpu_memory_usage(world_rank);
 #endif
   int tt = 0;
 
+int nPRnd = nP;
 #if USE_PID_LIST > 0 
-  int nPRnd = nP;
   if(usePidList) {
    #if USE_CUDA > 0
+    //pidlist has ptcl index from positions.m which starts at index 1
+    int indStart = 1; // 0 otherwise
     std::string fName = "pidList.txt";
     int maxPtcls = 0; // non-zero is effective
     std::ifstream ifs(fName);
@@ -3727,12 +3736,15 @@ print_gpu_memory_usage(world_rank);
         continue;
       if(s1.find("#") != std::string::npos || s1.find("//") != std::string::npos)
         continue;
-      ptclList.push_back(std::stoi(s1));
+      ptclList.push_back(std::stoi(s1) - indStart);
     }
     int nPtclsList = ptclList.size();
-    for(int i=0; i<nP; ++i) {
-      particleArray->setStoreRnd(i, i, 0);
-    }
+    //for(int i=0; i<nP; ++i)
+    //  particleArray->setStoreRnd(i, i, 0);
+    thrust::for_each(thrust::device, particleBegin,particleEnd, [=]__device__(int i) {
+      particleArray->storeRnd[i] = 0;
+      particleArray->storeRndSeqId[i] = i; 
+    });
     nPRnd = 0;
     for(int i=0; i<nPtclsList; ++i) {
       auto id = ptclList[i];
@@ -3746,7 +3758,7 @@ print_gpu_memory_usage(world_rank);
       exit(1);
     };
     cudaDeviceSynchronize();
-#endif
+  #endif
   }
 #endif //USE_PID_LIST
 
@@ -3758,11 +3770,13 @@ print_gpu_memory_usage(world_rank);
   //subFactor = subSampleFac;
  #endif
   int nPHistSelect = nPRnd;
-  if(histSelectLimit)
+  if(histSelectLimit > 0)
     nPHistSelect = histSelectLimit;
   int nHistSelect = 1000000;  //1M -> 64 MB x 3 = ~200MB
+ #if USE_PID_LIST > 0
   if(usePidList)
     nHistSelect = nPHistSelect * nT / subFactor;
+ #endif
   printf("\n NOTE  REGION history is turned ON with alloc %d\n", nHistSelect); 
  #if USE_CUDA > 0
   sim::Array<double> histRegX(nHistSelect, 0);
@@ -3782,6 +3796,11 @@ print_gpu_memory_usage(world_rank);
   history_select history_select0(particleArray, nT, subFactor, &histRegX.front(),
    &histRegY.front(), &histRegZ.front(), &histPind.front(), &histTstep.front(),
    &filled.front(), plus, nHistSelect);
+#endif
+
+  int select = 0; //for selecting rndm number and print
+#if USE_PID_LIST > 0
+  select = 1;
 #endif
 
   int dof_intermediate = 0;
@@ -3807,7 +3826,7 @@ print_gpu_memory_usage(world_rank);
       nR_closeGeom_sheath, nY_closeGeom_sheath, nZ_closeGeom_sheath,
       n_closeGeomElements_sheath, &closeGeomGridr_sheath.front(),
       &closeGeomGridy_sheath.front(), &closeGeomGridz_sheath.front(),
-      &closeGeom_sheath.front());
+      &closeGeom_sheath.front(), select);
   geometry_check geometry_check0(
       particleArray, nLines, &boundaries[0], surfaces, dt, nHashes,
       nR_closeGeom.data(), nY_closeGeom.data(), nZ_closeGeom.data(),
@@ -3831,7 +3850,8 @@ print_gpu_memory_usage(world_rank);
       &DensGridz.front(), &ne.front(), nR_Temp, nZ_Temp, &TempGridr.front(),
       &TempGridz.front(), &te.front(), nTemperaturesIonize, nDensitiesIonize,
       &gridTemperature_Ionization.front(), &gridDensity_Ionization.front(),
-      &rateCoeff_Ionization.front(), &intermediate.front(), nT, idof, dof_intermediate);
+      &rateCoeff_Ionization.front(), &intermediate.front(), nT, idof, 
+      dof_intermediate, select);
 #endif
 #if USERECOMBINATION > 0
   idof = 1;
@@ -3841,7 +3861,7 @@ print_gpu_memory_usage(world_rank);
       &TempGridz.front(), &te.front(), nTemperaturesRecombine,
       nDensitiesRecombine, gridTemperature_Recombination.data(),
       gridDensity_Recombination.data(), rateCoeff_Recombination.data(), 
-      &intermediate.front(), nT, idof, dof_intermediate);
+      &intermediate.front(), nT, idof, dof_intermediate, select);
 #endif
 #if USEPERPDIFFUSION > 0
   idof = 2; //2
@@ -3860,7 +3880,7 @@ print_gpu_memory_usage(world_rank);
       &TempGridr.front(), &TempGridz.front(), ti.data(), &te.front(),
       background_Z, background_amu, nR_Bfield, nZ_Bfield, bfieldGridr.data(),
       &bfieldGridz.front(), &br.front(), &bz.front(), &by.front(),
-      &intermediate.front(), nT, idof, dof_intermediate);
+      &intermediate.front(), nT, idof, dof_intermediate, select);
 
 #endif
 #if USETHERMALFORCE > 0
@@ -3887,7 +3907,7 @@ print_gpu_memory_usage(world_rank);
       EDist_CDF_Y_regrid.data(), AphiDist_CDF_Y_regrid.data(),
       EDist_CDF_R_regrid.data(), AphiDist_CDF_R_regrid.data(), nEdist, E0dist,
       Edist, nAdist, A0dist, Adist,
-      &intermediate.front(), nT, idof, dof_intermediate);
+      &intermediate.front(), nT, idof, dof_intermediate, select, logSurfHit);
 
       bool testInterp = true;
       if(testInterp) {
@@ -4141,6 +4161,11 @@ print_gpu_memory_usage(world_rank);
   #elif ( USE_PID_LIST >0 || HISTORY_SELECT >0 )
       thrust::for_each(thrust::device, particleBegin,particleEnd, [=]__device__(size_t i) {
        particleArray->tt[i] = particleArray->tt[i]+1; });
+  #else
+      if(size_intermediate > 1) {
+        printf("Error: Time step not incremented to store random numbers \n");
+        exit(EXIT_FAILURE);
+      }
 #endif
 
 #if HISTORY_SELECT > 0
@@ -4242,16 +4267,20 @@ print_gpu_memory_usage(world_rank);
   if(world_rank == 0) {
     int *nFilled= (int*)malloc(sizeof(int));
     cudaMemcpy(nFilled, &filled.front(), sizeof(int), cudaMemcpyDeviceToHost);
-    printf("nFilled selected history %d nHistSelect %d\n", nFilled[0], nHistSelect);
+    printf("nFilled selected history %d nHistSelect %d size %d\n", nFilled[0], 
+      nHistSelect, nPHistSelect*nT / subFactor);
     netCDF::NcFile ncFile_hs("output/hist_selected.nc", NcFile::replace);
     netCDF::NcDim ncdim_n = ncFile_hs.addDim("size", nFilled[0]);
     netCDF::NcDim ncdim_filled = ncFile_hs.addDim("allocSize", histRegX.size());
     netCDF::NcDim ncdim_sub = ncFile_hs.addDim("subSample", subFactor);
+    netCDF::NcDim ncnT = ncFile_hs.addDim("nT", int(nT / subFactor));
+    netCDF::NcDim ncnP =  ncFile_hs.addDim("nP", nPHistSelect);
+
     vector<NcDim>dims_hs;
     dims_hs.push_back(ncdim_n);
-    netCDF::NcVar ncvar_hsx = ncFile_hs.addVar("positionsX", ncDouble, dims_hs);
-    netCDF::NcVar ncvar_hsy = ncFile_hs.addVar("positionsY", ncDouble, dims_hs);
-    netCDF::NcVar ncvar_hsz = ncFile_hs.addVar("positionsZ", ncDouble, dims_hs);
+    netCDF::NcVar ncvar_hsx = ncFile_hs.addVar("x", ncDouble, dims_hs);
+    netCDF::NcVar ncvar_hsy = ncFile_hs.addVar("y", ncDouble, dims_hs);
+    netCDF::NcVar ncvar_hsz = ncFile_hs.addVar("z", ncDouble, dims_hs);
     netCDF::NcVar ncvar_hsid = ncFile_hs.addVar("pids", ncDouble, dims_hs);
     netCDF::NcVar ncvar_hst = ncFile_hs.addVar("steps", ncDouble, dims_hs);
     ncvar_hsx.putVar(&histRegX[0]);
@@ -4315,7 +4344,15 @@ print_gpu_memory_usage(world_rank);
       netCDF::NcVar ncvar_data = ncFile_rnd.addVar("intermediate", ncDouble, dims_intermediate);
       ncvar_data.putVar(&intermediate[0]);
     }
-
+    if(logSurfHit > 0) {
+      ofstream outLogHit("output/logSurfaceHit.txt");
+      outLogHit << "#indices, 1-based, of particles hit on surface during tracking\n";
+      for (int i = 1; i < nP + 1; i++) {
+        if(particleArray->logSurfHit[i-1] > 0)
+        outLogHit << i << std::endl;
+      }
+      outLogHit.close();
+    }
   // for(int i=0; i<nP;i++)
   //{
   //    std::cout << "Particle test value r1: " << i << " " <<

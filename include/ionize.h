@@ -50,6 +50,7 @@ struct ionize {
     int idof = -1;
     int nT = -1;
     double* intermediate;
+    int select = 0;
     //int& tt;
 #if __CUDACC__
     curandState *state;
@@ -67,8 +68,8 @@ struct ionize {
     double* _DensGridz,double* _ne,int _nR_Temp, int _nZ_Temp,
     double* _TempGridr, double* _TempGridz,double* _te,int _nTemperaturesIonize,
     int _nDensitiesIonize,double* _gridTemperature_Ionization,double* _gridDensity_Ionization,
-    double* _rateCoeff_Ionization, double* intermediate, int nT, int idof, int dof_intermediate
-              ) : 
+    double* _rateCoeff_Ionization, double* intermediate=nullptr, int nT=0, int idof=0, int dof_intermediate = 0,
+     int select=0   ) : 
    
          particlesPointer(_particlesPointer),
                                          nR_Dens(_nR_Dens),
@@ -88,7 +89,7 @@ struct ionize {
                                          rateCoeff_Ionization(_rateCoeff_Ionization),
                                          dt(_dt), // JDL missing tion here?
                                          state(_state), intermediate(intermediate),nT(nT),
-                                          idof(idof), dof_intermediate(dof_intermediate) {}
+                                          idof(idof), dof_intermediate(dof_intermediate), select(select) {}
 
         CUDA_CALLABLE_MEMBER_DEVICE 
                 void operator()(size_t indx)  { 
@@ -100,10 +101,17 @@ struct ionize {
     double P = exp(-dt/tion);
     //particlesPointer->PionizationPrevious[indx] = PiP*P;
     double P1 = 1.0-P;
+    int selectThis = 1;
+    if(select)
+      selectThis = particlesPointer->storeRnd[indx];
+
     //cout << "tion P P1 " << tion << " " << P << " " << P1 << " " << PiP<< endl;
-    if(IONI_DEBUG_PRINT==1 && particlesPointer->hitWall[indx] !=0) {
+  #if IONI_DEBUG_PRINT > 0
+    if(particlesPointer->hitWall[indx] !=0 && selectThis > 0) {
       printf("Not ionizing %d in timestep %d\n", particlesPointer->index[indx], particlesPointer->tt[indx]);
     }
+  #endif
+  
     if(particlesPointer->hitWall[indx] == 0.0)
     {
         //cout << "calculating r1 " << endl;i
@@ -136,26 +144,35 @@ struct ionize {
        //particlesPointer->test1[indx] = P1; 
        //particlesPointer->test2[indx] = r1; 
 
-      int nthStep = particlesPointer->tt[indx];
+      int selectThis = 1;
+      if(select)
+        selectThis =  particlesPointer->storeRnd[indx];
+
+      int nthStep = particlesPointer->tt[indx] - 1;
       int pindex = particlesPointer->index[indx];
       int beg = -1;
-      if(dof_intermediate > 0 && particlesPointer->storeRnd[indx] > 0) {
+      if(dof_intermediate > 0 && selectThis > 0) {
         int rid = particlesPointer->storeRndSeqId[indx]; 
         int pind = (rid >= 0) ? rid : pindex;
-        beg = pind*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
+        beg = pind*nT*dof_intermediate + nthStep*dof_intermediate;
         if(!((pind >= 0) && (beg >= 0) && (nthStep>=0)))
-          printf("ionize :  t %d at %d pind %d rid %d\n", nthStep, beg+idof, pind, rid);
+          printf("ionizeSelect :  t %d at %d pind %d rid %d indx %d r1 %g xyz %g %g %g \n", 
+            nthStep, beg+idof, pind, rid, (int)indx, r1,
+            particlesPointer->x[indx],particlesPointer->y[indx],particlesPointer->z[indx]);
         assert((pind >= 0) && (beg >= 0) && (nthStep>=0));
         intermediate[beg+idof] = r1;
       }
-      if(IONI_DEBUG_PRINT==1) {
+
+    #if IONI_DEBUG_PRINT > 0 
+      if(selectThis >0) {
         auto xx=particlesPointer->x[indx];
         auto yy=particlesPointer->y[indx];
         auto zz=particlesPointer->z[indx];
           printf("ioni: ptcl %d timestep %d rate %.15e temp %.15e den %.15e ionirand %.15e P1 %.15e " 
               "pos %.15e %.15e %.15e r1 %.15e r1@ %d \n", 
-              pindex, nthStep-1, tion, t_at, n_at, r1, P1, xx, yy, zz, r1, beg+idof);
+              pindex, nthStep, tion, t_at, n_at, r1, P1, xx, yy, zz, r1, beg+idof);
       }
+    #endif
       
       if(r1 <= P1)
       {

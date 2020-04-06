@@ -230,7 +230,10 @@ CUDA_CALLABLE_MEMBER
 double getE ( double x0, double y, double z, double E[], Boundary *boundaryVector, int nLines,
        int nR_closeGeom, int nY_closeGeom,int nZ_closeGeom, int n_closeGeomElements, 
        double *closeGeomGridr,double *closeGeomGridy, double *closeGeomGridz, int *closeGeom, 
-       int&  closestBoundaryIndex, int ptcl=-1, int tstep=-1, int* bdryMinInd=nullptr) {
+       int&  closestBoundaryIndex, int ptcl=-1, int tstep=-1, int* bdryMinInd=nullptr, int detail=0) {
+
+   //int detail = (ptcl ==612 && tstep >4473 && tstep <4476) ? 1 : 0;
+
 #if USE3DTETGEOM > 0
     double Emag = 0.0;
     double Er = 0.0;
@@ -433,18 +436,18 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
              normals[12] = p0AB[0]/p0ABdist;
              normals[13] = p0AB[1]/p0ABdist;
              normals[14] = p0AB[2]/p0ABdist;
-        
-           if(BORIS_DEBUG_PRINT >1)
+           #if BORIS_DEBUG_PRINT >1 
              printf("d2bdryDebug: ptcl %d timestep %d ind %d (tAB > 0.0) && (tAB < normAB) distances[4] %g\n", 
                ptcl, tstep, i, distances[4]);
+            #endif
          }
          else
          {
              p0ABdist = 1e12;
              distances[4] = p0ABdist;   
-         
-           if(BORIS_DEBUG_PRINT >1)
+           #if BORIS_DEBUG_PRINT >1
              printf("d2bdryDebug: ptcl %d timestep %d  ind %d p0ABdist distances[4] %g\n", ptcl, tstep, i, distances[4]);
+           #endif
          } 
          
          
@@ -458,18 +461,19 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
              normals[15] = p0BC[0]/p0BCdist;
              normals[16] = p0BC[1]/p0BCdist;
              normals[17] = p0BC[2]/p0BCdist;
-
-           if(BORIS_DEBUG_PRINT >1)
+             
+           #if BORIS_DEBUG_PRINT >1
              printf("d2bdryDebug: ptcl %d timestep %d  ind %d (tBC > 0.0) && (tBC < normBC) distances[5] %g\n", 
                ptcl, tstep, i, distances[5]);
+           #endif
          }
          else
          {
              p0BCdist = 1e12;
              distances[5] = p0BCdist;   
-
-           if(BORIS_DEBUG_PRINT >1)
+           #if BORIS_DEBUG_PRINT >1
              printf("d2bdryDebug: ptcl %d timestep %d ind %d p0BCdist distances[5] %g\n", ptcl, tstep, i, distances[5]);
+           #endif
          } 
          
          if((tCA > 0.0) && (tCA < normCA))
@@ -485,17 +489,19 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
              normals[20] = p0CA[2]/p0CAdist;
              //cout << "p0CA " << p0CA[0] << " " << p0CA[1] << " " << p0CA[2] << endl; 
          
-           if(BORIS_DEBUG_PRINT >1)
+            #if BORIS_DEBUG_PRINT >1
              printf("d2bdryDebug: ptcl %d timestep %d ind %d (tCA > 0.0) && (tCA < normCA)  distances[6] %g\n", 
                  ptcl, tstep, i, distances[6]);
+            #endif
          }
          else
          {
              p0CAdist = 1e12;
              distances[6] = p0CAdist;  
 
-           if(BORIS_DEBUG_PRINT >1)
+            #if BORIS_DEBUG_PRINT >1
              printf("d2bdryDebug: ptcl %d timestep %d ind %d distances[6] %g\n", ptcl, tstep, i, distances[6]);
+            #endif 
          } 
 
          if (totalSigns == 3.0)
@@ -519,16 +525,18 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
              normals[2] = normalVector[2];
              //}
 
-           if(BORIS_DEBUG_PRINT >1)
+          #if BORIS_DEBUG_PRINT >1
              printf("d2bdryDebug: ptcl %d timestep %d ind %d signs3  distances[0] %g\n", ptcl, tstep, i, distances[0]);
+          #endif
          }
          else
          {
              perpDist = 1e12;
              distances[0] = perpDist;  
 
-           if( BORIS_DEBUG_PRINT>1)
+            #if BORIS_DEBUG_PRINT>1
              printf("d2bdryDebug: ptcl %d timestep %d  ind %d reset distances[0] %g\n", ptcl, tstep, i, perpDist);
+            #endif 
 
          }
          int index = 0;
@@ -550,15 +558,17 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
           minIndex = i;
          }
 
-         if(BORIS_DEBUG_PRINT >1)
+          #if BORIS_DEBUG_PRINT >1 
            printf("d2bdryDebug: ptcl %d timestep %d  ind %d minDistance %g minIndex %d \n", 
                ptcl, tstep, i, minDistance, minIndex);
+          #endif 
          //cout << "perp dist " << perpDist << endl;
          //cout << "point to AB BC CA " << p0ABdist << " " << p0BCdist << " " << p0CAdist << endl;
         //}
        }
 
-       if(BORIS_DEBUG_PRINT==1) {
+       #if BORIS_DEBUG_PRINT > 0
+       if(detail) {
          double A[3]={0}, B[3]={0}, C[3]={0};
          int i = minIndex;
          A[0] = boundaryVector[i].x1; A[1]=boundaryVector[i].y1;A[2]= boundaryVector[i].z1;
@@ -574,8 +584,8 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
            printf("d2bdryDebug: ptcl %d timestep %d point %.15e %.15e %.15e "
              "in minIndex-face %d : CHECK-BOUNDARY %d \n", 
              ptcl, tstep, p[0], p[1], p[2],  minIndex, allPositive );
-         }
-       else ptcl = -1;
+       }
+       #endif
       //vectorScalarMult(-1.0,directionUnitVector,directionUnitVector);
       //cout << "min dist " << minDistance << endl;
 #else //2dGeom     
@@ -786,8 +796,8 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
 #endif
 #endif
 
-
-   if(BORIS_DEBUG_PRINT==1 && ptcl>=0){
+#if BORIS_DEBUG_PRINT > 0
+   if(detail > 0 && ptcl>=0) {
      double pt[3]={0}, ptq[3]={0};
      pt[0]= x0; pt[1] = y; pt[2] = z;
      double A[3], B[3], C[3];
@@ -816,24 +826,24 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
        }
      }
 
-    double pott = boundaryVector[minI].potential;
-    double Efmag = pott/(2.0*boundaryVector[minI].ChildLangmuirDist)*
+     double pott = boundaryVector[minI].potential;
+     double Efmag = pott/(2.0*boundaryVector[minI].ChildLangmuirDist)*
            exp(-minD/(2.0*boundaryVector[minI].ChildLangmuirDist));
-    double Ef[3]={0};
-    double dirVec[3]={0}, diffV[3]={0}, vN[3]={0};
-    vectorSubtract(pt, minq, diffV);
-    vectorNormalize(diffV, vN);
-    vectorScalarMult(Efmag, vN, Ef);
-
-    if(BORIS_DEBUG_PRINT==1)
+     double Ef[3]={0};
+     double dirVec[3]={0}, diffV[3]={0}, vN[3]={0};
+     vectorSubtract(pt, minq, diffV);
+     vectorNormalize(diffV, vN);
+     vectorScalarMult(Efmag, vN, Ef);
      printf("calcE: ptcl %d pot %.15e CLD %.15e mindist %.15e minIndex %d Emag %.15e dirV %.15e %.15e %.15e" 
-          " pos %.15e %.15e %.15e closest_test %.15e %.15e %.15e : mindist_test %.15e minInd_test %d " 
-          "testFace: %.15e %.15e %.15e : %.15e %.15e %.15e : %.15e %.15e %.15e Efmag %.15e Ef: %.15e %.15e %.15e\n",
-          ptcl, pot, boundaryVector[minIndex].ChildLangmuirDist, minDistance, minIndex,
-          Emag, directionUnitVector[0], directionUnitVector[1] , directionUnitVector[2], 
-          pt[0], pt[1], pt[2], minq[0], minq[1], minq[2], minD, minI, minA[0],minA[1],minA[2],minB[0],minB[1],minB[2],
-          minC[0], minC[1],minC[2], Efmag, Ef[0], Ef[1], Ef[2]);
-   }
+        " pos %.15e %.15e %.15e closest_test %.15e %.15e %.15e : mindist_test %.15e minInd_test %d " 
+        "testFace: %g %g %g : %g %g %g : %g %g %g Efmag %.15e Ef: %.15e %.15e %.15e\n",
+        ptcl, pot, boundaryVector[minIndex].ChildLangmuirDist, minDistance, minIndex,
+        Emag, directionUnitVector[0], directionUnitVector[1] , directionUnitVector[2], 
+        pt[0], pt[1], pt[2], minq[0], minq[1], minq[2], minD, minI, minA[0],minA[1],minA[2],minB[0],minB[1],minB[2],
+        minC[0], minC[1],minC[2], Efmag, Ef[0], Ef[1], Ef[2]);
+   } //debug print
+#endif
+
     if(bdryMinInd)  
       *bdryMinInd = minIndex;
     return minDistance;
@@ -871,6 +881,7 @@ struct move_boris {
     const int nLines;
     double magneticForce[3];
     double electricForce[3];
+    int select = 0;
     move_boris(Particles *_particlesPointer, double _span, Boundary *_boundaryVector,int _nLines,
             int _nR_Bfield, int _nZ_Bfield,
             double * _BfieldGridRDevicePointer,
@@ -886,7 +897,8 @@ struct move_boris {
             double * _EfieldZDevicePointer,
             double * _EfieldTDevicePointer,
             int _nR_closeGeom, int _nY_closeGeom,int _nZ_closeGeom, int _n_closeGeomElements, 
-            double *_closeGeomGridr,double *_closeGeomGridy, double *_closeGeomGridz, int *_closeGeom)
+            double *_closeGeomGridr,double *_closeGeomGridy, double *_closeGeomGridz, 
+            int *_closeGeom, int select=0)
 : particlesPointer(_particlesPointer),
         boundaryVector(_boundaryVector),
         nR_Bfield(_nR_Bfield),
@@ -916,7 +928,7 @@ struct move_boris {
         span(_span),
         nLines(_nLines),
         magneticForce{0.0, 0.0, 0.0},
-        electricForce{0.0, 0.0, 0.0}{}
+        electricForce{0.0, 0.0, 0.0}, select(select){}
 
 CUDA_CALLABLE_MEMBER    
 void operator()(size_t indx) { 
@@ -945,6 +957,14 @@ void operator()(size_t indx) {
   double minDist = 0.0;
   int closestBoundaryIndex;
 #endif
+ 
+
+  int tstep = particlesPointer->tt[indx]-1;
+  int ptcl = particlesPointer->index[indx];
+  int selectThis = 1;
+  if(select)
+    selectThis = particlesPointer->storeRnd[indx];
+
 #if ODEINT ==	0 
   if(particlesPointer->hasLeaked[indx] == 0)
 	{
@@ -961,8 +981,6 @@ void operator()(size_t indx) {
   vectorAssign(particlesPointer->xprevious[indx], particlesPointer->yprevious[indx], 
     particlesPointer->zprevious[indx],position);
     
-  auto tstep = particlesPointer->tt[indx]-1;
-
   for ( int s=0; s<nSteps; s++ ) 
   {
     int bdryMinIndex = -1;
@@ -972,7 +990,7 @@ void operator()(size_t indx) {
       particlesPointer->zprevious[indx], E,boundaryVector,nLines,nR_closeGeom_sheath,  
       nY_closeGeom_sheath,nZ_closeGeom_sheath,  n_closeGeomElements_sheath,closeGeomGridr_sheath, 
       closeGeomGridy_sheath,  closeGeomGridz_sheath,closeGeom_sheath, closestBoundaryIndex, 
-      particlesPointer->index[indx], tstep,  &bdryMinIndex);
+      ptcl, tstep,  &bdryMinIndex, selectThis);
 #endif
 
 #if USEPRESHEATHEFIELD > 0
@@ -993,8 +1011,8 @@ void operator()(size_t indx) {
 #endif
 #endif
 
-    if(BORIS_DEBUG_PRINT==1) {
-      auto pindex = particlesPointer->index[indx];
+   #if BORIS_DEBUG_PRINT > 0
+    if(selectThis){
       auto nthStep = particlesPointer->tt[indx];
       float qc = particlesPointer->charge[indx];
       auto minIndex = bdryMinIndex; 
@@ -1014,13 +1032,12 @@ void operator()(size_t indx) {
       auto y3 = boundaryVector[minIndex].y3;
       auto z3 = boundaryVector[minIndex].z3;
       printf("\nBoris1 ptcl %d timestep %d charge %f E-boris %.15e %.15e %.15e minDist %.15e CLD %.15e "
-          " ne %.15e te %.15e  pos %.15e %.15e %.15e minIndex %d  midx %.15e midy %.15e midz %.15e "
-          " FACE: %.15e %.15e %.15e : %.15e %.15e %.15e : %.15e %.15e %.15e \n", 
-           pindex, nthStep-1, qc, E[0],E[1],E[2], minDist, CLD, ne, te, position[0], position[1], position[2],
-           minIndex, midx, midy, midz, x1,y1,z1, x2,y2,z2,x3,y3,z3);
-    }             
-    int ptcl = particlesPointer->index[indx];
-
+        " ne %.15e te %.15e  pos %.15e %.15e %.15e minIndex %d  midx %.15e midy %.15e midz %.15e "
+        " FACE: %.15e %.15e %.15e : %.15e %.15e %.15e : %.15e %.15e %.15e \n", 
+         ptcl, nthStep-1, qc, E[0],E[1],E[2], minDist, CLD, ne, te, position[0], position[1], position[2],
+         minIndex, midx, midy, midz, x1,y1,z1, x2,y2,z2,x3,y3,z3);
+    }
+    #endif            
 
     interp2dVector(&B[0],position[0], position[1], position[2],nR_Bfield,nZ_Bfield,
         BfieldGridRDevicePointer,BfieldGridZDevicePointer,BfieldRDevicePointer,
@@ -1054,7 +1071,8 @@ auto v3_ = v[2];
    //v = v + q_prime*E
     vectorAdd(v,qpE,v);
 
-    if(BORIS_DEBUG_PRINT==1) {
+   #if BORIS_DEBUG_PRINT > 0
+    if(selectThis > 0)
       printf("Boris2 ptcl %d timestep %d eField %.15e %.15e %.15e bField %.15e %.15e %.15e \n"
        // "  ... qPrime %.15e coeff %.15e qpE %.15e %.15e %.15e vmxB %.15e %.15e %.15e " 
        // "qp_vmxB %.15e %.15e %.15e  v_prime %.15e %.15e %.15e vpxB %.15e %.15e %.15e "
@@ -1064,7 +1082,7 @@ auto v3_ = v[2];
        //  v_prime[0], v_prime[1], v_prime[2] , vpxB[0], vpxB[1], vpxB[2], c_vpxB[0],c_vpxB[1],c_vpxB[2],
        //  v1_, v2_, v3_
         );
-    }
+    #endif
 
 
     if(particlesPointer->hitWall[indx] == 0.0)
@@ -1077,13 +1095,14 @@ auto v3_ = v[2];
       particlesPointer->vy[indx] = v[1];
       particlesPointer->vz[indx] = v[2];    
       
-      if(BORIS_DEBUG_PRINT==1) {
+     #if BORIS_DEBUG_PRINT > 0
+      if(selectThis > 0)
         printf("Boris3  ptcl %d pos %.15e %.15e %.15e => %.15e %.15e %.15e " 
             "vel %.15e %.15e %.15e => %.15e %.15e %.15e B %.15e %.15e %.15e\n", 
             particlesPointer->index[indx],position[0], position[1], position[2],
             particlesPointer->x[indx], particlesPointer->y[indx], 
             particlesPointer->z[indx], v0[0], v0[1], v0[2], v[0],v[1], v[2], B[0], B[1], B[2]);              
-        }
+     #endif
     }
   }
 #endif

@@ -39,8 +39,10 @@ struct history_select {
 
 CUDA_CALLABLE_MEMBER_DEVICE    
   void operator()(size_t indx) const {  
+    // history call increment time step to include initial step
     int tt = particlesPointer->tt[indx];
-    int tt0 = (plus > 0) ? tt : tt-1;
+    //if history routine not called, plus should be 1
+    int tt0 = (plus > 0) ? tt : (tt-1);
     if(plus)
       particlesPointer->tt[indx] = particlesPointer->tt[indx]+1;
     if (tt0 % subSampleFac == 0) {
@@ -56,8 +58,8 @@ CUDA_CALLABLE_MEMBER_DEVICE
         int ind = (pind*nT + tt0) /subSampleFac;
         auto n = atomicAdd(filled, 1);
         if(debug)
-          printf("n %d tt0 %d ind %d pind %d sid %d size %d \n", 
-            n, tt0, ind, pind, sid, size);
+          printf("n %d tt0 %d ind %d pind %d sid %d size %d indx %d xyz %g %g %g\n", 
+            n, tt0, ind, pind, sid, size, (int)indx, x,y,z);
         if(n < size) {
           int m = ind; //n
           histX[m] = x;

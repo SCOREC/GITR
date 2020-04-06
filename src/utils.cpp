@@ -29,7 +29,7 @@ using namespace exceptions;
 using namespace netCDF::exceptions;
 using namespace libconfig;
 void  read_comand_line_args(const int argc,char** argv,int& ppn,std::string& inputFile,
-    bool& writeStepDataSelected, bool& takePidList)
+    bool& writeStepDataSelected, bool& takePidList, int& logSurfHit)
 {
 
   int counter;
@@ -67,7 +67,9 @@ void  read_comand_line_args(const int argc,char** argv,int& ppn,std::string& inp
 
       if(writeStepDataSelected && std::string(argv[counter]) == "list")
         takePidList = 1;
-
+      if(std::string(argv[counter]) == "hit" || std::string(argv[counter]) == "logHit" ||
+        std::string(argv[counter]) == "logSurfHit")
+        logSurfHit = 1;
     }
   }
 }
