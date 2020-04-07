@@ -8,7 +8,7 @@ libconfig=/lore/gopan/install/libconfig-1.7.2/install
 #-DCUDA_NVCC_FLAGS="-arch=sm_70" \
 
 cmake \
-   -DCUDA_NVCC_FLAGS="-arch=sm_75" \
+   -DCUDA_NVCC_FLAGS="-arch=sm_61" \
    -DLIBCONFIGPP_INCLUDE_DIR=$libconfig/include \
    -DLIBCONFIGPP_LIBRARY=$libconfig/lib/libconfig++.so \
    -DLIBCONFIGPP_LIBRARIES=$libconfig/lib/libconfig++.so \
@@ -25,6 +25,11 @@ cmake \
     -DUSERECOMBINATION=1 \
     -DUSEPERPDIFFUSION=0 \
     -DUSEPARDIFFUSION=0 \
+  -DWRITE_RND=0 \
+  -DUSE_PID_LIST=0 \
+  -DHISTORY_SELECT=0 \
+  -DDEBUG_PRINT=0 \
+  -DSURF_HIT_PID=0 \
     -DUSECOULOMBCOLLISIONS=0 \
     -DUSEFRICTION=0 \
     -DUSEANGLESCATTERING=0 \
@@ -49,12 +54,12 @@ cmake \
     -DGEOM_TRACE=0 \
     -DGEOM_HASH=0 \
     -DGEOM_HASH_SHEATH=0 \
-    -DPARTICLE_TRACKS=1 \
+    -DPARTICLE_TRACKS=0 \
     -DPARTICLE_SOURCE_SPACE=0 \
     -DPARTICLE_SOURCE_ENERGY=0 \
     -DPARTICLE_SOURCE_ANGLE=0 \
     -DPARTICLE_SOURCE_FILE=1 \
-    -DSPECTROSCOPY=0 \
+    -DSPECTROSCOPY=3 \
     -DUSE3DTETGEOM=1 \
     -DFLUX_EA=1 \
     -DUSECYLSYMM=1 \

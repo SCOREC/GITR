@@ -22,10 +22,6 @@ using namespace std;
 #endif
 #include "interpRateCoeff.hpp"
 
-#ifndef IONI_DEBUG_PRINT
-#define IONI_DEBUG_PRINT 0
-#endif
-
 struct ionize { 
     Particles *particlesPointer;
     int nR_Dens;
@@ -51,6 +47,8 @@ struct ionize {
     int nT = -1;
     double* intermediate;
     int select = 0;
+    int* rndSelectPids;
+
     //int& tt;
 #if __CUDACC__
     curandState *state;
@@ -69,7 +67,7 @@ struct ionize {
     double* _TempGridr, double* _TempGridz,double* _te,int _nTemperaturesIonize,
     int _nDensitiesIonize,double* _gridTemperature_Ionization,double* _gridDensity_Ionization,
     double* _rateCoeff_Ionization, double* intermediate=nullptr, int nT=0, int idof=0, int dof_intermediate = 0,
-     int select=0   ) : 
+     int select=0, int* rndSelectPids=nullptr): 
    
          particlesPointer(_particlesPointer),
                                          nR_Dens(_nR_Dens),
@@ -104,9 +102,9 @@ struct ionize {
     int selectThis = 1;
     if(select)
       selectThis = particlesPointer->storeRnd[indx];
-
+    
     //cout << "tion P P1 " << tion << " " << P << " " << P1 << " " << PiP<< endl;
-  #if IONI_DEBUG_PRINT > 0
+  #if  DEBUG_PRINT > 0
     if(particlesPointer->hitWall[indx] !=0 && selectThis > 0) {
       printf("Not ionizing %d in timestep %d\n", particlesPointer->index[indx], particlesPointer->tt[indx]);
     }
@@ -144,26 +142,24 @@ struct ionize {
        //particlesPointer->test1[indx] = P1; 
        //particlesPointer->test2[indx] = r1; 
 
-      int selectThis = 1;
-      if(select)
-        selectThis =  particlesPointer->storeRnd[indx];
-
       int nthStep = particlesPointer->tt[indx] - 1;
       int pindex = particlesPointer->index[indx];
       int beg = -1;
+    
       if(dof_intermediate > 0 && selectThis > 0) {
         int rid = particlesPointer->storeRndSeqId[indx]; 
         int pind = (rid >= 0) ? rid : pindex;
         beg = pind*nT*dof_intermediate + nthStep*dof_intermediate;
-        if(!((pind >= 0) && (beg >= 0) && (nthStep>=0)))
+        if(pind < 0 || beg < 0 || nthStep < 0)
           printf("ionizeSelect :  t %d at %d pind %d rid %d indx %d r1 %g xyz %g %g %g \n", 
             nthStep, beg+idof, pind, rid, (int)indx, r1,
             particlesPointer->x[indx],particlesPointer->y[indx],particlesPointer->z[indx]);
-        assert((pind >= 0) && (beg >= 0) && (nthStep>=0));
+        assert(pind >= 0 && beg >= 0 && nthStep>=0);
         intermediate[beg+idof] = r1;
+        rndSelectPids[pind] = indx;
       }
 
-    #if IONI_DEBUG_PRINT > 0 
+    #if  DEBUG_PRINT > 0 
       if(selectThis >0) {
         auto xx=particlesPointer->x[indx];
         auto yy=particlesPointer->y[indx];

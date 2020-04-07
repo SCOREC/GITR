@@ -64,8 +64,6 @@
 #include <thrust/transform.h>
 
 #include <sstream>
-#define USE_PID_LIST 0
-#define HISTORY_SELECT 0
 #if HISTORY_SELECT > 0
  #include "history_select.h"
 #endif
@@ -92,16 +90,7 @@ int main(int argc, char **argv, char **envp) {
   // read comand line arguments for specifying number of ppn (or gpus per node)
   // and specify input file if different than default
   // -nGPUPerNode and -i respectively
-  bool writeIntermediate = false;
-  bool usePidList = false;
-  int logSurfHit = 0;
-  read_comand_line_args(argc,argv,ppn,inputFile, writeIntermediate, usePidList, logSurfHit);
-#if USE_PID_LIST > 0
-  if(usePidList <= 0) {
-    printf("USE_PID_LIST turned on without using list \n");
-    exit(EXIT_FAILURE);
-  }
-#endif
+  read_comand_line_args(argc,argv,ppn,inputFile);
 
 #if USE_MPI > 0
   // Get the number of processes
@@ -3714,10 +3703,18 @@ print_gpu_memory_usage(world_rank);
 #endif
   int tt = 0;
 
-int nPRnd = nP;
+  int logSurfHit = 0;
+#if SURF_HIT_PID > 0
+  logSurfHit = 1;
+#endif
+
+  int select = 0; //for selecting rndm number and print
+  int usePidList = 0;
+  int nPRnd = nP;
 #if USE_PID_LIST > 0 
-  if(usePidList) {
    #if USE_CUDA > 0
+    usePidList = 1;
+    select = 1;
     //pidlist has ptcl index from positions.m which starts at index 1
     int indStart = 1; // 0 otherwise
     std::string fName = "pidList.txt";
@@ -3753,14 +3750,19 @@ int nPRnd = nP;
       particleArray->setStoreRnd(id, nPRnd, 1);
       ++nPRnd;
     }
+    printf("PidList: nP_rnd %d nPtclsList %d \n", nPRnd, nPtclsList);
     if(nPRnd > nP) {
       printf("PidList processing Error \n");
       exit(1);
     };
     cudaDeviceSynchronize();
   #endif
-  }
 #endif //USE_PID_LIST
+
+  int nSelectPids = 1;
+#if SURF_HIT_PID > 0
+  nSelectPids = (nPRnd > 0) ? nPRnd : 1;
+#endif
 
 #if HISTORY_SELECT > 0
   int plus = 0; //TODO
@@ -3769,15 +3771,14 @@ int nPRnd = nP;
   plus = 0;
   //subFactor = subSampleFac;
  #endif
-  int nPHistSelect = nPRnd;
+  int nPHistSelect = (nPRnd >0) ? nPRnd : 1;
   if(histSelectLimit > 0)
     nPHistSelect = histSelectLimit;
   int nHistSelect = 1000000;  //1M -> 64 MB x 3 = ~200MB
  #if USE_PID_LIST > 0
-  if(usePidList)
     nHistSelect = nPHistSelect * nT / subFactor;
  #endif
-  printf("\n NOTE  REGION history is turned ON with alloc %d\n", nHistSelect); 
+  printf("history-selection is ON with alloc %d npHist %d \n", nHistSelect, nPHistSelect); 
  #if USE_CUDA > 0
   sim::Array<double> histRegX(nHistSelect, 0);
   sim::Array<double> histRegY(nHistSelect, 0);
@@ -3798,25 +3799,27 @@ int nPRnd = nP;
    &filled.front(), plus, nHistSelect);
 #endif
 
-  int select = 0; //for selecting rndm number and print
-#if USE_PID_LIST > 0
-  select = 1;
-#endif
 
   int dof_intermediate = 0;
   int idof = 0;
   int size_intermediate = 1;
-  if(writeIntermediate) {
-    dof_intermediate = 11;
-    std::cout << "\n**WARNING *** intermediate_data is NOT  ready for MPI\n";
-    size_intermediate = nPRnd*nT*dof_intermediate;
-    std::cout << "\n\n STARTING intermediate data storing :size " << size_intermediate << " \n";
-  }
-  #if USE_CUDA > 0
-     sim::Array<double> intermediate(size_intermediate);
-  #else
-      std::vector<double> intermediate(size_intermediate);
-  #endif
+  int nRndPids = 1;
+
+#if WRITE_RND > 0
+  nRndPids = (nPRnd >0) ? nPRnd : 1;
+  dof_intermediate = 11;
+  std::cout << "**WARNING *** intermediate_data is NOT  ready for MPI\n";
+  size_intermediate = nRndPids*nT*dof_intermediate;
+  std::cout << "STARTING intermediate data storing :size " << size_intermediate << " \n";
+#endif
+
+#if USE_CUDA > 0
+  sim::Array<double> intermediate(size_intermediate, 0);
+  sim::Array<int> rndSelectPids(nSelectPids, -1);
+#else
+  std::vector<double> intermediate(size_intermediate, 0);
+  std::vector<int> rndSelectPids(nSelectPids, -1);
+#endif
   move_boris move_boris0(
       particleArray, dt, boundaries.data(), nLines, nR_Bfield, nZ_Bfield,
       bfieldGridr.data(), &bfieldGridz.front(), &br.front(), &bz.front(),
@@ -3851,7 +3854,7 @@ int nPRnd = nP;
       &TempGridz.front(), &te.front(), nTemperaturesIonize, nDensitiesIonize,
       &gridTemperature_Ionization.front(), &gridDensity_Ionization.front(),
       &rateCoeff_Ionization.front(), &intermediate.front(), nT, idof, 
-      dof_intermediate, select);
+      dof_intermediate, select, &rndSelectPids.front());
 #endif
 #if USERECOMBINATION > 0
   idof = 1;
@@ -4154,14 +4157,14 @@ int nPRnd = nP;
       cudaDeviceSynchronize();
 #endif
 #endif
-
 #if PARTICLE_TRACKS > 0
       thrust::for_each(thrust::device, particleBegin, particleEnd, history0);
 
-  #elif ( USE_PID_LIST >0 || HISTORY_SELECT >0 )
+#elif USE_PID_LIST > 0 || HISTORY_SELECT > 0
+
       thrust::for_each(thrust::device, particleBegin,particleEnd, [=]__device__(size_t i) {
        particleArray->tt[i] = particleArray->tt[i]+1; });
-  #else
+#else
       if(size_intermediate > 1) {
         printf("Error: Time step not incremented to store random numbers \n");
         exit(EXIT_FAILURE);
@@ -4169,6 +4172,7 @@ int nPRnd = nP;
 #endif
 
 #if HISTORY_SELECT > 0
+
       thrust::for_each(thrust::device, particleBegin, particleEnd, history_select0);
 #endif
 
@@ -4178,6 +4182,7 @@ int nPRnd = nP;
       //     test_routinePp(particleArray));
 
       thrust::for_each(thrust::device, particleBegin, particleEnd, move_boris0);
+
 #ifdef __CUDACC__
       // cudaThreadSynchronize();
 #endif
@@ -4262,15 +4267,20 @@ int nPRnd = nP;
   printf("Time taken          is %6.3f (secs) \n", fs.count());
   printf("Time taken per step is %6.3f (secs) \n", fs.count() / (double)nT);
 
-#if HISTORY_SELECT
+#if HISTORY_SELECT > 0
   printf("History_select warning : Not handling MPI \n");
   if(world_rank == 0) {
     int *nFilled= (int*)malloc(sizeof(int));
+    if(filled.size() < 1) {
+      printf("nFilled selected history size %d \n", filled.size());
+      exit(EXIT_FAILURE);
+    }
     cudaMemcpy(nFilled, &filled.front(), sizeof(int), cudaMemcpyDeviceToHost);
-    printf("nFilled selected history %d nHistSelect %d size %d\n", nFilled[0], 
+    int nf = nFilled[0];
+    printf("nFilled selected history %d nHistSelect %d size %d\n", nf, 
       nHistSelect, nPHistSelect*nT / subFactor);
     netCDF::NcFile ncFile_hs("output/hist_selected.nc", NcFile::replace);
-    netCDF::NcDim ncdim_n = ncFile_hs.addDim("size", nFilled[0]);
+    netCDF::NcDim ncdim_n = ncFile_hs.addDim("size", nf);
     netCDF::NcDim ncdim_filled = ncFile_hs.addDim("allocSize", histRegX.size());
     netCDF::NcDim ncdim_sub = ncFile_hs.addDim("subSample", subFactor);
     netCDF::NcDim ncnT = ncFile_hs.addDim("nT", int(nT / subFactor));
@@ -4296,8 +4306,8 @@ int nPRnd = nP;
  int nHistoriesPerParticle = 0;
 #endif
 
-    bool debugRnd = true;
-    if(world_rank == 0 && writeIntermediate) {
+#if WRITE_RND > 0 
+    if(world_rank == 0) {
       netCDF::NcFile ncFile_rnd("output/intermediate.nc", NcFile::replace);
       netCDF::NcDim ncdim_np = ncFile_rnd.addDim("nP", nPRnd);
       netCDF::NcDim ncdim_nthist = ncFile_rnd.addDim("nTHist", nHistoriesPerParticle);
@@ -4343,16 +4353,22 @@ int nPRnd = nP;
       dims_intermediate.push_back(ncdim_ntrun);
       netCDF::NcVar ncvar_data = ncFile_rnd.addVar("intermediate", ncDouble, dims_intermediate);
       ncvar_data.putVar(&intermediate[0]);
-    }
-    if(logSurfHit > 0) {
-      ofstream outLogHit("output/logSurfaceHit.txt");
-      outLogHit << "#indices, 1-based, of particles hit on surface during tracking\n";
-      for (int i = 1; i < nP + 1; i++) {
-        if(particleArray->logSurfHit[i-1] > 0)
-        outLogHit << i << std::endl;
+      vector<NcDim> dims_np;
+      dims_np.push_back(ncdim_np);
+      netCDF::NcVar ncvar_pids = ncFile_rnd.addVar("pids", ncInt, dims_np);
+      ncvar_pids.putVar(&rndSelectPids[0]);
+    
+      if(logSurfHit > 0) {
+        ofstream outLogHit("output/logSurfaceHit.txt");
+        outLogHit << "#indices, 1-based, of particles hit on surface during tracking\n";
+        for (int i = 1; i < nP + 1; i++) {
+          if(particleArray->logSurfHit[i-1] > 0)
+          outLogHit << i << std::endl;
+        }
+        outLogHit.close();
       }
-      outLogHit.close();
     }
+#endif
   // for(int i=0; i<nP;i++)
   //{
   //    std::cout << "Particle test value r1: " << i << " " <<

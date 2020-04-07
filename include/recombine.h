@@ -22,10 +22,6 @@ using namespace std;
 #endif
 #include "interpRateCoeff.hpp"
 
-#ifndef RECOMB_DEBUG_PRINT
-#define RECOMB_DEBUG_PRINT 0
-#endif
-
 struct recombine { 
   Particles *particlesPointer;
   int nR_Dens;
@@ -151,7 +147,7 @@ struct recombine {
         if(select)
           selectThis = particlesPointer->storeRnd[indx];
 
-    #if RECOMB_DEBUG_PRINT > 0
+    #if  DEBUG_PRINT > 0
         if(selectThis > 0) {
           auto xx=particlesPointer->x[indx];
           auto yy=particlesPointer->y[indx];

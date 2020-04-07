@@ -17,10 +17,6 @@ using namespace std;
 #include "interp2d.hpp"
 #include <algorithm>
 
-#ifndef BORIS_DEBUG_PRINT
-#define BORIS_DEBUG_PRINT 0
-#endif
-
 CUDA_CALLABLE_MEMBER
 void vectorAdd(double A[], double B[],double C[])
 {
@@ -436,7 +432,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
              normals[12] = p0AB[0]/p0ABdist;
              normals[13] = p0AB[1]/p0ABdist;
              normals[14] = p0AB[2]/p0ABdist;
-           #if BORIS_DEBUG_PRINT >1 
+           #if DEBUG_PRINT > 1 
              printf("d2bdryDebug: ptcl %d timestep %d ind %d (tAB > 0.0) && (tAB < normAB) distances[4] %g\n", 
                ptcl, tstep, i, distances[4]);
             #endif
@@ -445,7 +441,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
          {
              p0ABdist = 1e12;
              distances[4] = p0ABdist;   
-           #if BORIS_DEBUG_PRINT >1
+           #if DEBUG_PRINT > 1
              printf("d2bdryDebug: ptcl %d timestep %d  ind %d p0ABdist distances[4] %g\n", ptcl, tstep, i, distances[4]);
            #endif
          } 
@@ -462,7 +458,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
              normals[16] = p0BC[1]/p0BCdist;
              normals[17] = p0BC[2]/p0BCdist;
              
-           #if BORIS_DEBUG_PRINT >1
+           #if DEBUG_PRINT > 1
              printf("d2bdryDebug: ptcl %d timestep %d  ind %d (tBC > 0.0) && (tBC < normBC) distances[5] %g\n", 
                ptcl, tstep, i, distances[5]);
            #endif
@@ -471,7 +467,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
          {
              p0BCdist = 1e12;
              distances[5] = p0BCdist;   
-           #if BORIS_DEBUG_PRINT >1
+           #if DEBUG_PRINT > 1
              printf("d2bdryDebug: ptcl %d timestep %d ind %d p0BCdist distances[5] %g\n", ptcl, tstep, i, distances[5]);
            #endif
          } 
@@ -489,7 +485,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
              normals[20] = p0CA[2]/p0CAdist;
              //cout << "p0CA " << p0CA[0] << " " << p0CA[1] << " " << p0CA[2] << endl; 
          
-            #if BORIS_DEBUG_PRINT >1
+            #if  DEBUG_PRINT > 1
              printf("d2bdryDebug: ptcl %d timestep %d ind %d (tCA > 0.0) && (tCA < normCA)  distances[6] %g\n", 
                  ptcl, tstep, i, distances[6]);
             #endif
@@ -499,7 +495,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
              p0CAdist = 1e12;
              distances[6] = p0CAdist;  
 
-            #if BORIS_DEBUG_PRINT >1
+            #if  DEBUG_PRINT > 1
              printf("d2bdryDebug: ptcl %d timestep %d ind %d distances[6] %g\n", ptcl, tstep, i, distances[6]);
             #endif 
          } 
@@ -525,7 +521,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
              normals[2] = normalVector[2];
              //}
 
-          #if BORIS_DEBUG_PRINT >1
+          #if  DEBUG_PRINT > 1
              printf("d2bdryDebug: ptcl %d timestep %d ind %d signs3  distances[0] %g\n", ptcl, tstep, i, distances[0]);
           #endif
          }
@@ -534,7 +530,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
              perpDist = 1e12;
              distances[0] = perpDist;  
 
-            #if BORIS_DEBUG_PRINT>1
+            #if  DEBUG_PRINT > 1
              printf("d2bdryDebug: ptcl %d timestep %d  ind %d reset distances[0] %g\n", ptcl, tstep, i, perpDist);
             #endif 
 
@@ -558,7 +554,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
           minIndex = i;
          }
 
-          #if BORIS_DEBUG_PRINT >1 
+          #if  DEBUG_PRINT > 1 
            printf("d2bdryDebug: ptcl %d timestep %d  ind %d minDistance %g minIndex %d \n", 
                ptcl, tstep, i, minDistance, minIndex);
           #endif 
@@ -567,7 +563,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
         //}
        }
 
-       #if BORIS_DEBUG_PRINT > 0
+       #if  DEBUG_PRINT > 0
        if(detail) {
          double A[3]={0}, B[3]={0}, C[3]={0};
          int i = minIndex;
@@ -796,7 +792,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
 #endif
 #endif
 
-#if BORIS_DEBUG_PRINT > 0
+#if  DEBUG_PRINT > 0
    if(detail > 0 && ptcl>=0) {
      double pt[3]={0}, ptq[3]={0};
      pt[0]= x0; pt[1] = y; pt[2] = z;
@@ -1011,7 +1007,7 @@ void operator()(size_t indx) {
 #endif
 #endif
 
-   #if BORIS_DEBUG_PRINT > 0
+   #if  DEBUG_PRINT > 0
     if(selectThis){
       auto nthStep = particlesPointer->tt[indx];
       float qc = particlesPointer->charge[indx];
@@ -1071,7 +1067,7 @@ auto v3_ = v[2];
    //v = v + q_prime*E
     vectorAdd(v,qpE,v);
 
-   #if BORIS_DEBUG_PRINT > 0
+   #if  DEBUG_PRINT > 0
     if(selectThis > 0)
       printf("Boris2 ptcl %d timestep %d eField %.15e %.15e %.15e bField %.15e %.15e %.15e \n"
        // "  ... qPrime %.15e coeff %.15e qpE %.15e %.15e %.15e vmxB %.15e %.15e %.15e " 
@@ -1095,7 +1091,7 @@ auto v3_ = v[2];
       particlesPointer->vy[indx] = v[1];
       particlesPointer->vz[indx] = v[2];    
       
-     #if BORIS_DEBUG_PRINT > 0
+     #if  DEBUG_PRINT > 0
       if(selectThis > 0)
         printf("Boris3  ptcl %d pos %.15e %.15e %.15e => %.15e %.15e %.15e " 
             "vel %.15e %.15e %.15e => %.15e %.15e %.15e B %.15e %.15e %.15e\n", 

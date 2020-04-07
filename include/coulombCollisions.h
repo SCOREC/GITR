@@ -18,10 +18,6 @@
 using namespace std;
 #endif
 
-#ifndef COULOMB_DEBUG_PRINT
-#define COULOMB_DEBUG_PRINT 0
-#endif
-
 CUDA_CALLABLE_MEMBER
 void getSlowDownFrequencies ( double& nu_friction, double& nu_deflection, double& nu_parallel,
 			 	double& nu_energy, double x, double y,double z, double vx, double vy, double vz,double charge, double amu, 
@@ -167,7 +163,7 @@ void getSlowDownFrequencies ( double& nu_friction, double& nu_deflection, double
                 	nu_parallel_e = psi_e/xx_e*nu_0_e;
                 	nu_energy_e = 2*(amu/(ME/MI)*psi_e - psi_prime_e)*nu_0_e;
     nu_friction = nu_friction_i + nu_friction_e;
-   //#if COULOMB_DEBUG_PRINT > 0
+   //#if  DEBUG_PRINT > 0
    //  printf("timestep %d ptcl %d Nufriction  %.15e  \n", timestep, ptcl, nu_friction);    
      nu_deflection = nu_deflection_i + nu_deflection_e;
      nu_parallel = nu_parallel_i + nu_parallel_e;
@@ -449,7 +445,7 @@ void operator()(size_t indx)  {
         if(select > 0)
           selectThis = particlesPointer->storeRnd[indx];      
        
-      #if COULOMB_DEBUG_PRINT > 0
+      #if  DEBUG_PRINT > 0
         if(selectThis > 0)
           printf("GITRCollision-In: ptcl %d timestep %d charge %.15e VelIn %.15e %.15e %.15e "
             " => Vel %.15e %.15e %.15e pos %.15e %.15e %.15e next_pos  %.15e %.15e %.15e \n", 
@@ -523,7 +519,7 @@ void operator()(size_t indx)  {
         intermediate[beg+idof] = n1;
         intermediate[beg+idof+1] = n2;
         intermediate[beg+idof+2] = xsi;
-       #if COULOMB_DEBUG_PRINT > 0 
+       #if  DEBUG_PRINT > 0 
          printf("Collision: beg %d @ %d n1 %.15e n2 %.15e xsi %.15e \n", beg, beg+idof, n1, n2, xsi );
        #endif
       }
@@ -601,7 +597,7 @@ void operator()(size_t indx)  {
       vy = particlesPointer->vy[indx];
       vz = particlesPointer->vz[indx];
    
-    #if COULOMB_DEBUG_PRINT > 0
+    #if  DEBUG_PRINT > 0
       if(selectThis)
         printf("GITRCollision: ptcl %d timestep %d charge %.15e VelIn %.15e %.15e %.15e "
             " => Vel %.15e %.15e %.15e pos %.15e %.15e %.15e \n", 

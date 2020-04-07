@@ -22,9 +22,6 @@
 using namespace std;
 #endif
 
-#ifndef SURF_DEBUG_PRINT
-#define SURF_DEBUG_PRINT 0
-#endif
 const int debug = 0;
 
 CUDA_CALLABLE_MEMBER
@@ -278,8 +275,7 @@ void operator()(size_t indx) const {
       int selectThis = 1;
       if(select > 0) 
         selectThis = particles->storeRnd[indx];
-      if(logSurfHit > 0)
-        particles->logSurfHit[indx] = 1;
+      bool storeId = false;
 
       if (wallHit < 0)
         wallHit = 0;
@@ -304,7 +300,7 @@ void operator()(size_t indx) const {
       norm_part = sqrt(particleTrackVector[0] * particleTrackVector[0] + particleTrackVector[1] * particleTrackVector[1] + particleTrackVector[2] * particleTrackVector[2]);
       E0 = 0.5 * particles->amu[indx] * 1.6737236e-27 * (norm_part * norm_part) / 1.60217662e-19;
 
-      #if SURF_DEBUG_PRINT > 0
+      #if  DEBUG_PRINT > 0
       if(selectThis) {
         auto xx = particles->x[indx]; 
         auto yy = particles->y[indx];
@@ -354,7 +350,7 @@ void operator()(size_t indx) const {
       //cout << " resulting in Y0 and R0 of " << Y0 << " " << R0 << endl;
       totalYR = Y0 + R0;
 
-      #if SURF_DEBUG_PRINT > 0
+      #if  DEBUG_PRINT > 0
        if(selectThis) 
         printf("SURF4 ptcl %d timestep %d surfaceNormal %.15e %.15e %.15e ptclTrackV %.15e %.15e %.15e partDotNormal %.15e "
           " materialZ %g thetaImpact %.15e totalYR %.15e sputtProb %.15e Y0 %.15e R0 %.15e totalYR %.15e "
@@ -442,7 +438,7 @@ void operator()(size_t indx) const {
                                          E_sputtRefDistIn,EDist_CDF_R_regrid );
                    //newWeight=(R0/(1.0-sputtProb))*weight;
 		   newWeight = weight*(totalYR);
-                  #if SURF_DEBUG_PRINT > 0
+                  #if  DEBUG_PRINT > 0
                    if(selectThis)
                     printf("SURF5 reflects ptcl %d  timestep %d weight %.15e newWeight %.15e rand8 %.15e "
                         " thetaImpact %.15e log10(E0) %.15e aInterpVal %.15e  eInterpVal %.15e \n",
@@ -455,6 +451,7 @@ void operator()(size_t indx) const {
                  (AdistInd >= 0) && (AdistInd < nAdist))
               {
             #if USE_CUDA > 0
+                  storeId = true;
                   auto old = atomicAdd(&(surfaces->reflDistribution[
                         surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd]),newWeight);
                   if(debug)
@@ -465,7 +462,7 @@ void operator()(size_t indx) const {
                     surfaces->reflDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] +  newWeight;
             #endif
 
-                 #if SURF_DEBUG_PRINT > 0
+                 #if  DEBUG_PRINT > 0
                  if(selectThis)
                    printf("SURF6 reflDist ptcl %d  timestep %d reflIndx %d \n", 
                      ptcl, tstep, surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd);
@@ -476,13 +473,14 @@ void operator()(size_t indx) const {
                 {
 
             #if USE_CUDA > 0
+                    storeId = true;
                     auto old = atomicAdd(&(surfaces->grossDeposition[surfaceHit]),weight*(1.0-R0));
             
             #else
                     surfaces->grossDeposition[surfaceHit] = surfaces->grossDeposition[surfaceHit]+weight*(1.0-R0);
             #endif
 
-                 #if SURF_DEBUG_PRINT > 0
+                 #if  DEBUG_PRINT > 0
                  if(selectThis)
                    printf("SURF7 grossDep ptcl %d timestep %d GrossDep+ %.15e surfaceHit %d \n", 
                        ptcl, tstep, weight*(1.0-R0),  surfaceHit);
@@ -510,7 +508,7 @@ void operator()(size_t indx) const {
                   //newWeight=(Y0/sputtProb)*weight;
 		  newWeight=weight*totalYR;
 
-              #if SURF_DEBUG_PRINT > 0
+              #if  DEBUG_PRINT > 0
               if(selectThis)
                  printf("SURF8 sputtDist ptcl %d timestep %d  weight %.15e newWeight %.15e surface %d "
                     " aInterpVal %.15e eInterpVal %.15e \n", 
@@ -524,6 +522,7 @@ void operator()(size_t indx) const {
               {
                 //cout << " particle sputters with " << EdistInd << AdistInd <<  endl;
             #if USE_CUDA > 0
+                  storeId = true;
                   auto old = atomicAdd(&(surfaces->sputtDistribution[
                         surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd]),newWeight);
                   if(debug)
@@ -533,7 +532,7 @@ void operator()(size_t indx) const {
                   surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] = 
                     surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] +  newWeight;
               #endif 
-                #if SURF_DEBUG_PRINT > 0
+                #if  DEBUG_PRINT > 0
                   if(selectThis)
                     printf("SURF9 sputters FLUX_EA  ptcl %d timestep %d  sputtDist indx %d "
                       " tot sputtDist %.15e \n",ptcl, tstep, 
@@ -548,6 +547,7 @@ void operator()(size_t indx) const {
                 {
 
             #if USE_CUDA > 0
+                    storeId = true;
                     atomicAdd(&(surfaces->grossDeposition[surfaceHit]),weight*(1.0-R0));
                     atomicAdd(&(surfaces->grossErosion[surfaceHit]),newWeight);
                     atomicAdd(&(surfaces->aveSputtYld[surfaceHit]),Y0);
@@ -562,7 +562,7 @@ void operator()(size_t indx) const {
                     surfaces->sputtYldCount[surfaceHit] = surfaces->sputtYldCount[surfaceHit] + 1;
             #endif
 
-                 #if SURF_DEBUG_PRINT > 0
+                 #if  DEBUG_PRINT > 0
                  if(selectThis)
                    printf("SURF10 DepErosSput ptcl %d timestep %d surfaceHit %d newWeight  %.15e GrossDep+ %.15e "
                     " GrossEros+ %.15e AveSput+ %.15e SpYCount +1\n", 
@@ -574,7 +574,7 @@ void operator()(size_t indx) const {
             }
             else // totalYR
             { 
-              #if SURF_DEBUG_PRINT > 0
+              #if  DEBUG_PRINT > 0
               if(selectThis)
                 printf("SURF10_ ptcl %d timestep %d weight %.15e  surface %d \n",
                 ptcl, tstep, weight, surface);
@@ -584,12 +584,13 @@ void operator()(size_t indx) const {
                   if(surface > 0)
                 {
             #if USE_CUDA > 0
+                    storeId = true;
                     atomicAdd(&(surfaces->grossDeposition[surfaceHit]),weight);
             #else
                     surfaces->grossDeposition[surfaceHit] = surfaces->grossDeposition[surfaceHit]+weight;
             #endif
 
-                  #if SURF_DEBUG_PRINT > 0
+                  #if  DEBUG_PRINT > 0
                   if(selectThis)
                     printf("SURF11 ptcl %d timestep %d totalYR=0 newWeight => 0 "
                     "GrossDep+ %.15e grossDep %.15e\n", 
@@ -601,7 +602,7 @@ void operator()(size_t indx) const {
             //cout << "eInterpVal " << eInterpVal << endl; 
 	    if(eInterpVal <= 0.0)
             {
-                #if SURF_DEBUG_PRINT > 0
+                #if  DEBUG_PRINT > 0
                 if(selectThis)
                   printf("SURF12 eInterpVal <= 0.0  newWeight = 0.0 surface %d didReflect %d\n",surface,didReflect);
                 #endif
@@ -613,12 +614,13 @@ void operator()(size_t indx) const {
         	  if(didReflect)
         	  {
             #if USE_CUDA > 0
+                    storeId = true;
                     atomicAdd(&(surfaces->grossDeposition[surfaceHit]),weight);
             #else
                     surfaces->grossDeposition[surfaceHit] = surfaces->grossDeposition[surfaceHit]+weight;
             #endif
 	        
-                    #if SURF_DEBUG_PRINT > 0
+                    #if  DEBUG_PRINT > 0
                     if(selectThis)
                       printf("SURF12b reflect ptcl %d timestep %d  surfaceHit %d GrossDep+ %.15e \n", 
                         ptcl, tstep, surfaceHit, weight);
@@ -636,6 +638,7 @@ void operator()(size_t indx) const {
             {
 
             #if USE_CUDA > 0
+                storeId = true;
                 atomicAdd(&(surfaces->sumWeightStrike[surfaceHit]),weight);
                 atomicAdd(&(surfaces->sumParticlesStrike[surfaceHit]),1);
             #else
@@ -647,7 +650,7 @@ void operator()(size_t indx) const {
                 EdistInd = floor((E0-E0dist)/dEdist);
                 AdistInd = floor((thetaImpact-A0dist)/dAdist);
 
-           #if SURF_DEBUG_PRINT > 0
+           #if  DEBUG_PRINT > 0
              if(selectThis)
                 printf("SURF13 surface WeightStrike+ %.15e PtclStrike+1 n", weight );
            #endif
@@ -655,6 +658,7 @@ void operator()(size_t indx) const {
                   (AdistInd >= 0) && (AdistInd < nAdist))
                 {
 #if USE_CUDA > 0
+                  storeId = true;
                     auto old = atomicAdd(&(surfaces->energyDistribution[surfaceHit*nEdist*nAdist + 
                                                EdistInd*nAdist + AdistInd]), weight);
 
@@ -666,7 +670,7 @@ void operator()(size_t indx) const {
                     surfaces->energyDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] = 
                     surfaces->energyDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] +  weight;
 #endif
-                    #if SURF_DEBUG_PRINT > 0
+                    #if  DEBUG_PRINT > 0
                     if(selectThis)
                       printf("SURF14 enDistr ptcl %d timestep %d indx %d weight %.15e surfaceHit %d nEdist %d nAdist %d \n",
                           ptcl, tstep, surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd, weight, 
@@ -676,7 +680,7 @@ void operator()(size_t indx) const {
 #endif
       }
 
-      #if SURF_DEBUG_PRINT > 0
+      #if  DEBUG_PRINT > 0
       if(selectThis)
         printf("SURF16  ptcl %d timestep %d newweight %.15e bdryZ %g \n",
             ptcl, tstep, newWeight, boundaryVector[wallHit].Z);
@@ -694,7 +698,7 @@ void operator()(size_t indx) const {
         vSampled[0] = V0 * sin(aInterpVal * 3.1415 / 180) * cos(2.0 * 3.1415 * r10);
         vSampled[1] = V0 * sin(aInterpVal * 3.1415 / 180) * sin(2.0 * 3.1415 * r10);
         vSampled[2] = V0 * cos(aInterpVal * 3.1415 / 180);
-        #if SURF_DEBUG_PRINT > 0
+        #if  DEBUG_PRINT > 0
         if(selectThis)
           printf("SURF17 ptcl %d timestep %d V0 %.15e rand10 %g vsampled0 %.15e %.15e %.15e surfaceNormal %.15e %.15e %.15e \n", 
             ptcl, tstep, V0, r10, vSampled[0], vSampled[1], vSampled[2], surfaceNormalVector[0],
@@ -712,7 +716,7 @@ void operator()(size_t indx) const {
         particles->yprevious[indx] = particles->y[indx] - static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[1] * 1e-4;
         particles->zprevious[indx] = particles->z[indx] - static_cast<double>(boundaryVector[wallHit].inDir) * surfaceNormalVector[2] * 1e-4;
 
-       #if SURF_DEBUG_PRINT > 0
+       #if  DEBUG_PRINT > 0
         if(selectThis) {
           auto xp =  particles->xprevious[indx];
           auto yp =  particles->yprevious[indx];
@@ -728,6 +732,9 @@ void operator()(size_t indx) const {
       } else {
         particles->hitWall[indx] = 2.0;
       }
+
+      if(logSurfHit > 0 && storeId)
+        particles->logSurfHit[indx] = 1;
     }
   }
 };
