@@ -1,55 +1,49 @@
 cmake_minimum_required(VERSION 3.1)
 project(gitr)
 
-set(OPENMP 0)
 set(CUDA 1)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMake/)
-set(CMAKE_CXX_STANDARD 17) # Doesn't set NVCC C++ standard
+set(CMAKE_CXX_STANDARD 11) # Doesn't set NVCC C++ standard
 set(CXX_STANDARD_REQUIRED TRUE)
 
 # Set source files
 file(GLOB SRC_FILES src/*.cpp)
-file(GLOB TEST_FILES src/*.cpp test/tests_general.cpp)
-list (REMOVE_ITEM TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/gitr.cpp)
-message("${TEST_FILES}")
-file( GLOB HEADER_FILES include/*.h test/tests_general.hpp)
-#add_library(YourLib ${TEST_FILES})
-#include_directories( ${HEADER_FILES})
-find_package(Thrust REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(NetCDF REQUIRED  netcdf>4.7.0)
-pkg_check_modules(NetCDF-CXX4 REQUIRED netcdf-cxx4>4.3.0)
 
-#find_package(NetCDF COMPONENTS CXX REQUIRED)
+find_package(Thrust REQUIRED)
+find_package(NetCDF COMPONENTS CXX REQUIRED)
 find_package(LibConfig)
 find_package(MPI)
 IF (MPI_FOUND)
     include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 endif()
 find_package(OpenMP REQUIRED)
+
 # Add includes
-#include_directories(${NETCDF_INCLUDE_DIRS})
 include_directories(${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/include)
 include_directories(${THRUST_INCLUDE_DIRS})
+include_directories(${NETCDF_INCLUDE_DIRS})
+include_directories(${NETCDF_CXX_INCLUDE_DIR})
 include_directories(${LIBCONFIGPP_INCLUDE_DIR})
-add_definitions(-DUSE_PARALLEL -DHAS_NETCDF_PAR_H)
 # Simulation defines
 add_definitions(-DUSE_CUDA=${USE_CUDA}
+        -DUSEMPI=${USEMPI}
         -DUSE_MPI=${USE_MPI}
+        -DUSE_OPENMP=${USE_OPENMP}
+        -DUSE_BOOST=${USE_BOOST}
         -DUSEIONIZATION=${USEIONIZATION}
         -DUSERECOMBINATION=${USERECOMBINATION}
         -DUSEPERPDIFFUSION=${USEPERPDIFFUSION}
         -DUSEPARDIFFUSION=${USEPARDIFFUSION}
-    -DWRITE_RND=${WRITE_RND}
-    -DUSE_PID_LIST=${USE_PID_LIST}
-    -DSURF_HIT_PID=${SURF_HIT_PID}
-    -DHISTORY_SELECT=${HISTORY_SELECT}
-    -DDEBUG_PRINT=${DEBUG_PRINT}
+      -DWRITE_RND=${WRITE_RND}
+      -DUSE_PID_LIST=${USE_PID_LIST}
+      -DSURF_HIT_PID=${SURF_HIT_PID}
+      -DHISTORY_SELECT=${HISTORY_SELECT}
+      -DDEBUG_PRINT=${DEBUG_PRINT}
         -DUSECOULOMBCOLLISIONS=${USECOULOMBCOLLISIONS}
         -DUSEFRICTION=${USEFRICTION}
         -DUSEANGLESCATTERING=${USEANGLESCATTERING}
-        -DUSEHEATING=${USEHEATING}
+        -DUSEHEATING=${USEHEATING}        
         -DUSETHERMALFORCE=${USETHERMALFORCE}
         -DUSESURFACEMODEL=${USESURFACEMODEL}
         -DUSESHEATHEFIELD=${USESHEATHEFIELD}
@@ -70,6 +64,7 @@ add_definitions(-DUSE_CUDA=${USE_CUDA}
         -DGEOM_TRACE=${GEOM_TRACE}
         -DGEOM_HASH=${GEOM_HASH}
         -DGEOM_HASH_SHEATH=${GEOM_HASH_SHEATH}
+        -DFORCE_EVAL=${FORCE_EVAL}
         -DPARTICLE_TRACKS=${PARTICLE_TRACKS}
         -DPARTICLE_SOURCE=${PARTICLE_SOURCE}
         -DPARTICLE_SOURCE_SPACE=${PARTICLE_SOURCE_SPACE}
@@ -79,21 +74,20 @@ add_definitions(-DUSE_CUDA=${USE_CUDA}
         -DSPECTROSCOPY=${SPECTROSCOPY}
         -DUSE3DTETGEOM=${USE3DTETGEOM}
         -DUSECYLSYMM=${USECYLSYMM}
-        -${USEFIELDALIGNEDVALUES}
         -DFLUX_EA=${FLUX_EA}
-        -DFORCE_EVAL=${FORCE_EVAL}
+        -DUSEFIELDALIGNEDVALUES=${USEFIELDALIGNEDVALUES}
         -DUSE_SORT=${USE_SORT}
         -DCHECK_COMPATIBILITY=${CHECK_COMPATIBILITY})
 
 # Setup for CUDA backend
 if (${CUDA})
-    Message("Enabling CUDA backend")
+  Message("  Enabling CUDA backend ${CUDA_NVCC_FLAGS}")
     find_package(CUDA REQUIRED)
-    message(" Host COMPILER  ${CMAKE_CXX_COMPILER}")
     set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
     set(CUDA_SEPARABLE_COMPILATION TRUE)
-    #set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -DCUDA -DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA --std=c++14 -O3 --expt-relaxed-constexpr) #-O3 --expt-extended-lambda --expt-relaxed-constexpr -g -G --cudart shared
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -DCUDA -DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA -O3 --expt-relaxed-constexpr --expt-extended-lambda) #-O3 --expt-extended-lambda --expt-relaxed-constexpr -g -G --cudart shared
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -DCUDA
+      -DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA --std=c++11 -O3
+      --expt-extended-lambda --expt-relaxed-constexpr )#--cudart shared
 
     set_source_files_properties(${SRC_FILES} PROPERTIES CUDA_SOURCE_PROPERTY_FORMAT OBJ)
     cuda_add_executable(GITR ${SRC_FILES})
@@ -101,15 +95,13 @@ endif ()
 
 # setup for OpenMP backend
 if (${OPENMP})
-    #ADD_EXECUTABLE(geom_test test/geometry_tests.cpp)
     Message("Enabling OpenMP backend")
     find_package(OpenMP REQUIRED)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -O3 -gline-tables-only -std=c++1z -std=c++1z -stdlib=libc++ -nostdinc++ -I/opt/local/libexec/llvm-devel/include/c++/v1 -L/opt/local/libexec/llvm-devel/lib/c++/v1 -Wl,-rpath,-I/opt/local/libexec/llvm-devel/include/c++/v1") # -Wno-c++11-narrowing -fstack-protector-all -fstack-check -W -Wall") #-O3 -g -G -fsanitize=address
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} ") # -std=c++1z") # -nostdinc++ -I/opt/local/libexec/llvm-devel/include/c++/v1 -L/opt/local/libexec/llvm-devel/lib/c++/v1 -Wl,-rpath,-I/opt/local/libexec/llvm-devel/include/c++/v1") # -Wno-c++11-narrowing -fstack-protector-all -fstack-check -W -Wall") #-O3 -g -G stdlib=libc++
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     set_source_files_properties(${SRC_FILES} PROPERTIES LANGUAGE CXX)
     add_executable(GITR ${SRC_FILES})
-    add_definitions("-x c++ -DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP -DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP")
+    add_definitions("-x c++ -DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP")
     set_target_properties(GITR PROPERTIES LINKER_LANGUAGE CXX)
 endif ()
 
@@ -126,23 +118,14 @@ if (${CUDA_DEBUG})
 endif ()
 
 # Add libraries
-#target_link_libraries(GITR ${NETCDF_CXX_LIBRARIES})
-#target_link_libraries(GITR ${NETCDF_C_LIBRARIES})
-#target_link_libraries( GITR PkgConfig::NetCDF-CXX4 PkgConfig::NetCDF)
-target_include_directories(GITR PUBLIC ${NetCDF-CXX4_INCLUDE_DIRS} ${NetCDF_INCLUDE_DIRS})
-target_link_libraries(GITR ${NetCDF-CXX4_LDFLAGS} ${NetCDF_LDFLAGS})
+target_link_libraries(GITR ${NETCDF_CXX_LIBRARIES})
+target_link_libraries(GITR ${NETCDF_C_LIBRARIES})
+#target_link_libraries(GITR /home/tqd/code/netcdfBuild/lib/libnetcdf.so.11)
 target_link_libraries(GITR ${LIBCONFIGPP_LIBRARIES})
+#target_link_libraries(GITR Boost::system Boost::filesystem Boost::timer)
+#target_link_libraries(GITR ${Boost_SYSTEM_LIBRARIES} ${Boost_FILESYSTEM_LIBRARIES} ${Boost_TIMER_LIBRARIES})
 target_link_libraries(GITR ${MPI_C_LIBRARIES})
-target_link_libraries(GITR ${MPI_CXX_LIBRARIES})
-#target_link_libraries(GITR YourLib)
-#target_link_libraries(GITR "-lstdc++fs")
-#enable_testing()
-
-find_package (Python3 COMPONENTS Interpreter)
-message( STATUS "python stuff " ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR} ${EXECUTABLE_OUTPUT_PATH})
-add_test(NAME sample_test COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_test.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test )
-#add_test(TestName geom_test)
-# end test comment
+    #libboost_system};${lboost_timer};${lboost_filesystem})
 # Install binaries
 install(TARGETS GITR DESTINATION bin)
 get_directory_property( DirDefs DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS )
