@@ -1009,7 +1009,7 @@ void operator()(size_t indx) {
 
    #if  DEBUG_PRINT > 0
     if(selectThis){
-      auto nthStep = particlesPointer->tt[indx];
+      int nthStep = particlesPointer->tt[indx];
       float qc = particlesPointer->charge[indx];
       auto minIndex = bdryMinIndex; 
       auto CLD = boundaryVector[minIndex].ChildLangmuirDist;

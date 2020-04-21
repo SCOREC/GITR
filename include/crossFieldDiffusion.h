@@ -105,10 +105,10 @@ void operator()( size_t indx) const {
 		step =  sqrt(6*diffusionCoefficient*dt);
 
       int nthStep = particlesPointer->tt[indx];
-      auto pindex = particlesPointer->index[indx];
+      int pindex = particlesPointer->index[indx];
       int beg = -1;
       if(dof_intermediate > 0 && particlesPointer->storeRnd[indx]) {
-        auto pind = pindex;
+        int pind = pindex;
         int rid = particlesPointer->storeRndSeqId[indx]; 
         pind = (rid >= 0) ? rid : pind;
         beg = pind*nT*dof_intermediate + (nthStep-1)*dof_intermediate;

@@ -42,11 +42,11 @@ struct ionize {
     const double dt;
     double tion;
 
-    int dof_intermediate = 0;
-    int idof = -1;
-    int nT = -1;
+    int dof_intermediate;
+    int idof;
+    int nT;
     double* intermediate;
-    int select = 0;
+    int select;
     int* rndSelectPids;
 
     //int& tt;
@@ -66,8 +66,8 @@ struct ionize {
     double* _DensGridz,double* _ne,int _nR_Temp, int _nZ_Temp,
     double* _TempGridr, double* _TempGridz,double* _te,int _nTemperaturesIonize,
     int _nDensitiesIonize,double* _gridTemperature_Ionization,double* _gridDensity_Ionization,
-    double* _rateCoeff_Ionization, double* intermediate=nullptr, int nT=0, int idof=0, int dof_intermediate = 0,
-     int select=0, int* rndSelectPids=nullptr): 
+    double* _rateCoeff_Ionization, double* intermediate=nullptr, int nT=0, int idof=-1,
+    int dof_intermediate = 0, int select=0, int* rndSelectPids=nullptr): 
    
          particlesPointer(_particlesPointer),
                                          nR_Dens(_nR_Dens),
@@ -102,7 +102,6 @@ struct ionize {
     int selectThis = 1;
     if(select)
       selectThis = particlesPointer->storeRnd[indx];
-    
     //cout << "tion P P1 " << tion << " " << P << " " << P1 << " " << PiP<< endl;
   #if  DEBUG_PRINT > 0
     if(particlesPointer->hitWall[indx] !=0 && selectThis > 0) {
@@ -156,7 +155,8 @@ struct ionize {
             particlesPointer->x[indx],particlesPointer->y[indx],particlesPointer->z[indx]);
         assert(pind >= 0 && beg >= 0 && nthStep>=0);
         intermediate[beg+idof] = r1;
-        rndSelectPids[pind] = indx;
+        if(select > 0)
+          rndSelectPids[pind] = indx;
       }
 
     #if  DEBUG_PRINT > 0 

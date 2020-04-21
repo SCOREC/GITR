@@ -3708,6 +3708,7 @@ print_gpu_memory_usage(world_rank);
   logSurfHit = 1;
 #endif
 
+  int nSelectPids = 1;
   int select = 0; //for selecting rndm number and print
   int usePidList = 0;
   int nPRnd = nP;
@@ -3740,8 +3741,8 @@ print_gpu_memory_usage(world_rank);
     //  particleArray->setStoreRnd(i, i, 0);
     thrust::for_each(thrust::device, particleBegin,particleEnd, [=]__device__(int i) {
       particleArray->storeRnd[i] = 0;
-      particleArray->storeRndSeqId[i] = i; 
     });
+    cudaDeviceSynchronize();
     nPRnd = 0;
     for(int i=0; i<nPtclsList; ++i) {
       auto id = ptclList[i];
@@ -3751,30 +3752,24 @@ print_gpu_memory_usage(world_rank);
       ++nPRnd;
     }
     printf("PidList: nP_rnd %d nPtclsList %d \n", nPRnd, nPtclsList);
-    if(nPRnd > nP) {
+    if(nPRnd ==0 || nPRnd > nP) {
       printf("PidList processing Error \n");
       exit(1);
     };
-    cudaDeviceSynchronize();
+    nSelectPids = (nPRnd > 0) ? nPRnd : 1;
   #endif
 #endif //USE_PID_LIST
 
-  int nSelectPids = 1;
-#if SURF_HIT_PID > 0
-  nSelectPids = (nPRnd > 0) ? nPRnd : 1;
-#endif
 
 #if HISTORY_SELECT > 0
-  int plus = 0; //TODO
   int histSelectLimit = 0; //0 ineffective
  #if PARTICLE_TRACKS > 0
-  plus = 0;
   //subFactor = subSampleFac;
  #endif
   int nPHistSelect = (nPRnd >0) ? nPRnd : 1;
   if(histSelectLimit > 0)
     nPHistSelect = histSelectLimit;
-  int nHistSelect = 1000000;  //1M -> 64 MB x 3 = ~200MB
+  int nHistSelect = 1;
  #if USE_PID_LIST > 0
     nHistSelect = nPHistSelect * nT / subFactor;
  #endif
@@ -3796,21 +3791,22 @@ print_gpu_memory_usage(world_rank);
  #endif
   history_select history_select0(particleArray, nT, subFactor, &histRegX.front(),
    &histRegY.front(), &histRegZ.front(), &histPind.front(), &histTstep.front(),
-   &filled.front(), plus, nHistSelect);
+   &filled.front(), nHistSelect);
 #endif
 
 
   int dof_intermediate = 0;
   int idof = 0;
   int size_intermediate = 1;
-  int nRndPids = 1;
 
 #if WRITE_RND > 0
-  nRndPids = (nPRnd >0) ? nPRnd : 1;
+  int nRndPids = (nPRnd >0) ? nPRnd : 1;
   dof_intermediate = 11;
   std::cout << "**WARNING *** intermediate_data is NOT  ready for MPI\n";
   size_intermediate = nRndPids*nT*dof_intermediate;
-  std::cout << "STARTING intermediate data storing :size " << size_intermediate << " \n";
+  std::cout << "Rnd intermediate store :size " << size_intermediate << " " 
+            << size_intermediate * sizeof(double)/(1024.0*1024.0) 
+            << " MB; nP " << nRndPids <<  " \n";
 #endif
 
 #if USE_CUDA > 0
@@ -4148,7 +4144,7 @@ print_gpu_memory_usage(world_rank);
 
     for (tt; tt < nT; tt++) {
       if(tt%500==0) 
-        printf("\ttimestep %d\n", tt);
+        printf("timestep %d\n", tt);
       // dev_tt[0] = tt;
       //std::cout << " tt " << tt << std::endl;
 #if USE_SORT > 0
@@ -4157,10 +4153,11 @@ print_gpu_memory_usage(world_rank);
       cudaDeviceSynchronize();
 #endif
 #endif
+
 #if PARTICLE_TRACKS > 0
       thrust::for_each(thrust::device, particleBegin, particleEnd, history0);
 
-#elif USE_PID_LIST > 0 || HISTORY_SELECT > 0
+#elif WRITE_RND > 0 || USE_PID_LIST > 0 || HISTORY_SELECT > 0
 
       thrust::for_each(thrust::device, particleBegin,particleEnd, [=]__device__(size_t i) {
        particleArray->tt[i] = particleArray->tt[i]+1; });
@@ -4172,7 +4169,6 @@ print_gpu_memory_usage(world_rank);
 #endif
 
 #if HISTORY_SELECT > 0
-
       thrust::for_each(thrust::device, particleBegin, particleEnd, history_select0);
 #endif
 
@@ -4180,9 +4176,7 @@ print_gpu_memory_usage(world_rank);
       // pStartIndx[world_rank] << "  " << nActiveParticlesOnRank[world_rank] <<
       // std::endl; thrust::for_each(thrust::device,particleBegin,particleOne,
       //     test_routinePp(particleArray));
-
       thrust::for_each(thrust::device, particleBegin, particleEnd, move_boris0);
-
 #ifdef __CUDACC__
       // cudaThreadSynchronize();
 #endif
@@ -4191,21 +4185,18 @@ print_gpu_memory_usage(world_rank);
 #ifdef __CUDACC__
       // cudaThreadSynchronize();
 #endif
-
 #if SPECTROSCOPY > 0
       thrust::for_each(thrust::device, particleBegin, particleEnd, spec_bin0);
 #ifdef __CUDACC__
       // cudaThreadSynchronize();
 #endif
 #endif
-
 #if USEIONIZATION > 0
       thrust::for_each(thrust::device, particleBegin, particleEnd, ionize0);
 #ifdef __CUDACC__
       // cudaThreadSynchronize();
 #endif
 #endif
-
 #if USERECOMBINATION > 0
       thrust::for_each(thrust::device, particleBegin, particleEnd, recombine0);
 #ifdef __CUDACC__
@@ -4242,7 +4233,6 @@ print_gpu_memory_usage(world_rank);
       // cudaThreadSynchronize();
 #endif
 #endif
-
 #if USESURFACEMODEL > 0
       thrust::for_each(thrust::device, particleBegin, particleEnd, reflection0);
 #ifdef __CUDACC__
@@ -4347,17 +4337,18 @@ print_gpu_memory_usage(world_rank);
       netCDF::NcDim ncdim_opt_coll = ncFile_rnd.addDim("Opt_Collision", optcoll);
       netCDF::NcDim ncdim_opt_surf = ncFile_rnd.addDim("Opt_SurfaceModel", optsurf);
       netCDF::NcDim ncdim_opt_list = ncFile_rnd.addDim("usedPidList", static_cast<int>(usePidList)); 
-      vector<NcDim>dims_intermediate;
+      vector<netCDF::NcDim>dims_intermediate;
       dims_intermediate.push_back(ncdim_np);
       dims_intermediate.push_back(ncdim_dof);
       dims_intermediate.push_back(ncdim_ntrun);
-      netCDF::NcVar ncvar_data = ncFile_rnd.addVar("intermediate", ncDouble, dims_intermediate);
+      netCDF::NcVar ncvar_data = ncFile_rnd.addVar("intermediate", netCDF::ncDouble, dims_intermediate);
       ncvar_data.putVar(&intermediate[0]);
-      vector<NcDim> dims_np;
+  #if USE_PID_LIST > 0
+      vector<netCDF::NcDim> dims_np;
       dims_np.push_back(ncdim_np);
-      netCDF::NcVar ncvar_pids = ncFile_rnd.addVar("pids", ncInt, dims_np);
+      netCDF::NcVar ncvar_pids = ncFile_rnd.addVar("pids", netCDF::ncInt, dims_np);
       ncvar_pids.putVar(&rndSelectPids[0]);
-    
+  #endif
       if(logSurfHit > 0) {
         ofstream outLogHit("output/logSurfaceHit.txt");
         outLogHit << "#indices, 1-based, of particles hit on surface during tracking\n";
@@ -4793,10 +4784,10 @@ printf("writing positions file \n");
     // deposited particles " << meanTransitTime << std::endl; #endif
     ofstream outfile2;
     outfile2.open("output/positions.m");
-    for (int i = 1; i < nP + 1; i++) {
-      outfile2 << "Pos( " << i << ",:) = [ ";
-      outfile2 << particleArray->x[i - 1] << " " << particleArray->y[i - 1]
-               << " " << particleArray->z[i - 1] << " ];" << std::endl;
+    for (int i = 0; i < nP; i++) {
+      outfile2 << "Pos( " << i+1 << ",:) = [ ";
+      outfile2 << particleArray->x[i] << " " << particleArray->y[i]
+               << " " << particleArray->z[i] << " ];" << std::endl;
     }
     outfile2.close();
     // Write netCDF output for positions

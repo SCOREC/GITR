@@ -509,7 +509,7 @@ void operator()(size_t indx)  {
 #endif
 #endif
       int nthStep = particlesPointer->tt[indx];
-      auto pindex = particlesPointer->index[indx];
+      int pindex = particlesPointer->index[indx];
       int beg = -1;
       if(dof_intermediate > 0 && selectThis > 0) {
         auto pind = pindex;

@@ -22,7 +22,6 @@ struct history_select {
   double *histTstep;
   int *filled;
   int size = 0;
-  int plus = 0; // increment time
   int debug = 0;
 
   double x1 = 0.03, x2 = 0.07;
@@ -31,21 +30,17 @@ struct history_select {
 
   history_select(Particles *particlesPointer, int nT, int subSampleFac,
    double *hisX, double *histY, double *histZ,  double *histPind,
-    double *histTstep, int *filled, int plus, int size):
+    double *histTstep, int *filled, int size):
    particlesPointer(particlesPointer), nT(nT), subSampleFac(subSampleFac), histX(hisX), 
-   histY(histY), histZ(histZ), histPind(histPind), histTstep(histTstep), filled(filled),
-   plus(plus), size(size) 
+   histY(histY), histZ(histZ), histPind(histPind), histTstep(histTstep), filled(filled), 
+   size(size) 
   {}
 
-CUDA_CALLABLE_MEMBER_DEVICE    
+CUDA_CALLABLE_MEMBER_DEVICE 
   void operator()(size_t indx) const {  
     // history call increment time step to include initial step
-    int tt = particlesPointer->tt[indx];
-    //if history routine not called, plus should be 1
-    int tt0 = (plus > 0) ? tt : (tt-1);
-    if(plus)
-      particlesPointer->tt[indx] = particlesPointer->tt[indx]+1;
-    if (tt0 % subSampleFac == 0) {
+    int tt = particlesPointer->tt[indx] - 1;
+    if (tt % subSampleFac == 0) {
       int indexP = particlesPointer->index[indx];
       auto x = particlesPointer->xprevious[indexP];
       auto y = particlesPointer->yprevious[indexP];
@@ -55,18 +50,18 @@ CUDA_CALLABLE_MEMBER_DEVICE
       if(store > 0) {
         int sid = particlesPointer->storeRndSeqId[indx];
         int pind = (sid >= 0) ? sid : indx;
-        int ind = (pind*nT + tt0) /subSampleFac;
+        int ind = (pind*nT + tt) /subSampleFac;
         auto n = atomicAdd(filled, 1);
         if(debug)
-          printf("n %d tt0 %d ind %d pind %d sid %d size %d indx %d xyz %g %g %g\n", 
-            n, tt0, ind, pind, sid, size, (int)indx, x,y,z);
+          printf("n %d tt %d ind %d pind %d sid %d size %d indx %d xyz %g %g %g\n", 
+            n, tt, ind, pind, sid, size, (int)indx, x,y,z);
         if(n < size) {
           int m = ind; //n
           histX[m] = x;
           histY[m] = y;
           histZ[m] = z;
           histPind[m] = indexP;
-          histTstep[m] = tt0;
+          histTstep[m] = tt;
         }
       }
     }

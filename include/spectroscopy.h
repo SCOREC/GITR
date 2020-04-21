@@ -94,10 +94,25 @@ void operator()(size_t indx) const {
               }
               */
                //for 3d
-              atomicAdd(&(bins[nBins*nX*nnYY*nZ + indx_Z*nX*nnYY +indx_Y*nX+ indx_X]), specWeight);//0*nX*nZ + indx_Z*nZ + indx_X
+              auto old = atomicAdd(&(bins[nBins*nX*nnYY*nZ + indx_Z*nX*nnYY +indx_Y*nX+ indx_X]), specWeight);//0*nX*nZ + indx_Z*nZ + indx_X
+
+              int debug = 0;
+              int ptcl = particlesPointer->index[indx];
+              int istep = particlesPointer->tt[indx]-1;
+              int index = nBins*nX*nnYY*nZ + indx_Z*nX*nnYY +indx_Y*nX+ indx_X;
+              int ind = charge*nX*nnYY*nZ + indx_Z*nX*nnYY + indx_Y*nX+ indx_X;
+              if(debug) 
+                printf( "spec ptcl %d step %d bins %g index %d weight %g charge %d "
+                 "nBins %d pos %g %g %g nX %d nY %d nZ %d indx_X %d indx_Y %d indx_Z %d  ind %d "
+                 " dy %g gridY1 %g gridY0 %g \n", 
+                  ptcl, istep, old+specWeight, index, specWeight, 
+                  charge, nBins, dim1, y, z, nX, nnYY, nZ, indx_X, indx_Y, indx_Z, ind, dy, gridY[1], gridY[0] );
+
               if(charge < nBins)
               {
-                atomicAdd(&(bins[charge*nX*nnYY*nZ + indx_Z*nX*nnYY + indx_Y*nX+ indx_X]), 1.0*specWeight);//0*nX*nZ + indx_Z*nZ + indx_X
+                auto old1 = atomicAdd(&(bins[charge*nX*nnYY*nZ + indx_Z*nX*nnYY + indx_Y*nX+ indx_X]), 1.0*specWeight);//0*nX*nZ + indx_Z*nZ + indx_X
+
+                if(debug) printf("spec: ptcl %d step %d ind %d bins %g \n", ptcl, istep, ind, old1+specWeight);
               }
 
 #else

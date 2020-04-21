@@ -42,11 +42,11 @@ struct recombine {
   const double dt;
   double tion;
 
-  int dof_intermediate = 0;
-  int idof = -1;
-  int nT = -1;
+  int dof_intermediate;
+  int idof;
+  int nT;
   double* intermediate;
-  int select = 0;
+  int select;
 
 //int& tt;
 #if __CUDACC__
@@ -65,7 +65,7 @@ struct recombine {
      double* _DensGridz,double* _ne,int _nR_Temp, int _nZ_Temp,
      double* _TempGridr, double* _TempGridz,double* _te,int _nTemperaturesRecomb,
      int _nDensitiesRecomb,double* _gridTemperature_Recombination,double* _gridDensity_Recombination,
-     double* _rateCoeff_Recombination,  double* intermediate = nullptr, int nT = 0, int idof = 0, 
+     double* _rateCoeff_Recombination,  double* intermediate = nullptr, int nT = 0, int idof = -1, 
      int dof_intermediate = 0, int select = 0): 
     particlesPointer(_particlesPointer),
 
@@ -105,6 +105,7 @@ struct recombine {
 
   if(particlesPointer->hitWall[indx] == 0.0)
 	{        
+
 #if PARTICLESEEDS > 0
         #ifdef __CUDACC__
         double r1 = curand_uniform(&state[indx]);
@@ -121,16 +122,18 @@ struct recombine {
     #endif
 #endif  
 
+        int selectThis = 1;
+        if(select)
+          selectThis = particlesPointer->storeRnd[indx];
         int nthStep = particlesPointer->tt[indx] - 1;
-        auto pindex = particlesPointer->index[indx];
+        int pindex = particlesPointer->index[indx];
         int beg = -1;
-
-        if(dof_intermediate > 0 && particlesPointer->storeRnd[indx] > 0) {
-          auto pind = pindex;
-          int rid = particlesPointer->storeRndSeqId[indx]; 
+      if(dof_intermediate > 0 && selectThis > 0) {
+          int pind = pindex;
+          int rid = particlesPointer->storeRndSeqId[indx];
           pind = (rid >= 0) ? rid : pind;
           beg = pind*nT*dof_intermediate + nthStep*dof_intermediate;
-          if(!((pind >= 0) && (beg >= 0) && (nthStep>=0)))
+          if(pind < 0 || beg < 0 || nthStep < 0)
             printf("recombSelect :  t %d at %d pind %d rid %d indx %d xyz %g %g %g \n", 
               nthStep, beg+idof, pind, rid, (int)indx,
               particlesPointer->x[indx],particlesPointer->y[indx],particlesPointer->z[indx]);
@@ -143,9 +146,6 @@ struct recombine {
           particlesPointer->charge[indx] = particlesPointer->charge[indx]-1;
           particlesPointer->PrecombinationPrevious[indx] = 1.0;
 	} 
-        int selectThis = 1;
-        if(select)
-          selectThis = particlesPointer->storeRnd[indx];
 
     #if  DEBUG_PRINT > 0
         if(selectThis > 0) {
