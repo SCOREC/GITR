@@ -104,34 +104,35 @@ struct ionize {
       selectThis = particlesPointer->storeRnd[indx];
     //cout << "tion P P1 " << tion << " " << P << " " << P1 << " " << PiP<< endl;
   #if  DEBUG_PRINT > 0
-    if(particlesPointer->hitWall[indx] !=0 && selectThis > 0) {
-      printf("Not ionizing %d in timestep %d\n", particlesPointer->index[indx], particlesPointer->tt[indx]);
-    }
+    if(particlesPointer->hitWall[indx] !=0 && selectThis > 0)
+      printf("indx %d Not ionizing %d in timestep %d\n", (int)indx,
+          particlesPointer->index[indx], particlesPointer->tt[indx]-1);
   #endif
   
     if(particlesPointer->hitWall[indx] == 0.0)
     {
         //cout << "calculating r1 " << endl;i
-#if PARTICLESEEDS > 0
-	#ifdef __CUDACC__
+//#if PARTICLESEEDS > 0
+//	#ifdef __CUDACC__
 	  //double r1 = 0.5;//curand_uniform(&particlesPointer->streams[indx]);
-      double r1 = curand_uniform(&state[indx]);
-	#else
-	std::uniform_real_distribution<double> dist(0.0, 1.0);
-	double r1=dist(state[indx]);
+//      double r1 = curand_uniform(&state[indx]);
+//	#else
+//	std::uniform_real_distribution<double> dist(0.0, 1.0);
+//	double r1=dist(state[indx]);
 	//particlesPointer->test[indx] = r1;
         //cout << " r1 " << r1 << endl;
-    #endif
-#else
+//    #endif
+//#else
   #if __CUDACC__
-    curandState localState = state[thread_id];
-    double r1 = curand_uniform(&localState);
-    state[thread_id] = localState;
+    int id = particlesPointer->index[indx];
+    double r1 = curand_uniform(&state[indx]);
+    if(false)
+      printf("ioni indx %d p %d t %d %.15f\n", (int)indx, id, particlesPointer->tt[indx] - 1, r1);
   #else
     std::uniform_real_distribution<double> dist(0.0, 1.0);
     double r1=dist(state[0]);
   #endif
-#endif
+//#endif
     //if(tt == 722)
     //{
       //cout << "r1 " << r1 << " " << P1 << endl;
@@ -142,7 +143,7 @@ struct ionize {
        //particlesPointer->test2[indx] = r1; 
 
       int nthStep = particlesPointer->tt[indx] - 1;
-      int pindex = particlesPointer->index[indx];
+      int pindex = indx; //particlesPointer->index[indx];
       int beg = -1;
     
       if(dof_intermediate > 0 && selectThis > 0) {

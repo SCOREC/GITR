@@ -492,7 +492,7 @@ int importGeometry(libconfig::Config &cfg_geom, sim::Array<Boundary> &boundaries
        boundaries[i].plane_norm = geom["plane_norm"][i];
        boundaries[i].area = geom["area"][i];
        boundaries[i].surface = geom["surface"][i];
-       boundaries[i].inDir = geom["inDir"][i];
+       boundaries[i].inDir = 0;//geom["inDir"][i];
        //std::cout << "inDir " << i << " " << boundaries[i].inDir << std::endl;
        if(boundaries[i].surface > 0)
        {

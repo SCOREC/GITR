@@ -37,7 +37,8 @@ struct hashGeom_sheath {
    int nR;
    int nY;
    int nZ;
-
+   int* csrHashPtrs;
+   int* csrHashes;
 
    hashGeom_sheath(int _nLines,
                 Boundary* _boundary,
@@ -46,11 +47,12 @@ struct hashGeom_sheath {
                 double* _z, 
                 int _n_closeGeomElements, //double *_minDist, 
                 int *_closeGeom,
-                int _nR, int _nY, int _nZ)
+                int _nR, int _nY, int _nZ, int* csrHashPtrs=nullptr, int* csrHashes=nullptr)
                : nLines(_nLines),boundary(_boundary), x(_x), y(_y), z(_z), 
                n_closeGeomElements(_n_closeGeomElements), 
                //minDist(_minDist), 
-               closeGeom(_closeGeom), nR(_nR), nY(_nY), nZ(_nZ) {}
+               closeGeom(_closeGeom), nR(_nR), nY(_nY), nZ(_nZ),
+               csrHashPtrs(csrHashPtrs),  csrHashes(csrHashes) {}
     
     CUDA_CALLABLE_MEMBER_DEVICE 
     void operator()(size_t indx) const { 

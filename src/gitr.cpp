@@ -246,6 +246,7 @@ print_gpu_memory_usage(world_rank);
 
   sim::Array<Boundary> boundaries(nLines + 1, Boundary());
   if (world_rank == 0) {
+    std::cout << "Boundary import\n";
     nSurfaces = importGeometry(cfg_geom, boundaries);
     std::cout << "Starting Boundary Init... nSurfaces " << nSurfaces
               << std::endl;
@@ -3761,6 +3762,39 @@ print_gpu_memory_usage(world_rank);
 #endif //USE_PID_LIST
 
 
+  bool writeBdryFacesNC = true;
+  std::vector<double> bdryx, bdryy, bdryz;
+  if(writeBdryFacesNC) {
+    for (int i = 0; i < nLines; i++) {
+      bdryx.push_back(boundaries[i].x1);
+      bdryx.push_back(boundaries[i].x2);
+      bdryy.push_back(boundaries[i].y1);
+      bdryy.push_back(boundaries[i].y2);
+      bdryz.push_back(boundaries[i].z1);
+      bdryz.push_back(boundaries[i].z2);
+#if USE3DTETGEOM > 0     
+      bdryy.push_back(boundaries[i].y3);
+      bdryx.push_back(boundaries[i].x3);
+      bdryz.push_back(boundaries[i].z3);
+#endif
+    }
+
+    NcFile ncMeshFile("output/meshCoords.nc", NcFile::replace);
+    NcDim nc_cells = ncMeshFile.addDim("ncells", nLines);
+    NcDim nc_xnums = ncMeshFile.addDim("x", nLines*3);
+    NcDim nc_ynums = ncMeshFile.addDim("y", nLines*3);
+    NcDim nc_znums = ncMeshFile.addDim("z", nLines*3);
+
+    vector<NcDim> dims_ncMeshFile;
+    dims_ncMeshFile.push_back(nc_xnums);
+
+    NcVar nc_meshx = ncMeshFile.addVar("x", ncDouble, dims_ncMeshFile);
+    NcVar nc_meshy = ncMeshFile.addVar("y", ncDouble, dims_ncMeshFile);
+    NcVar nc_meshz = ncMeshFile.addVar("z", ncDouble, dims_ncMeshFile);
+    nc_meshx.putVar(&bdryx[0]);
+    nc_meshy.putVar(&bdryy[0]);
+    nc_meshz.putVar(&bdryz[0]);
+  }
 #if HISTORY_SELECT > 0
   int histSelectLimit = 0; //0 ineffective
  #if PARTICLE_TRACKS > 0
@@ -4669,37 +4703,6 @@ for(int i=0; i<nP ; i++)
       xOut[i] = particleArray->x[i];
     }
 
-    bool writeBdryFacesNC = true;
-    std::vector<double> bdryx, bdryy, bdryz;
-    if(writeBdryFacesNC) {
-      for (int i = 0; i < nLines; i++) {
-        bdryx.push_back(boundaries[i].x1);
-        bdryx.push_back(boundaries[i].x2);
-        bdryx.push_back(boundaries[i].x3);
-        bdryy.push_back(boundaries[i].y1);
-        bdryy.push_back(boundaries[i].y2);
-        bdryy.push_back(boundaries[i].y3);
-        bdryz.push_back(boundaries[i].z1);
-        bdryz.push_back(boundaries[i].z2);
-        bdryz.push_back(boundaries[i].z3);
-      }
-
-      NcFile ncMeshFile("output/meshCoords.nc", NcFile::replace);
-      NcDim nc_cells = ncMeshFile.addDim("ncells", nLines);
-      NcDim nc_xnums = ncMeshFile.addDim("x", nLines*3);
-      NcDim nc_ynums = ncMeshFile.addDim("y", nLines*3);
-      NcDim nc_znums = ncMeshFile.addDim("z", nLines*3);
-
-      vector<NcDim> dims_ncMeshFile;
-      dims_ncMeshFile.push_back(nc_xnums);
-
-      NcVar nc_meshx = ncMeshFile.addVar("x", ncDouble, dims_ncMeshFile);
-      NcVar nc_meshy = ncMeshFile.addVar("y", ncDouble, dims_ncMeshFile);
-      NcVar nc_meshz = ncMeshFile.addVar("z", ncDouble, dims_ncMeshFile);
-      nc_meshx.putVar(&bdryx[0]);
-      nc_meshy.putVar(&bdryy[0]);
-      nc_meshz.putVar(&bdryz[0]);
-    }
 /*
 sim::Array<double> tally00(nLines,0);
 for (int j=0; j<nP; j++)
@@ -5036,6 +5039,14 @@ printf("done writing positions file\n");
     nc_gridY.putVar(&gridY_bins[0]);
 #endif
     nc_n.putVar(&net_BinsTotal[0]);
+    bool debug= false;
+    if(debug) {
+      for(int i=0; i< net_BinsTotal.size() ; ++i) {
+        auto v = net_BinsTotal[i];
+        if(v>0) 
+          std::cout << i << " " << v << "\n";
+      }
+    }
     ncFile.close();
 #endif
 #ifdef __CUDACC__

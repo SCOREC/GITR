@@ -436,22 +436,8 @@ void operator()(size_t indx)  {
         double velx1 = vx;
         double vely1 = vy;
         double velz1 = vz;
-        
-        double xn = particlesPointer->x[indx];
-        double yn = particlesPointer->y[indx];
-        double zn = particlesPointer->z[indx];
-      
-        int selectThis = 1;
-        if(select > 0)
-          selectThis = particlesPointer->storeRnd[indx];      
-       
-      #if  DEBUG_PRINT > 0
-        if(selectThis > 0)
-          printf("GITRCollision-In: ptcl %d timestep %d charge %.15e VelIn %.15e %.15e %.15e "
-            " => Vel %.15e %.15e %.15e pos %.15e %.15e %.15e next_pos  %.15e %.15e %.15e \n", 
-          particlesPointer->index[indx],  particlesPointer->tt[indx]-1,
-          particlesPointer->charge[indx], velx1, vely1, velz1, vx, vy, vz, x,y, z, xn, yn, zn);
-       #endif
+        int ptcl = indx;
+
 #if FLOWV_INTERP == 3 
         interp3dVector (&flowVelocity[0], particlesPointer->xprevious[indx],particlesPointer->yprevious[indx],particlesPointer->zprevious[indx],nR_flowV,nY_flowV,nZ_flowV,
                 flowVGridr,flowVGridy,flowVGridz,flowVr,flowVz,flowVt);
@@ -482,9 +468,9 @@ void operator()(size_t indx)  {
 #ifdef __CUDACC__
             double n1 = curand_normal(&state[indx]);
             double n2 = curand_normal(&state[indx]);
-            double r1 = curand_uniform(&state[indx]);
-            double r2 = curand_uniform(&state[indx]);
-            double r3 = curand_uniform(&state[indx]);
+//            double r1 = curand_uniform(&state[indx]);
+//            double r2 = curand_uniform(&state[indx]);
+//            double r3 = curand_uniform(&state[indx]);
             double xsi = curand_uniform(&state[indx]);
             //particlesPointer->test[indx] = xsi;
 #else
@@ -508,14 +494,19 @@ void operator()(size_t indx)  {
             double xsi = dist(state[indx]);
 #endif
 #endif
-      int nthStep = particlesPointer->tt[indx];
-      int pindex = particlesPointer->index[indx];
+
+      int selectThis = 1;
+      if(select > 0)
+        selectThis = particlesPointer->storeRnd[indx];      
+      
+      int nthStep = (int)(particlesPointer->tt[indx] ) -1;
+      int pindex = ptcl;//particlesPointer->index[indx];
       int beg = -1;
       if(dof_intermediate > 0 && selectThis > 0) {
         auto pind = pindex;
         int rid = particlesPointer->storeRndSeqId[indx]; 
         pind = (rid >= 0) ? rid : pind;
-        beg = pind*nT*dof_intermediate + (nthStep-1)*dof_intermediate;
+        beg = pind*nT*dof_intermediate + nthStep*dof_intermediate;
         intermediate[beg+idof] = n1;
         intermediate[beg+idof+1] = n2;
         intermediate[beg+idof+2] = xsi;
@@ -524,7 +515,6 @@ void operator()(size_t indx)  {
        #endif
       }
       
-      int ptcl =  particlesPointer->index[indx];
       getSlowDownFrequencies(nu_friction, nu_deflection, nu_parallel, nu_energy,
                              x, y, z,
                              vx, vy, vz,
@@ -541,7 +531,7 @@ void operator()(size_t indx)  {
                              BfieldGridZ,
                              BfieldR,
                              BfieldZ,
-                             BfieldT, T_background,ptcl, nthStep-1);
+                             BfieldT, T_background,ptcl, nthStep);
 
       getSlowDownDirections(parallel_direction, perp_direction1, perp_direction2,
                             x, y, z,
@@ -598,10 +588,22 @@ void operator()(size_t indx)  {
       vz = particlesPointer->vz[indx];
    
     #if  DEBUG_PRINT > 0
-      if(selectThis)
-        printf("GITRCollision: ptcl %d timestep %d charge %.15e VelIn %.15e %.15e %.15e "
-            " => Vel %.15e %.15e %.15e pos %.15e %.15e %.15e \n", 
-         ptcl, nthStep-1, particlesPointer->charge[indx], velx1, vely1, velz1, vx, vy, vz, x,y, z);
+      if(selectThis) {
+        printf("Collision: ptcl %d timestep %d n1 %.15f n2 %.15f xsi %.15f vPartNorm %.15f \n",
+          ptcl, nthStep, n1, n2, xsi, vPartNorm);
+        printf("Collision: ptcl %d timestep %d nuEdt %.15f coeff_par %.15f perp %.15f %.15f\n",
+          ptcl, nthStep, nuEdt, coeff_par, coeff_perp1, coeff_perp2);
+        printf("Collision: ptcl %d timestep %d par-dir %.15f %.15f %.15f \n", ptcl, nthStep,
+          parallel_direction[0], parallel_direction[1], parallel_direction[2]);
+        printf("Collision: ptcl %d timestep %d perpdir1 %.15f %.15f %.15f perpdir2 %.15f %.15f %.15f \n",
+          ptcl, nthStep, perp_direction1[0], perp_direction1[1], perp_direction1[2],
+          perp_direction2[0], perp_direction2[1], perp_direction2[2]);
+        printf("Collision: ptcl %d timestep %d vel-coll %.15f %.15f %.15f \n", ptcl, nthStep, velocityCollisions[0],
+          velocityCollisions[1], velocityCollisions[2]);
+        printf("GITRCollision: ptcl %d timestep %d charge %g pos %.15f %.15f %.15f VelIn %.15e %.15e %.15e "
+            " => Vel %.15f %.15f %.15f \n", 
+         ptcl, nthStep, particlesPointer->charge[indx], x,y, z, velx1, vely1, velz1, vx, vy, vz);
+      }
      #endif
    
       this->dv[0] = velocityCollisions[0];

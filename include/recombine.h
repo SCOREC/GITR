@@ -101,7 +101,7 @@ struct recombine {
        double P = exp(-dt/tion);
        //particlesPointer->PrecombinationPrevious[indx] = PrP*P;
        P1 = 1.0-P;
-    }
+   // }
 
   if(particlesPointer->hitWall[indx] == 0.0)
 	{        
@@ -126,7 +126,7 @@ struct recombine {
         if(select)
           selectThis = particlesPointer->storeRnd[indx];
         int nthStep = particlesPointer->tt[indx] - 1;
-        int pindex = particlesPointer->index[indx];
+        int pindex = indx;//particlesPointer->index[indx];
         int beg = -1;
       if(dof_intermediate > 0 && selectThis > 0) {
           int pind = pindex;
@@ -159,7 +159,7 @@ struct recombine {
         }
     #endif
    }	
-
+  }
   } 
 };
 

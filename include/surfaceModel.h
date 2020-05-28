@@ -271,7 +271,7 @@ void operator()(size_t indx) const {
       int surface = boundaryVector[wallHit].surface;
 
       int tstep = particles->tt[indx]-1;
-      int ptcl = particles->index[indx];
+      int ptcl = indx;//particles->index[indx];
       int selectThis = 1;
       if(select > 0) 
         selectThis = particles->storeRnd[indx];
@@ -403,7 +403,7 @@ void operator()(size_t indx) const {
 
     
       int nthStep = particles->tt[indx] - 1;
-      int pindex = particles->index[indx];
+      int pindex = indx;//particles->index[indx];
       int beg = -1;
 
       if(dof_intermediate > 0 && particles->storeRnd[indx]) {
@@ -438,12 +438,6 @@ void operator()(size_t indx) const {
                                          E_sputtRefDistIn,EDist_CDF_R_regrid );
                    //newWeight=(R0/(1.0-sputtProb))*weight;
 		   newWeight = weight*(totalYR);
-                  #if  DEBUG_PRINT > 0
-                   if(selectThis)
-                    printf("SURF5 reflects ptcl %d  timestep %d weight %.15e newWeight %.15e rand8 %.15e "
-                        " thetaImpact %.15e log10(E0) %.15e aInterpVal %.15e  eInterpVal %.15e \n",
-                      ptcl, tstep, weight, newWeight, r8, thetaImpact,log10(E0), aInterpVal, eInterpVal);
-                  #endif
     #if FLUX_EA > 0
               EdistInd = floor((eInterpVal-E0dist)/dEdist);
               AdistInd = floor((aInterpVal-A0dist)/dAdist);
@@ -452,11 +446,18 @@ void operator()(size_t indx) const {
               {
             #if USE_CUDA > 0
                   storeId = true;
-                  auto old = atomicAdd(&(surfaces->reflDistribution[
-                        surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd]),newWeight);
-                  if(debug)
-                    printf("REFL  %g tot %g ind %d Ei %d Ai %d ptcl %d  t %d\n", newWeight, old+newWeight,
-                      surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd, EdistInd, AdistInd, ptcl, tstep);
+
+                  int index = surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd, EdistInd;
+                  auto old = atomicAdd(&(surfaces->reflDistribution[index]),newWeight);
+                  #if  DEBUG_PRINT > 0
+                  //if(selectThis) {
+                    printf("SURFREFL step %d ptcl %d tot-refl %g idx %d Aind %d Eind %d"
+                      " aInterp %g  eInterp %g\n", tstep, ptcl, old+newWeight, 
+                      index, AdistInd, EdistInd, aInterpVal, eInterpVal);
+                    printf("SURFREFL step %d ptcl %d surfId %d r8 %g wt %g YR %g thetaImpact %g newWt %g \n",
+                       tstep, ptcl, surfaceHit, r8, weight, totalYR, thetaImpact, newWeight);
+                   //}
+                  #endif
             #else      
                   surfaces->reflDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] = 
                     surfaces->reflDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] +  newWeight;

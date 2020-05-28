@@ -226,7 +226,8 @@ CUDA_CALLABLE_MEMBER
 double getE ( double x0, double y, double z, double E[], Boundary *boundaryVector, int nLines,
        int nR_closeGeom, int nY_closeGeom,int nZ_closeGeom, int n_closeGeomElements, 
        double *closeGeomGridr,double *closeGeomGridy, double *closeGeomGridz, int *closeGeom, 
-       int&  closestBoundaryIndex, int ptcl=-1, int tstep=-1, int* bdryMinInd=nullptr, int detail=0) {
+       int&  closestBoundaryIndex, int* csrHashPtrs=nullptr, int* csrHashes=nullptr, int ptcl=-1, 
+       int tstep=-1, int* bdryMinInd=nullptr, int detail=0 ) {
 
    //int detail = (ptcl ==612 && tstep >4473 && tstep <4476) ? 1 : 0;
 
@@ -313,9 +314,13 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
   double dr = closeGeomGridr[1] - closeGeomGridr[0];
   double dy = closeGeomGridy[1] - closeGeomGridy[0];
   double dz = closeGeomGridz[1] - closeGeomGridz[0];
-  int rInd = floor((x0 - closeGeomGridr[0])/dr + 0.5);
-  int yInd = floor((y - closeGeomGridy[0])/dy + 0.5);
-  int zInd = floor((z - closeGeomGridz[0])/dz + 0.5);
+  double shift = 0.5;
+#if USE_CSR_SHEATH_HASH > 0
+      shift = 0;
+#endif
+  int rInd = floor((x0 - closeGeomGridr[0])/dr + shift);
+  int yInd = floor((y - closeGeomGridy[0])/dy + shift);
+  int zInd = floor((z - closeGeomGridz[0])/dz + shift);
   int i;
   if(rInd < 0 || rInd >= nR_closeGeom)
     rInd =0;
@@ -324,6 +329,13 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
   if(zInd < 0 || zInd >= nZ_closeGeom)
     zInd =0;
 
+#if USE_CSR_SHEATH_HASH > 0
+      int cell = zInd*nY_closeGeom*nR_closeGeom + yInd*nR_closeGeoms + rInd;
+      int hBegin = csrHashPtrs[cell];
+      int hEnd = csrHashPtrs[cell+1];
+      for (int k = hBegin; k < hEnd; ++k) {
+        i = csrHashes[k]; //return index of boundaryVector 
+#else
   for (int k=0; k< n_closeGeomElements; k++) //n_closeGeomElements
     {
        i = closeGeom[zInd*nY_closeGeom*nR_closeGeom*n_closeGeomElements 
@@ -331,13 +343,14 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
                    + rInd*n_closeGeomElements + k];
        //closestBoundaryIndex = i;
        //cout << "closest boundaries to check " << i << endl;
+#endif
 #else
       for (int i=0; i<nLines; i++)
       {
 #endif
     //cout << "Z and index " << boundaryVector[i].Z << " " << i << endl;
-    //if (boundaryVector[i].Z != 0.0)
-    //{
+    if (boundaryVector[i].Z != 0.0)
+    {
     //cout << "Z and index " << boundaryVector[i].Z << " " << i << endl;
     a = boundaryVector[i].a;
     b = boundaryVector[i].b;
@@ -560,8 +573,8 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
           #endif 
          //cout << "perp dist " << perpDist << endl;
          //cout << "point to AB BC CA " << p0ABdist << " " << p0BCdist << " " << p0CAdist << endl;
-        //}
-       }
+        } //materialZ
+       } //nLines
 
        #if  DEBUG_PRINT > 0
        if(detail) {
@@ -878,6 +891,9 @@ struct move_boris {
     double magneticForce[3];
     double electricForce[3];
     int select = 0;
+    int* csrHashPtrs;
+    int* csrHashes;
+    
     move_boris(Particles *_particlesPointer, double _span, Boundary *_boundaryVector,int _nLines,
             int _nR_Bfield, int _nZ_Bfield,
             double * _BfieldGridRDevicePointer,
@@ -894,7 +910,7 @@ struct move_boris {
             double * _EfieldTDevicePointer,
             int _nR_closeGeom, int _nY_closeGeom,int _nZ_closeGeom, int _n_closeGeomElements, 
             double *_closeGeomGridr,double *_closeGeomGridy, double *_closeGeomGridz, 
-            int *_closeGeom, int select=0)
+            int *_closeGeom, int select=0, int* csrHashPtrs=nullptr, int* csrHashes=nullptr)
 : particlesPointer(_particlesPointer),
         boundaryVector(_boundaryVector),
         nR_Bfield(_nR_Bfield),
@@ -924,7 +940,8 @@ struct move_boris {
         span(_span),
         nLines(_nLines),
         magneticForce{0.0, 0.0, 0.0},
-        electricForce{0.0, 0.0, 0.0}, select(select){}
+        electricForce{0.0, 0.0, 0.0}, 
+        select(select), csrHashPtrs(csrHashPtrs), csrHashes(csrHashes){}
 
 CUDA_CALLABLE_MEMBER    
 void operator()(size_t indx) { 
@@ -985,8 +1002,8 @@ void operator()(size_t indx) {
     minDist = getE(particlesPointer->xprevious[indx], particlesPointer->yprevious[indx], 
       particlesPointer->zprevious[indx], E,boundaryVector,nLines,nR_closeGeom_sheath,  
       nY_closeGeom_sheath,nZ_closeGeom_sheath,  n_closeGeomElements_sheath,closeGeomGridr_sheath, 
-      closeGeomGridy_sheath,  closeGeomGridz_sheath,closeGeom_sheath, closestBoundaryIndex, 
-      ptcl, tstep,  &bdryMinIndex, selectThis);
+      closeGeomGridy_sheath,  closeGeomGridz_sheath,closeGeom_sheath, closestBoundaryIndex,
+      csrHashPtrs, csrHashes, ptcl, tstep,  &bdryMinIndex, selectThis);
 #endif
 
 #if USEPRESHEATHEFIELD > 0
@@ -1013,25 +1030,10 @@ void operator()(size_t indx) {
       float qc = particlesPointer->charge[indx];
       auto minIndex = bdryMinIndex; 
       auto CLD = boundaryVector[minIndex].ChildLangmuirDist;
-      auto midx = boundaryVector[minIndex].midx;
-      auto midy = boundaryVector[minIndex].midy;
-      auto midz = boundaryVector[minIndex].midz;
       auto te = boundaryVector[minIndex].te;
       auto ne = boundaryVector[minIndex].ne;
-      auto x1 = boundaryVector[minIndex].x1;
-      auto y1 = boundaryVector[minIndex].y1;
-      auto z1 = boundaryVector[minIndex].z1;
-      auto x2 = boundaryVector[minIndex].x2;
-      auto y2 = boundaryVector[minIndex].y2;
-      auto z2 = boundaryVector[minIndex].z2;
-      auto x3 = boundaryVector[minIndex].x3;
-      auto y3 = boundaryVector[minIndex].y3;
-      auto z3 = boundaryVector[minIndex].z3;
-      printf("\nBoris1 ptcl %d timestep %d charge %f E-boris %.15e %.15e %.15e minDist %.15e CLD %.15e "
-        " ne %.15e te %.15e  pos %.15e %.15e %.15e minIndex %d  midx %.15e midy %.15e midz %.15e "
-        " FACE: %.15e %.15e %.15e : %.15e %.15e %.15e : %.15e %.15e %.15e \n", 
-         ptcl, nthStep-1, qc, E[0],E[1],E[2], minDist, CLD, ne, te, position[0], position[1], position[2],
-         minIndex, midx, midy, midz, x1,y1,z1, x2,y2,z2,x3,y3,z3);
+      printf("\nBoris1 ptcl %d timestep %d charge %f ne %.15e te %.15e \n",
+        ptcl, nthStep-1, qc, ne, te);
     }
     #endif            
 
@@ -1070,14 +1072,13 @@ auto v3_ = v[2];
    #if  DEBUG_PRINT > 0
     if(selectThis > 0)
       printf("Boris2 ptcl %d timestep %d eField %.15e %.15e %.15e bField %.15e %.15e %.15e \n"
-       // "  ... qPrime %.15e coeff %.15e qpE %.15e %.15e %.15e vmxB %.15e %.15e %.15e " 
-       // "qp_vmxB %.15e %.15e %.15e  v_prime %.15e %.15e %.15e vpxB %.15e %.15e %.15e "
-       // " c_vpxB %.15e %.15e %.15e  v_ %.15e %.15e %.15e \n", 
-        ,particlesPointer->index[indx],  particlesPointer->tt[indx]-1, E[0],E[1],E[2], B[0],B[1],B[2]   
-       // ,q_prime, coeff, qpE[0], qpE[1], qpE[2],vmxB[0], vmxB[1],vmxB[2], qp_vmxB[0], qp_vmxB[1],  qp_vmxB[2],
-       //  v_prime[0], v_prime[1], v_prime[2] , vpxB[0], vpxB[1], vpxB[2], c_vpxB[0],c_vpxB[1],c_vpxB[2],
-       //  v1_, v2_, v3_
-        );
+        "  ... qPrime %.15e coeff %.15e qpE %.15e %.15e %.15e vmxB %.15e %.15e %.15e " 
+        "qp_vmxB %.15e %.15e %.15e  v_prime %.15e %.15e %.15e vpxB %.15e %.15e %.15e "
+        " c_vpxB %.15e %.15e %.15e  v_ %.15e %.15e %.15e \n", 
+        particlesPointer->index[indx],  particlesPointer->tt[indx]-1, E[0],E[1],E[2], B[0],B[1],B[2]   
+        ,q_prime, coeff, qpE[0], qpE[1], qpE[2],vmxB[0], vmxB[1],vmxB[2], qp_vmxB[0], qp_vmxB[1],  qp_vmxB[2],
+         v_prime[0], v_prime[1], v_prime[2] , vpxB[0], vpxB[1], vpxB[2], c_vpxB[0],c_vpxB[1],c_vpxB[2],
+         v1_, v2_, v3_ );
     #endif
 
 
