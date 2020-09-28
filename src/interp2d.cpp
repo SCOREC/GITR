@@ -12,18 +12,15 @@
 #endif
 
 #include <cmath>
-#ifndef INTERP_DEBUG_PRINT
-#define INTERP_DEBUG_PRINT 0
-#endif
 
 CUDA_CALLABLE_MEMBER
 
 double interp2d ( double x, double z,int nx, int nz,
     double* gridx,double* gridz,double* data ) {
-    
+
     double fxz = 0.0;
     double fx_z1 = 0.0;
-    double fx_z2 = 0.0; 
+    double fx_z2 = 0.0;
     if(nx*nz == 1)
     {
         fxz = data[0];
@@ -34,7 +31,7 @@ double interp2d ( double x, double z,int nx, int nz,
     double dz = gridz[1] - gridz[0];
     int i = std::floor((dim1 - gridx[0])/d_dim1);//addition of 0.5 finds nearest gridpoint
     int j = std::floor((z - gridz[0])/dz);
-    
+
     //double interp_value = data[i + j*nx];
     if (i < 0) i =0;
     if (j< 0 ) j=0;
@@ -53,12 +50,12 @@ double interp2d ( double x, double z,int nx, int nz,
         fx_z1 = data[i+(nz-1)*nx];
         fx_z2 = data[i+(nz-1)*nx];
         fxz = ((gridx[i+1]-dim1)*fx_z1+(dim1 - gridx[i])*fx_z2)/d_dim1;
-        
+
     }
     else
     {
       fx_z1 = ((gridx[i+1]-dim1)*data[i+j*nx] + (dim1 - gridx[i])*data[i+1+j*nx])/d_dim1;
-      fx_z2 = ((gridx[i+1]-dim1)*data[i+(j+1)*nx] + (dim1 - gridx[i])*data[i+1+(j+1)*nx])/d_dim1; 
+      fx_z2 = ((gridx[i+1]-dim1)*data[i+(j+1)*nx] + (dim1 - gridx[i])*data[i+1+(j+1)*nx])/d_dim1;
       fxz = ((gridz[j+1]-z)*fx_z1+(z - gridz[j])*fx_z2)/dz;
       //std::cout << "fxz1,2,fxz" << fx_z1 << fx_z2 << fxz <<std::endl;
       //std::cout << "gridz0,1 j dz" << gridz[0] <<gridz[1] << j << dz <<std::endl;
@@ -69,10 +66,10 @@ double interp2d ( double x, double z,int nx, int nz,
 }
 double interp2dCombined ( double x, double y, double z,int nx, int nz,
     double* gridx,double* gridz,double* data ) {
-    
+
     double fxz = 0.0;
     double fx_z1 = 0.0;
-    double fx_z2 = 0.0; 
+    double fx_z2 = 0.0;
     if(nx*nz == 1)
     {
         fxz = data[0];
@@ -82,7 +79,7 @@ double interp2dCombined ( double x, double y, double z,int nx, int nz,
     double dim1 = std::sqrt(x*x + y*y);
 #else
     double dim1 = x;
-#endif    
+#endif
     double d_dim1 = gridx[1] - gridx[0];
     double dz = gridz[1] - gridz[0];
     int i = std::floor((dim1 - gridx[0])/d_dim1);//addition of 0.5 finds nearest gridpoint
@@ -90,6 +87,11 @@ double interp2dCombined ( double x, double y, double z,int nx, int nz,
     //double interp_value = data[i + j*nx];
     if (i < 0) i=0;
     if (j < 0) j=0;
+#if INTERP_DEBUG_PRINT > 0
+      printf("interp2dCombined0: x %g  z %g  dim1 %g i %d j %d nx %d nz %d \n", x,z, dim1,i, j, nx, nz );
+      printf(" interp2dCombined0: gridx[0] %g gridx[1] %g  gridz[0] %g  gridz[1] %g d_dim1 %g dz %g \n",
+        gridx[0], gridx[1], gridz[0], gridz[1], d_dim1, dz);
+#endif
     if (i >=nx-1 && j>=nz-1)
     {
         fxz = data[nx-1+(nz-1)*nx];
@@ -105,18 +107,23 @@ double interp2dCombined ( double x, double y, double z,int nx, int nz,
         fx_z1 = data[i+(nz-1)*nx];
         fx_z2 = data[i+(nz-1)*nx];
         fxz = ((gridx[i+1]-dim1)*fx_z1+(dim1 - gridx[i])*fx_z2)/d_dim1;
-        
     }
     else
     {
       fx_z1 = ((gridx[i+1]-dim1)*data[i+j*nx] + (dim1 - gridx[i])*data[i+1+j*nx])/d_dim1;
-      fx_z2 = ((gridx[i+1]-dim1)*data[i+(j+1)*nx] + (dim1 - gridx[i])*data[i+1+(j+1)*nx])/d_dim1; 
+      fx_z2 = ((gridx[i+1]-dim1)*data[i+(j+1)*nx] + (dim1 - gridx[i])*data[i+1+(j+1)*nx])/d_dim1;
       fxz = ((gridz[j+1]-z)*fx_z1+(z - gridz[j])*fx_z2)/dz;
+#if INTERP_DEBUG_PRINT > 0
+        printf("interp2dCombined4: gridXi %g  gridXi+1 %g : %g %g %g %g \n",
+            gridx[i], gridx[i+1], gridx[i+1]-dim1, data[i+j*nx], dim1 - gridx[i], data[i+1+j*nx]);
+        printf("interp2dCombined4: gridz[j+1] %.15f gridz[j] %.15f gridz[j+1]-z %.15f z - gridz[j] %.15f\n",
+            gridz[j+1], gridz[j], (gridz[j+1]-z), (z - gridz[j]));
+#endif
     }
-  if(INTERP_DEBUG_PRINT ==1)
-    printf(" interp2dCombined: x %g y %g z %g dim1 %g nx %d, nz %d grid0 %g gridz0 %g i %d j %d d_dim1 %g dz %g inter2d-fxz %g \n", 
-      x,y,z, dim1, nx, nz, gridx[0], gridz[0], i, j, d_dim1, dz, fxz);    
-    }
+  }
+#if INTERP_DEBUG_PRINT > 0
+      printf(" interp2dCombined: x %.15f z %.14f fx_z1 %.15f fx_z2 %.15f fxz %.15f \n", x,z,fx_z1,fx_z2,fxz);
+#endif
     return fxz;
 }
 
@@ -126,22 +133,21 @@ double interp3d ( double x, double y, double z,int nx,int ny, int nz,
     double* gridx,double* gridy, double* gridz,double* data ) {
     //std::cout << "xyz " << x << " "<<y << " " << z<< std::endl;
     //std::cout << "nxyz " << nx << " "<<ny << " " << nz<< std::endl;
-    bool debug = false;
     double fxyz = 0.0;
 
     double dx = gridx[1] - gridx[0];
     double dy = gridy[1] - gridy[0];
     double dz = gridz[1] - gridz[0];
-    
+
     int i = std::floor((x - gridx[0])/dx);//addition of 0.5 finds nearest gridpoint
     int j = std::floor((y - gridy[0])/dy);
     int k = std::floor((z - gridz[0])/dz);
     //std::cout << "dxyz ijk " << dx << " "<<dy << " " << dz<< " " << i
       //  << " " << j << " " << k << std::endl;
-    if(debug || INTERP_DEBUG_PRINT==1)
-      printf("x %.15e y %.15e z %.15e i %d j %d k %d dx %.15e dy %.15e dz %.15e \n", 
+#if INTERP_DEBUG_PRINT > 0
+      printf("x %.15e y %.15e z %.15e i %d j %d k %d dx %.15e dy %.15e dz %.15e \n",
         x, y, z, i, j, k, dx, dy, dz);
-
+#endif
     if(i <0 ) i=0;
     else if(i >=nx-1) i=nx-2;
     if(j <0 ) j=0;
@@ -154,12 +160,12 @@ double interp3d ( double x, double y, double z,int nx,int ny, int nz,
       //  << " " << j << " " << k << std::endl;
     //if(j <0 || j>ny-1) j=0;
     //if(k <0 || k>nz-1) k=0;
-    if(debug || INTERP_DEBUG_PRINT==1) {
+#if INTERP_DEBUG_PRINT > 0
       printf("   i %d j %d k %d \n", i, j, k);
-      for(int i=0; i<10; ++i) 
+      for(int i=0; i<10; ++i)
         printf(" %d %.15e \n", i, gridz[i]);
-    }
-    
+#endif
+
     double fx_z0 = (data[i + j*nx + k*nx*ny]*(gridx[i+1]-x) + data[i +1 + j*nx + k*nx*ny]*(x-gridx[i]))/dx;
     double fx_z1 = (data[i + j*nx + (k+1)*nx*ny]*(gridx[i+1]-x) + data[i +1 + j*nx + (k+1)*nx*ny]*(x-gridx[i]))/dx;
     //std::cout << "dataInd 1 2 3 4 " << i + j*nx + k*nx*ny << " "<<i+1 + j*nx + k*nx*ny << " " << i + j*nx + (k+1)*nx*ny<< " " << i +1 + j*nx + (k+1)*nx*ny
@@ -167,7 +173,7 @@ double interp3d ( double x, double y, double z,int nx,int ny, int nz,
 
     //std::cout << "data 1 2 3 4 " << data[i + j*nx + k*nx*ny] << " "<<data[i+1 + j*nx + k*nx*ny] << " " << data[i + j*nx + (k+1)*nx*ny]<< " " << data[i +1 + j*nx + (k+1)*nx*ny]
     //    << std::endl;
-    
+
     //std::cout << "fxz0 fxz1 " << fx_z0 << " "<<fx_z1 << std::endl;
     double fxy_z0 = (data[i + (j+1)*nx + k*nx*ny]*(gridx[i+1]-x) + data[i +1 + (j+1)*nx + k*nx*ny]*(x-gridx[i]))/dx;
     double fxy_z1 = (data[i + (j+1)*nx + (k+1)*nx*ny]*(gridx[i+1]-x) + data[i +1 + (j+1)*nx + (k+1)*nx*ny]*(x-gridx[i]))/dx;
@@ -178,11 +184,12 @@ double interp3d ( double x, double y, double z,int nx,int ny, int nz,
     //std::cout << "fxz0 fxz1 " << fxz0 << " "<<fxz1 << std::endl;
 
     fxyz = (fxz0*(gridy[j+1] - y) + fxz1*(y-gridy[j]))/dy;
-    if(debug || INTERP_DEBUG_PRINT==1)
-      printf("fx_z0 %.15e fx_z1 %.15e fxy_z0 %.15e fxy_z1 %.15e fxz0 %.15e fxz1 %.15e fxyz %.15e\n",
-          fx_z0,fx_z1,fxy_z0,fxy_z1,fxz0,fxz1, fxyz);
     if(ny <=1) fxyz=fxz0;
     if(nz <=1) fxyz=fx_z0;
+#if INTERP_DEBUG_PRINT > 0
+      printf("fx_z0 %.15e fx_z1 %.15e fxy_z0 %.15e fxy_z1 %.15e fxz0 %.15e fxz1 %.15e fxyz %.15e\n",
+          fx_z0,fx_z1,fxy_z0,fxy_z1,fxz0,fxz1, fxyz);
+#endif
     //std::cout <<"fxyz " << fxyz << std::endl;
     return fxyz;
 }
@@ -203,7 +210,7 @@ double* gridx,double* gridz,double* datar, double* dataz, double* datat ) {
    double At = interp2dCombined(x,y,z,nx,nz,gridx,gridz, datat);
    field[2] = interp2dCombined(x,y,z,nx,nz,gridx,gridz, dataz);
 #if USECYLSYMM > 0
-            double theta = std::atan2(y,x);   
+            double theta = std::atan2(y,x);
             field[0] = std::cos(theta)*Ar - std::sin(theta)*At;
             field[1] = std::sin(theta)*Ar + std::cos(theta)*At;
 #else
@@ -228,7 +235,7 @@ int nxB, int nzB, double* gridxB,double* gridzB,double* datarB,double* datazB, d
    B_unit[1] = B[1]/Bmag;
    B_unit[2] = B[2]/Bmag;
    //std::cout << " Ar and Bunit " << Ar << " " << B_unit[0] << " " <<
-   //             " " << B_unit[1] << " " << B_unit[2] << std::endl; 
+   //             " " << B_unit[1] << " " << B_unit[2] << std::endl;
    field[0] = Ar*B_unit[0];
    field[1] = Ar*B_unit[1];
    field[2] = Ar*B_unit[2];
@@ -249,7 +256,7 @@ double interp1dUnstructured(double samplePoint,int nx, double max_x, double* dat
             {
                 done = 1;
                 low_index = i-1;
-            }   
+            }
         }
     }
 
@@ -280,7 +287,7 @@ double interp1dUnstructured(double samplePoint,int nx, double max_x, double* dat
         lowInd = nx-1;
         //interpolated_value = samplePoint*data[0];
           interpolated_value = max_x;
-        
+
     }
     return interpolated_value;
 }
@@ -299,11 +306,11 @@ double interp1dUnstructured2(double samplePoint,int nx, double *xdata, double* d
             {
                 done = 1;
                 low_index = i-1;
-            }   
+            }
         }
     }
     //std::cout << " sample point low_index " << samplePoint<< " " << low_index << std::endl;
-    interpolated_value =    xdata[low_index]  
+    interpolated_value =    xdata[low_index]
         + (samplePoint - data[low_index])*(xdata[low_index + 1] - xdata[low_index])/(data[low_index+1]- data[low_index]);
     //std::cout << " xdatas " << xdata[low_index] << " " << xdata[low_index+1] << std::endl;
     return interpolated_value;
@@ -318,10 +325,10 @@ double interp2dUnstructured(double x,double y,int nx,int ny, double *xgrid,doubl
     double xDiffDown = 0.0;
     int yInd = 0;
     double dx;
-    double yLowValue; 
+    double yLowValue;
     double yHighValue;
     double yDiffUp;
-    double yDiffDown; 
+    double yDiffDown;
     double dy;
     double fxy=0.0;
     double factor = 1.0;
@@ -362,14 +369,14 @@ double interp2dUnstructured(double x,double y,int nx,int ny, double *xgrid,doubl
     {
         factor = 0.0;
     }
-   
+
     //std::cout << "x vals " << xgrid[xInd] << " " << xgrid[xInd+1];
     //std::cout << "y vals " << ygrid[yInd] << " " << ygrid[yInd+1];
     xDiffUp = xgrid[xInd+1] - x;
     xDiffDown = x-xgrid[xInd];
     dx = xgrid[xInd+1]-xgrid[xInd];
     //std::cout << "dx, data vals " << dx << " " << data[xInd + yInd*nx] << " " <<
-                 //data[xInd+1 + yInd*nx] << " " << data[xInd + (yInd+1)*nx] << " " << 
+                 //data[xInd+1 + yInd*nx] << " " << data[xInd + (yInd+1)*nx] << " " <<
                  //data[xInd+1 + (yInd+1)*nx] << std::endl;
     yLowValue = (xDiffUp*data[xInd + yInd*nx] + xDiffDown*data[xInd+1 + yInd*nx])/dx;
     yHighValue = (xDiffUp*data[xInd + (yInd+1)*nx] + xDiffDown*data[xInd+1 + (yInd+1)*nx])/dx;

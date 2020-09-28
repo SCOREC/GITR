@@ -345,12 +345,14 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
        //cout << "closest boundaries to check " << i << endl;
 #endif
 #else
+      int in=-1;
       for (int i=0; i<nLines; i++)
       {
 #endif
     //cout << "Z and index " << boundaryVector[i].Z << " " << i << endl;
     if (boundaryVector[i].Z != 0.0)
     {
+      ++in;
     //cout << "Z and index " << boundaryVector[i].Z << " " << i << endl;
     a = boundaryVector[i].a;
     b = boundaryVector[i].b;
@@ -369,8 +371,10 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
     vectorAssign(p0[0] - pointToPlaneDistance0 * normalVector[0],
                  p0[1] - pointToPlaneDistance0 * normalVector[1],
                  p0[2] - pointToPlaneDistance0 * normalVector[2], p);
+   // printf("i %d ind %d abcd %g %g %g %g norm %g pt2planeDist %g normalVector %g %g %g  p %g %g %g \n", 
+   // i, in, a,b,c,d,plane_norm, pointToPlaneDistance0, normalVector[0], normalVector[1], normalVector[2], p[0],p[1],p[2]);
 
-    vectorAssign(boundaryVector[i].x1, boundaryVector[i].y1,
+   vectorAssign(boundaryVector[i].x1, boundaryVector[i].y1,
                  boundaryVector[i].z1, A);
     vectorAssign(boundaryVector[i].x2, boundaryVector[i].y2,
                  boundaryVector[i].z2, B);
@@ -445,17 +449,18 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
              normals[12] = p0AB[0]/p0ABdist;
              normals[13] = p0AB[1]/p0ABdist;
              normals[14] = p0AB[2]/p0ABdist;
-           #if DEBUG_PRINT > 1 
-             printf("d2bdryDebug: ptcl %d timestep %d ind %d (tAB > 0.0) && (tAB < normAB) distances[4] %g\n", 
-               ptcl, tstep, i, distances[4]);
+           #if DEBUG_PRINT > 2
+             printf("d2bdry: ptcl %d timestep %d i %d in %d (tAB > 0.0) && (tAB < normAB) distances[4] %g\n", 
+               ptcl, tstep, i, in, distances[4]);
             #endif
          }
          else
          {
              p0ABdist = 1e12;
              distances[4] = p0ABdist;   
-           #if DEBUG_PRINT > 1
-             printf("d2bdryDebug: ptcl %d timestep %d  ind %d p0ABdist distances[4] %g\n", ptcl, tstep, i, distances[4]);
+           #if DEBUG_PRINT > 2
+             printf("d2bdry: ptcl %d timestep %d i %d in %d p0ABdist distances[4] %g\n",
+                    ptcl, tstep, i, in, distances[4]);
            #endif
          } 
          
@@ -471,17 +476,20 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
              normals[16] = p0BC[1]/p0BCdist;
              normals[17] = p0BC[2]/p0BCdist;
              
-           #if DEBUG_PRINT > 1
-             printf("d2bdryDebug: ptcl %d timestep %d  ind %d (tBC > 0.0) && (tBC < normBC) distances[5] %g\n", 
-               ptcl, tstep, i, distances[5]);
+           #if DEBUG_PRINT > 2
+             printf("d2bdry: ptcl %d timestep %d  i %d in %d (tBC > 0.0) && (tBC < normBC) distances[5] %g\n", 
+               ptcl, tstep, i, in, distances[5]);
+             printf("d2bdry: ptcl %d tstep %d i %d in %d tBC %g ABhat %g %g %g projP0BC %g %g %g p0BC %g %g %g \n",
+              ptcl, tstep, i, in, tBC, ABhat[0], ABhat[1], ABhat[2], projP0BC[0],projP0BC[1], projP0BC[2], p0BC[0], p0BC[1], p0BC[2]);
            #endif
          }
          else
          {
              p0BCdist = 1e12;
              distances[5] = p0BCdist;   
-           #if DEBUG_PRINT > 1
-             printf("d2bdryDebug: ptcl %d timestep %d ind %d p0BCdist distances[5] %g\n", ptcl, tstep, i, distances[5]);
+           #if DEBUG_PRINT > 2
+            printf("d2bdry: ptcl %d timestep %d i %d in  %d p0BCdist distances[5] %g\n",
+                 ptcl, tstep, i, in, distances[5]);
            #endif
          } 
          
@@ -498,9 +506,9 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
              normals[20] = p0CA[2]/p0CAdist;
              //cout << "p0CA " << p0CA[0] << " " << p0CA[1] << " " << p0CA[2] << endl; 
          
-            #if  DEBUG_PRINT > 1
-             printf("d2bdryDebug: ptcl %d timestep %d ind %d (tCA > 0.0) && (tCA < normCA)  distances[6] %g\n", 
-                 ptcl, tstep, i, distances[6]);
+            #if  DEBUG_PRINT > 2
+              printf("d2bdryDebug: ptcl %d timestep %d  i %d in %d (tCA > 0.0) && (tCA < normCA)  distances[6] %g\n", 
+                 ptcl, tstep, i, in, distances[6]);
             #endif
          }
          else
@@ -508,8 +516,8 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
              p0CAdist = 1e12;
              distances[6] = p0CAdist;  
 
-            #if  DEBUG_PRINT > 1
-             printf("d2bdryDebug: ptcl %d timestep %d ind %d distances[6] %g\n", ptcl, tstep, i, distances[6]);
+            #if  DEBUG_PRINT > 2
+             printf("d2bdryDebug: ptcl %d timestep %d i %d in %d distances[6] %g\n", ptcl, tstep, i, in, distances[6]);
             #endif 
          } 
 
@@ -534,8 +542,8 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
              normals[2] = normalVector[2];
              //}
 
-          #if  DEBUG_PRINT > 1
-             printf("d2bdryDebug: ptcl %d timestep %d ind %d signs3  distances[0] %g\n", ptcl, tstep, i, distances[0]);
+          #if  DEBUG_PRINT > 2
+             printf("d2bdryDebug: ptcl %d timestep %d i %d in %d signs3  distances[0] %g\n", ptcl, tstep, i,in, distances[0]);
           #endif
          }
          else
@@ -543,8 +551,8 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
              perpDist = 1e12;
              distances[0] = perpDist;  
 
-            #if  DEBUG_PRINT > 1
-             printf("d2bdryDebug: ptcl %d timestep %d  ind %d reset distances[0] %g\n", ptcl, tstep, i, perpDist);
+            #if  DEBUG_PRINT > 2
+             printf("d2bdryDebug: ptcl %d timestep %d  i %d in %d reset distances[0] %g\n", ptcl, tstep, i,in, perpDist);
             #endif 
 
          }
@@ -567,18 +575,24 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
           minIndex = i;
          }
 
-          #if  DEBUG_PRINT > 1 
-           printf("d2bdryDebug: ptcl %d timestep %d  ind %d minDistance %g minIndex %d \n", 
+         #if  DEBUG_PRINT > 1
+          printf("d2bdry: ptcl %d tstep %d minDistance %.15f i %d minIndex %d \n", 
                ptcl, tstep, i, minDistance, minIndex);
+           double A1[3]={0}, B1[3]={0}, C1[3]={0};
+           A1[0] = boundaryVector[i].x1; A1[1]=boundaryVector[i].y1;A1[2]= boundaryVector[i].z1;
+           B1[0] = boundaryVector[i].x2; B1[1]=boundaryVector[i].y2;B1[2]= boundaryVector[i].z2;
+           C1[0] = boundaryVector[i].x3; C1[1]=boundaryVector[i].y3;C1[2]= boundaryVector[i].z3;
+           for(int j=0; j<3; ++j)
+             printf("d2bdry: ptcl %d  face %g %g %g : %g %g %g : %g %g %g pt %g %g %g \n",
+               ptcl, A1[0], A1[1], A1[2],  B1[0], B1[1], B1[2], C1[0] ,C1[1], C1[2]);
           #endif 
          //cout << "perp dist " << perpDist << endl;
          //cout << "point to AB BC CA " << p0ABdist << " " << p0BCdist << " " << p0CAdist << endl;
         } //materialZ
        } //nLines
 
+
        #if  DEBUG_PRINT > 0
-       if(detail) {
-         double A[3]={0}, B[3]={0}, C[3]={0};
          int i = minIndex;
          A[0] = boundaryVector[i].x1; A[1]=boundaryVector[i].y1;A[2]= boundaryVector[i].z1;
          B[0] = boundaryVector[i].x2; B[1]=boundaryVector[i].y2;B[2]= boundaryVector[i].z2;
@@ -588,12 +602,16 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
          int allPositive = 0;
          if(bcc[0] >= 0 && bcc[1] >=0 && bcc[2] >= 0 && bcc[3] >= 0)
            allPositive = 1;
-         
-         if(allPositive) 
-           printf("d2bdryDebug: ptcl %d timestep %d point %.15e %.15e %.15e "
-             "in minIndex-face %d : CHECK-BOUNDARY %d \n", 
-             ptcl, tstep, p[0], p[1], p[2],  minIndex, allPositive );
-       }
+         double point[3] = {0};
+         for(int i=0; i<3; ++i)
+           point[i] = p0[i] - minDistance*directionUnitVector[i]; 
+           //if(allPositive) 
+         printf("\nd2bdrycalc: ptcl %d minDist %.15f  faceId %d p0 %.15f %.15f %.15f"
+             "  point %.15f %.15f %.15f  contain %d dirunitVec %.15f %.15f %.15f\n"
+             " face %g %g %g : %g %g %g : %g %g %g\n",
+             ptcl, minDistance, minIndex, p0[0], p0[1], p0[2], point[0], point[1], point[2], allPositive,
+           directionUnitVector[0], directionUnitVector[1], directionUnitVector[2],
+            A[0], A[1], A[2],B[0], B[1], B[2], C[0] ,C[1], C[2]);
        #endif
       //vectorScalarMult(-1.0,directionUnitVector,directionUnitVector);
       //cout << "min dist " << minDistance << endl;
@@ -805,8 +823,11 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
 #endif
 #endif
 
-#if  DEBUG_PRINT > 0
-   if(detail > 0 && ptcl>=0) {
+#if  DEBUG_PRINT > 2
+   printf("ptcl %d, tstep %d minInd %d angle %g, pot %g, DL %g LR %g \n", ptcl,tstep, minIndex ,
+    boundaryVector[minIndex].angle, boundaryVector[minIndex].potential,
+    boundaryVector[minIndex].debyeLength,boundaryVector[minIndex].larmorRadius);
+   if(true || (detail > 0 && ptcl>=0)) {
      double pt[3]={0}, ptq[3]={0};
      pt[0]= x0; pt[1] = y; pt[2] = z;
      double A[3], B[3], C[3];
@@ -817,7 +838,8 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
      //numBdr=1;
      for(int i=0; i<numBdr; ++i){
        //int i = minIndex;
-       
+       if(boundaryVector[i].Z <= 0)
+         continue; 
        A[0] = boundaryVector[i].x1; A[1]=boundaryVector[i].y1;A[2]= boundaryVector[i].z1;
        B[0] = boundaryVector[i].x2; B[1]=boundaryVector[i].y2;B[2]= boundaryVector[i].z2;
        C[0] = boundaryVector[i].x3; C[1]=boundaryVector[i].y3;C[2]= boundaryVector[i].z3;
@@ -836,20 +858,36 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
      }
 
      double pott = boundaryVector[minI].potential;
+#if BIASED_SURFACE > 0
      double Efmag = pott/(2.0*boundaryVector[minI].ChildLangmuirDist)*
            exp(-minD/(2.0*boundaryVector[minI].ChildLangmuirDist));
+#else
+     double a = boundaryVector[minI].angle;    
+     double f  =  0.98992 + 5.1220E-03 * a  -
+             7.0040E-04  * pow(a,2.0) +
+             3.3591E-05  * pow(a,3.0) -
+             8.2917E-07  * pow(a,4.0) +
+             9.5856E-09  * pow(a,5.0) -
+             4.2682E-11  * pow(a,6.0);
+
+      double dl = boundaryVector[minI].debyeLength;
+      double lr = boundaryVector[minI].larmorRadius;
+      double  Efmag = pott*(f/(2.0 * dl)*exp(-minD/(2.0 * dl))+ (1.0 - f)/(lr)*exp(-minD/lr) );
+#endif
      double Ef[3]={0};
      double dirVec[3]={0}, diffV[3]={0}, vN[3]={0};
      vectorSubtract(pt, minq, diffV);
      vectorNormalize(diffV, vN);
      vectorScalarMult(Efmag, vN, Ef);
-     printf("calcE: ptcl %d pot %.15e CLD %.15e mindist %.15e minIndex %d Emag %.15e dirV %.15e %.15e %.15e" 
-        " pos %.15e %.15e %.15e closest_test %.15e %.15e %.15e : mindist_test %.15e minInd_test %d " 
-        "testFace: %g %g %g : %g %g %g : %g %g %g Efmag %.15e Ef: %.15e %.15e %.15e\n",
-        ptcl, pot, boundaryVector[minIndex].ChildLangmuirDist, minDistance, minIndex,
-        Emag, directionUnitVector[0], directionUnitVector[1] , directionUnitVector[2], 
-        pt[0], pt[1], pt[2], minq[0], minq[1], minq[2], minD, minI, minA[0],minA[1],minA[2],minB[0],minB[1],minB[2],
-        minC[0], minC[1],minC[2], Efmag, Ef[0], Ef[1], Ef[2]);
+     printf("calcE: ptcl %d tstep %d pot %.15e CLD %.15e mindist %.15e minIndex %d Emag %.15e dirV %.15e %.15e %.15e \n",
+        ptcl, tstep, pot, boundaryVector[minIndex].ChildLangmuirDist, minDistance, minIndex,Emag,
+        directionUnitVector[0], directionUnitVector[1] , directionUnitVector[2]);
+    printf("calcE: ptcl %d tstep %d pos %.15e %.15e %.15e closest_test %.15e %.15e %.15e\n",
+       ptcl, tstep,pt[0], pt[1], pt[2], minq[0], minq[1], minq[2]);
+    printf("calcE: ptcl %d tstep %d testFace: %g %g %g : %g %g %g : %g %g %g\n",
+        ptcl, tstep, minA[0],minA[1],minA[2],minB[0],minB[1],minB[2], minC[0], minC[1],minC[2]);
+    printf("calcE: ptcl %d tstep %d mindist_test %.15e minInd_test %d Efmag %.15e Ef: %.15e %.15e %.15e \n", 
+        ptcl,tstep,minD, minI,Efmag, Ef[0], Ef[1], Ef[2]);
    } //debug print
 #endif
 
@@ -972,7 +1010,7 @@ void operator()(size_t indx) {
 #endif
  
 
-  int tstep = particlesPointer->tt[indx]-1;
+  int tstep = particlesPointer->tt[indx];
   int ptcl = particlesPointer->index[indx];
   int selectThis = 1;
   if(select)
@@ -1024,17 +1062,16 @@ void operator()(size_t indx) {
 #endif
 #endif
 
-   #if  DEBUG_PRINT > 0
-    if(selectThis){
+   #if  DEBUG_PRINT > 1
+   i// if(selectThis){
       int nthStep = particlesPointer->tt[indx];
       float qc = particlesPointer->charge[indx];
       auto minIndex = bdryMinIndex; 
       auto CLD = boundaryVector[minIndex].ChildLangmuirDist;
       auto te = boundaryVector[minIndex].te;
       auto ne = boundaryVector[minIndex].ne;
-      printf("\nBoris1 ptcl %d timestep %d charge %f ne %.15e te %.15e \n",
+      printf("Boris1 ptcl %d timestep %d charge %f ne %.15e te %.15e \n",
         ptcl, nthStep-1, qc, ne, te);
-    }
     #endif            
 
     interp2dVector(&B[0],position[0], position[1], position[2],nR_Bfield,nZ_Bfield,
@@ -1069,8 +1106,7 @@ auto v3_ = v[2];
    //v = v + q_prime*E
     vectorAdd(v,qpE,v);
 
-   #if  DEBUG_PRINT > 0
-    if(selectThis > 0)
+   #if  DEBUG_PRINT > 1
       printf("Boris2 ptcl %d timestep %d eField %.15e %.15e %.15e bField %.15e %.15e %.15e \n"
         "  ... qPrime %.15e coeff %.15e qpE %.15e %.15e %.15e vmxB %.15e %.15e %.15e " 
         "qp_vmxB %.15e %.15e %.15e  v_prime %.15e %.15e %.15e vpxB %.15e %.15e %.15e "
@@ -1094,7 +1130,7 @@ auto v3_ = v[2];
       
      #if  DEBUG_PRINT > 0
       if(selectThis > 0)
-        printf("Boris3  ptcl %d pos %.15e %.15e %.15e => %.15e %.15e %.15e " 
+        printf("Boris3  ptcl %d pos %.15f %.15f %.15f => %.15f %.15f %.15f " 
             "vel %.15e %.15e %.15e => %.15e %.15e %.15e B %.15e %.15e %.15e\n", 
             particlesPointer->index[indx],position[0], position[1], position[2],
             particlesPointer->x[indx], particlesPointer->y[indx], 

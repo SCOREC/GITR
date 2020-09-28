@@ -99,8 +99,10 @@ double interpRateCoeff2d ( int charge, double x, double y, double z,int nx, int 
     double RClocal = rateCoeffInterp(charge,tlocal,nlocal,nT_Rates,nD_Rates,rateGrid_Temp, rateGrid_Dens, Rates);
     double tion = 1/(RClocal*nlocal);
     if(tlocal == 0.0 || nlocal == 0.0) tion=1.0e12;
-   if(RATE_DEBUG_PRINT==1)
+   if(RATE_DEBUG_PRINT==1) {
+      printf("interpRateCoeff2d: x %.15f y %.15f z %.15f nx %d nz %d\n",x,y,z,nx,nz);
       printf("interpRateCoeff2d:tlocal %g nlocal %g RClocal %g charge %d \n", tlocal, nlocal, RClocal, charge);
+   }
     //cout << "Returning " << endl;
     if(t_at !=nullptr && n_at!=nullptr) { *t_at = tlocal; *n_at=nlocal;}
 

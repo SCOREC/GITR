@@ -687,11 +687,12 @@ int read_profileNs( string fileName, string nxName, string nzName,int &n_x,int &
     }
 
     NcFile nc(fileName.c_str(), NcFile::read);
-
     NcDim nc_nx(nc.getDim(nxName));
+    std::cout << "reading nc_nx " << nxName << " " << nzName << "\n";
     NcDim nc_nz(nc.getDim(nzName));
     
     n_x = nc_nx.getSize(); 
+    std::cout << "reading  " << n_x << "\n";
     n_z = nc_nz.getSize(); 
 
     nc.close();

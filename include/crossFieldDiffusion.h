@@ -309,7 +309,9 @@ if( abs(denom) < 1.0e-8)
 		{
 			perpVector[2] = 0;
 		}
-		
+   #if DEBUG_PRINT > 0
+                printf("Diff: ptcl %d perpVect %.15f %0.15f %0.15f\n", indx,perpVector[0],perpVector[1],perpVector[2]);
+   #endif        
 		norm =  sqrt(perpVector[0]*perpVector[0] + perpVector[1]*perpVector[1] + perpVector[2]*perpVector[2]);
 		perpVector[0] = perpVector[0]/norm;
 		perpVector[1] = perpVector[1]/norm;
@@ -323,6 +325,15 @@ if( abs(denom) < 1.0e-8)
 		particlesPointer->x[indx] = particlesPointer->xprevious[indx] + step*perpVector[0];
 		particlesPointer->y[indx] = particlesPointer->yprevious[indx] + step*perpVector[1];
 		particlesPointer->z[indx] = particlesPointer->zprevious[indx] + step*perpVector[2];
+    #if DEBUG_PRINT > 0
+                printf("Diff: ptcl %d pos %.15f %.15f %.15f => %.15f %.15f %.15f\n",
+                   indx, particlesPointer->xprevious[indx], particlesPointer->yprevious[indx],
+                   particlesPointer->zprevious[indx], particlesPointer->x[indx], 
+                   particlesPointer->y[indx], particlesPointer->z[indx] );
+                printf("Diff: ptcl %d perpVector-norm  %.15f %0.15f %0.15f phi_rnd %.15f\n", indx,
+                    perpVector[0],perpVector[1],perpVector[2], phi_random);
+                printf("Diff: ptcl %d cft %.15f step %.15f r3 %g\n", indx, diffusionCoefficient, step, r3);
+      #endif
 #if USEPERPDIFFUSION > 1    
 }
 else

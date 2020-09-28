@@ -99,6 +99,10 @@ struct ionize {
     double P = exp(-dt/tion);
     //particlesPointer->PionizationPrevious[indx] = PiP*P;
     double P1 = 1.0-P;
+  #if  DEBUG_PRINT > 0
+    printf("ioni0: ptcl %d  chargeIn %d rate-tion %.15e temp %.15e den %.15e P1 %.15e\n", 
+              indx, particlesPointer->charge[indx], tion, t_at, n_at,  P1 );
+  #endif
     int selectThis = 1;
     if(select)
       selectThis = particlesPointer->storeRnd[indx];
@@ -160,17 +164,6 @@ struct ionize {
           rndSelectPids[pind] = indx;
       }
 
-    #if  DEBUG_PRINT > 0 
-      if(selectThis >0) {
-        auto xx=particlesPointer->x[indx];
-        auto yy=particlesPointer->y[indx];
-        auto zz=particlesPointer->z[indx];
-          printf("ioni: ptcl %d timestep %d rate %.15e temp %.15e den %.15e ionirand %.15e P1 %.15e " 
-              "pos %.15e %.15e %.15e r1 %.15e r1@ %d \n", 
-              pindex, nthStep, tion, t_at, n_at, r1, P1, xx, yy, zz, r1, beg+idof);
-      }
-    #endif
-      
       if(r1 <= P1)
       {
 		  particlesPointer->charge[indx] = particlesPointer->charge[indx]+1;}
@@ -180,6 +173,17 @@ struct ionize {
        {
            particlesPointer->firstIonizationZ[indx] = particlesPointer->z[indx];
        }
+        #if  DEBUG_PRINT > 0 
+          if(selectThis >0) {
+            auto xx=particlesPointer->x[indx];
+            auto yy=particlesPointer->y[indx];
+            auto zz=particlesPointer->z[indx];
+              printf("ioni: ptcl %d timestep %d  charge %d rate %.15e temp %.15e den %.15e ionirand %g P1 %g " 
+                  "pos %.15e %.15e %.15e r1 %.15e\n", 
+                  pindex, nthStep, particlesPointer->charge[indx], tion, t_at, n_at, r1, P1, xx, yy, zz, r1);
+          }
+        #endif
+      
 	    }
         else
         {

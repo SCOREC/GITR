@@ -70,8 +70,6 @@
 
 int subFactor = 10;
 
-const int seedplus = 0;
-
 int main(int argc, char **argv, char **envp) {
   typedef std::chrono::high_resolution_clock gitr_time;
   auto gitr_start_clock = gitr_time::now();
@@ -1925,6 +1923,48 @@ print_gpu_memory_usage(world_rank);
   std::cout << "thermal gradient interpolation gradTi " << gradTi[0] << " "
             << gradTi[1] << " " << gradTi[2] << " " << std::endl;
 
+
+  double testPos[] = {5.550225966438726e+00, 1.533906129937898e-01, -4.264820145853928e+00,
+    5.550581591354182e+00, 1.371798759973581e-01, -4.267751482596381e+00,
+    5.550306384351277e+00, 1.498277419147155e-01, -4.278624170152446e+00, 
+    5.550693533062613e+00, 1.320127673983252e-01, -4.260451083854907e+00,
+    5.550174801340765e+00, 1.557679360980612e-01, -4.270149158760336e+00,
+    5.550148024998785e+00, 1.569072193129111e-01, -4.259546108162938e+00,
+    5.550294731203221e+00, 1.502513245839611e-01, -4.264782960889812e+00,
+    5.550218386832865e+00, 1.537458429685603e-01, -4.265999535414590e+00,
+    5.550670054141042e+00, 1.331152228293346e-01, -4.264370010167928e+00,
+    5.550305646737221e+00, 1.497514716125540e-01, -4.264581536112335e+00 };
+  bool flowVelInterpTest = false;
+  if(flowVelInterpTest) {
+    printf("interp2dVector flowVel test nR %d nZ %d grid %g %g  : flowVel0 %g %g %g  \n",
+      nR_flowV, nZ_flowV, flowVGridr[0], flowVGridz[0], flowVr[0], flowVz[0], flowVt[0] );
+    constexpr int np = 10;
+     for(int i=0; i<np; ++i) {
+       double x = testPos[i*3+0];
+       double y = testPos[i*3+1];
+       double z = testPos[i*3+2];
+       double v[3] = {0.0, 0.0, 0.0};
+       interp2dVector(&v[0], x, y, z, nR_flowV, nZ_flowV, flowVGridr.data(),
+         flowVGridz.data(), flowVr.data(), flowVz.data(),  flowVt.data());
+       printf(" xyz %.15f %.15f %.15f flowVel %.15f %.15f  %.15f \n", x,y,z, v[0],v[1],v[2]);
+     }
+  }
+  bool bFieldInterTest = false;
+  if(bFieldInterTest) {
+    constexpr int np = 10;
+    printf("interp2dVector BField test nR %d nZ %d grid %g %g  : bField0 %g %g %g  \n",
+     nR_Bfield, nZ_Bfield, bfieldGridr[0], bfieldGridz[0], br[0], bz[0], by[0] );
+     for(int i=0; i<np; ++i) {
+       double x = testPos[i*3+0];
+       double y = testPos[i*3+1];
+       double z = testPos[i*3+2];
+       double v[3] = {0.0, 0.0, 0.0};
+       interp2dVector(&v[0], x, y, z, nR_Bfield, nZ_Bfield, bfieldGridr.data(),
+         bfieldGridz.data(), br.data(), bz.data(),  by.data());
+       printf(" xyz %.15f %.15f %.15f BField %.15f %.15f  %.15f \n", x,y,z, v[0],v[1],v[2]);
+     }
+  }
+
   bool interp2dVectorTest = false;
   if(interp2dVectorTest) {
     constexpr int np = 16;
@@ -2081,6 +2121,16 @@ print_gpu_memory_usage(world_rank);
                               te.data(), biasPotential));
 
   std::cout << "Completed Boundary Init " << std::endl;
+
+  if(false) {
+    int bn = 2052;
+    printf("FID %d mid %.15f %.15f %.15f\n", bn, boundaries[bn].midx, boundaries[bn].midy, boundaries[bn].midz);
+    printf(" FID %d face %g %g %g : %g %g %g : %g %g %g \n", bn, boundaries[bn].x1, boundaries[bn].y1, boundaries[bn].z1,
+        boundaries[bn].x2, boundaries[bn].y2, boundaries[bn].z2, boundaries[bn].x3, boundaries[bn].y3, boundaries[bn].z3);
+    printf("FID %d density %g ne %g te %g ti %g \n", bn, boundaries[bn].density, boundaries[bn].ne, boundaries[bn].te, boundaries[bn].ti);
+    printf("FID %d DL %g angle %g LR %g pot %g flux %g\n", boundaries[bn].debyeLength,
+        boundaries[bn].angle, boundaries[bn].larmorRadius, boundaries[bn].potential, boundaries[bn].flux);
+  }
 
   // Efield
   int nR_PreSheathEfield = 1;
@@ -2343,6 +2393,7 @@ print_gpu_memory_usage(world_rank);
       cfg.lookup("backgroundPlasmaProfiles.dtsEfield.fileString"),
       cfg.lookup("backgroundPlasmaProfiles.dtsEfield.sheathDTS"), dtsE);
 #elif EFIELD_INTERP == 2
+  std::cout << " EFIELD_INTERP == 2 \n";
   int nR_dtsEfield, nZ_dtsEfield;
 
   int d1 = read_profileNs(
@@ -2350,7 +2401,7 @@ print_gpu_memory_usage(world_rank);
       cfg.lookup("backgroundPlasmaProfiles.dtsEfield.gridNrString"),
       cfg.lookup("backgroundPlasmaProfiles.dtsEfield.gridNzString"),
       nR_dtsEfield, nZ_dtsEfield);
-
+std::cout << " EFIELD_INTERP read profileNs " << nR_dtsEfield << " " << nZ_dtsEfield << "\n";
   sim::Array<double> dtsEfieldGridr(nR_dtsEfield), dtsEfieldGridz(nZ_dtsEfield);
   sim::Array<double> dtsE(nR_dtsEfield * nZ_dtsEfield);
 
@@ -2367,6 +2418,7 @@ print_gpu_memory_usage(world_rank);
   int d4 = read_profile2d(
       cfg.lookup("backgroundPlasmaProfiles.dtsEfield.fileString"),
       cfg.lookup("backgroundPlasmaProfiles.dtsEfield.sheathDTS"), dtsE);
+  std::cout << " EFIELD_INTERP read dtsEfieldGridr dtsEfieldGridz dtsE \n";
 #endif
 #else
   int nR_dtsEfield = 1;
@@ -3909,11 +3961,11 @@ print_gpu_memory_usage(world_rank);
       particleArray, dt, &state1.front(), nR_flowV, nY_flowV, nZ_flowV,
       &flowVGridr.front(), &flowVGridy.front(), &flowVGridz.front(),
       &flowVr.front(), &flowVz.front(), &flowVt.front(), nR_Dens, nZ_Dens,
-      &DensGridr.front(), &DensGridz.front(), &ne.front(), nR_Temp, nZ_Temp,
+      &DensGridr.front(), &DensGridz.front(), &ne.front(), nR_Temp, nZ_Temp,  //TODO replace ne by ni ? confirm 
       &TempGridr.front(), &TempGridz.front(), ti.data(), &te.front(),
       background_Z, background_amu, nR_Bfield, nZ_Bfield, bfieldGridr.data(),
       &bfieldGridz.front(), &br.front(), &bz.front(), &by.front(),
-      &intermediate.front(), nT, idof, dof_intermediate, select);
+      &intermediate.front(), nT, idof, dof_intermediate);
 
 #endif
 #if USETHERMALFORCE > 0

@@ -85,14 +85,17 @@ void operator()(size_t indx)  {
        
        interp2dVector(&B[0],p->xprevious[indx],p->yprevious[indx],p->zprevious[indx],nR_Bfield,nZ_Bfield,
              BfieldGridRDevicePointer,BfieldGridZDevicePointer,BfieldRDevicePointer,BfieldZDevicePointer,BfieldTDevicePointer);    
+   #if DEBUG_PRINT > 0
+       printf("B %g %g %g GradTi %g %g %g GradTe %g %g %g\n", B[0],B[1],B[2], gradTi[0], gradTi[1], gradTi[2], gradTe[0], gradTe[1], gradTe[2]);
+   #endif
         Bmag = sqrt(B[0]*B[0] + B[1]*B[1]+ B[2]*B[2]);
         B_unit[0] = B[0]/Bmag;
         B_unit[1] = B[1]/Bmag;
         B_unit[2] = B[2]/Bmag;
 
-	dv_ETG[0] = 1.602e-19*dt/(p->amu[indx]*MI)*(alpha*(gradTe[0]));
-	dv_ETG[1] = 1.602e-19*dt/(p->amu[indx]*MI)*(alpha*(gradTe[1]));
-	dv_ETG[2] = 1.602e-19*dt/(p->amu[indx]*MI)*(alpha*(gradTe[2]));
+//	dv_ETG[0] = 1.602e-19*dt/(p->amu[indx]*MI)*(alpha*(gradTe[0]));
+//	dv_ETG[1] = 1.602e-19*dt/(p->amu[indx]*MI)*(alpha*(gradTe[1]));
+//	dv_ETG[2] = 1.602e-19*dt/(p->amu[indx]*MI)*(alpha*(gradTe[2]));
 
 	dv_ITG[0] = 1.602e-19*dt/(p->amu[indx]*MI)*(beta*(gradTi[0]))*B_unit[0];
 	dv_ITG[1] = 1.602e-19*dt/(p->amu[indx]*MI)*(beta*(gradTi[1]))*B_unit[1];
@@ -100,7 +103,6 @@ void operator()(size_t indx)  {
 	dv_ITGx = dv_ITG[0];
 	dv_ITGy = dv_ITG[1];
 	dv_ITGz = dv_ITG[2];
-
     //cout << "mu " << mu << endl;
     //cout << "alpha beta " << alpha << " " << beta << endl;
     //cout << "ITG " << dv_ITG[0] << " " << dv_ITG[1] << " " << dv_ITG[2] << endl;
@@ -119,7 +121,7 @@ void operator()(size_t indx)  {
     double vx = p->vx[indx];
     double vy = p->vy[indx];
     double vz = p->vz[indx];
-        vNorm = sqrt(vx*vx + vy*vy + vz*vz);
+ //       vNorm = sqrt(vx*vx + vy*vy + vz*vz);
     p->vD[indx] = dv_ITG[2];    
 	//cout << "gradTi Parallel " << gradTiPar << endl;
         //cout << "gradTi Parallel " << gradTi[0]<<gradTi[1]<<gradTi[2] << endl;
@@ -128,11 +130,14 @@ void operator()(size_t indx)  {
 	//p->vz[indx] = p->vz[indx] +dv_ITG[2];//alpha*(gradTe[2])		
         //vNorm2 = sqrt(p->vx[indx]*p->vx[indx] + p->vy[indx]*p->vy[indx] + p->vz[indx]*p->vz[indx]);
 		//SFT
-        double k1 = dv_ITG[2] - dt*p->nu_s[indx]
-                    *(dv_ITG[2]);
+    //    double k1 = dv_ITG[2] - dt*p->nu_s[indx]
+    //                *(dv_ITG[2]);
         p->vx[indx] = vx + dv_ITG[0];///velocityCollisionsNorm;   	
 		p->vy[indx] = vy + dv_ITG[1];///velocityCollisionsNorm;   	
 		p->vz[indx] = vz + dv_ITG[2];// - dt*p->nu_s[indx]
+   #if DEBUG_PRINT > 0
+        printf("dv_ITG %.15f %.15f %.15f vel %.15f %.15f %.15f \n", dv_ITG[0], dv_ITG[1], dv_ITG[2], p->vx[indx],  p->vy[indx], p->vz[indx]);
+   #endif
                          //*(0.5*k1);///velocityCollisionsNorm;   	
         //p.vx = p.vx + (dt/(p.amu*MI))*(  beta*(gradTi[0]));//alpha*(gradTe[0])
 		//p.vy = p.vy + (dt/(p.amu*MI))*(  beta*(gradTi[1]));//alpha*(gradTe[1])

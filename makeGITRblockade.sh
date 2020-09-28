@@ -8,7 +8,7 @@ libconfig=/lore/gopan/install/libconfig-1.7.2/install
 #-DCUDA_NVCC_FLAGS="-arch=sm_70" \
 
 cmake \
-   -DCUDA_NVCC_FLAGS="-arch=sm_61" \
+   -DCUDA_NVCC_FLAGS="-arch=sm_75" \
    -DLIBCONFIGPP_INCLUDE_DIR=$libconfig/include \
    -DLIBCONFIGPP_LIBRARY=$libconfig/lib/libconfig++.so \
    -DLIBCONFIGPP_LIBRARIES=$libconfig/lib/libconfig++.so \
