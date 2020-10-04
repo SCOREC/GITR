@@ -336,6 +336,7 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
       for (int k = hBegin; k < hEnd; ++k) {
         i = csrHashes[k]; //return index of boundaryVector 
 #else
+  int in=-1;
   for (int k=0; k< n_closeGeomElements; k++) //n_closeGeomElements
     {
        i = closeGeom[zInd*nY_closeGeom*nR_closeGeom*n_closeGeomElements 
