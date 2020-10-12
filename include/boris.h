@@ -594,18 +594,18 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
 
 
        #if  DEBUG_PRINT > 0
-         int i = minIndex;
-         A[0] = boundaryVector[i].x1; A[1]=boundaryVector[i].y1;A[2]= boundaryVector[i].z1;
-         B[0] = boundaryVector[i].x2; B[1]=boundaryVector[i].y2;B[2]= boundaryVector[i].z2;
-         C[0] = boundaryVector[i].x3; C[1]=boundaryVector[i].y3;C[2]= boundaryVector[i].z3;
+         int ii = minIndex;
+         A[0] = boundaryVector[ii].x1; A[1]=boundaryVector[ii].y1;A[2]= boundaryVector[ii].z1;
+         B[0] = boundaryVector[ii].x2; B[1]=boundaryVector[ii].y2;B[2]= boundaryVector[ii].z2;
+         C[0] = boundaryVector[ii].x3; C[1]=boundaryVector[ii].y3;C[2]= boundaryVector[ii].z3;
          double bcc[4];
          bccCoords(A, B, C, p, bcc);
          int allPositive = 0;
          if(bcc[0] >= 0 && bcc[1] >=0 && bcc[2] >= 0 && bcc[3] >= 0)
            allPositive = 1;
          double point[3] = {0};
-         for(int i=0; i<3; ++i)
-           point[i] = p0[i] - minDistance*directionUnitVector[i]; 
+         for(int j=0; j<3; ++j)
+           point[j] = p0[j] - minDistance*directionUnitVector[j]; 
            //if(allPositive) 
          printf("\nd2bdrycalc: ptcl %d minDist %.15f  faceId %d p0 %.15f %.15f %.15f"
              "  point %.15f %.15f %.15f  contain %d dirunitVec %.15f %.15f %.15f\n"
@@ -824,10 +824,13 @@ double getE ( double x0, double y, double z, double E[], Boundary *boundaryVecto
 #endif
 #endif
 
-#if  DEBUG_PRINT > 2
-   printf("ptcl %d, tstep %d minInd %d angle %g, pot %g, DL %g LR %g \n", ptcl,tstep, minIndex ,
+#if  DEBUG_PRINT > 0
+  printf("ptcl %d tstep %d E %g %g %g \n", ptcl,tstep, E[0], E[1], E[2]);
+  printf("ptcl %d, tstep %d minInd %d angle %g, pot %g, DL %g LR %g \n", ptcl,tstep, minIndex ,
     boundaryVector[minIndex].angle, boundaryVector[minIndex].potential,
     boundaryVector[minIndex].debyeLength,boundaryVector[minIndex].larmorRadius);
+#endif
+#if  DEBUG_PRINT > 2
    if(true || (detail > 0 && ptcl>=0)) {
      double pt[3]={0}, ptq[3]={0};
      pt[0]= x0; pt[1] = y; pt[2] = z;

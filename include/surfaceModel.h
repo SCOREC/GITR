@@ -526,9 +526,10 @@ void operator()(size_t indx) const {
                   storeId = true;
                   auto old = atomicAdd(&(surfaces->sputtDistribution[
                         surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd]),newWeight);
-                  if(debug)
+                  #if  DEBUG_PRINT > 0
                     printf("SPUTT  %g tot %g ind %d Ei %d Ai %d ptcl %d  t %d\n", newWeight, old+newWeight,
                       surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd, EdistInd, AdistInd, ptcl, tstep);
+                  #endif
             #else      
                   surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] = 
                     surfaces->sputtDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] +  newWeight;
@@ -653,7 +654,7 @@ void operator()(size_t indx) const {
 
            #if  DEBUG_PRINT > 0
              if(selectThis)
-                printf("SURF13 surface WeightStrike+ %.15e PtclStrike+1 n", weight );
+                printf("SURF13 surface WeightStrike+ %.15e PtclStrike+1 \n", weight );
            #endif
 	        if((EdistInd >= 0) && (EdistInd < nEdist) && 
                   (AdistInd >= 0) && (AdistInd < nAdist))
@@ -662,10 +663,10 @@ void operator()(size_t indx) const {
                   storeId = true;
                     auto old = atomicAdd(&(surfaces->energyDistribution[surfaceHit*nEdist*nAdist + 
                                                EdistInd*nAdist + AdistInd]), weight);
-
-                    if(debug)
+                    #if  DEBUG_PRINT > 0
                       printf("EDIST %g tot %g ind %d Ei %d Ai %d ptcl %d t %d\n", weight, old+weight, 
                           surfaceHit*nEdist*nAdist +EdistInd*nAdist + AdistInd, EdistInd, AdistInd, ptcl, tstep);
+                    #endif
 #else
 
                     surfaces->energyDistribution[surfaceHit*nEdist*nAdist + EdistInd*nAdist + AdistInd] = 

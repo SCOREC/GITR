@@ -86,7 +86,8 @@ void operator()(size_t indx)  {
        interp2dVector(&B[0],p->xprevious[indx],p->yprevious[indx],p->zprevious[indx],nR_Bfield,nZ_Bfield,
              BfieldGridRDevicePointer,BfieldGridZDevicePointer,BfieldRDevicePointer,BfieldZDevicePointer,BfieldTDevicePointer);    
    #if DEBUG_PRINT > 0
-       printf("B %g %g %g GradTi %g %g %g GradTe %g %g %g\n", B[0],B[1],B[2], gradTi[0], gradTi[1], gradTi[2], gradTe[0], gradTe[1], gradTe[2]);
+       printf("Thermalforce: B %g %g %g GradTi %g %g %g GradTe %g %g %g\n",
+           B[0],B[1],B[2], gradTi[0], gradTi[1], gradTi[2], gradTe[0], gradTe[1], gradTe[2]);
    #endif
         Bmag = sqrt(B[0]*B[0] + B[1]*B[1]+ B[2]*B[2]);
         B_unit[0] = B[0]/Bmag;
